@@ -36,3 +36,51 @@ export interface PublicRouteRecord {
   fecha: string;
   rbd: string;
 }
+
+export interface DirectorSchoolProfile {
+  rbd: string;
+  nombre: string;
+  comuna: string;
+  direccion: string;
+  director: string;
+  email: string;
+  latitud: number;
+  longitud: number;
+}
+
+export interface RoutePoint {
+  lat: number;
+  lng: number;
+}
+
+export interface RouteCalculationInput {
+  origen: RoutePoint;
+  destino: RoutePoint;
+}
+
+export interface RouteCalculationResult {
+  distancia_km: number;
+  duracion_minutos: number;
+  polyline: string;
+  resumen: string;
+}
+
+export interface TripDraftFormValues {
+  fecha: string;
+  hora_salida: string;
+  hora_regreso: string;
+  objetivo: string;
+  actividad: string;
+  lugar_query: string;
+  lugar_nombre: string;
+  lugar_direccion: string;
+  lugar_lat: string;
+  lugar_lng: string;
+  lugar_place_id: string;
+  lugar_comuna: string;
+  lugar_region: string;
+  distancia_km: string;
+  duracion_minutos: string;
+  ruta_polyline: string;
+  ruta_resumen: string;
+}

@@ -35,20 +35,54 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { supabase, response } = createClient(request);
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const { supabase, response } = createClient(request);
 
-  if (pathname === "/") {
+    if (!supabase) {
+      if (isPublicPath(pathname)) {
+        return response;
+      }
+
+      return NextResponse.redirect(new URL("/login?message=Configuracion%20de%20servidor%20incompleta", request.url));
+    }
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (pathname === "/") {
+      if (!user?.email) {
+        return NextResponse.redirect(new URL("/login", request.url));
+      }
+    }
+
+    if (isPublicPath(pathname)) {
+      if (!user?.email || pathname === "/acceso-denegado") {
+        return response;
+      }
+
+      const normalizedEmail = normalizeEmail(user.email);
+
+      const { data: whitelistUser } = await supabase
+        .from("whitelist_usuarios")
+        .select("rol, activo")
+        .eq("email", normalizedEmail)
+        .eq("activo", true)
+        .maybeSingle();
+
+      if (!whitelistUser) {
+        return NextResponse.redirect(new URL("/acceso-denegado", request.url));
+      }
+
+      if (pathname === "/login" || pathname === "/") {
+        return NextResponse.redirect(new URL(resolveHomeByRole(whitelistUser.rol as UserRole), request.url));
+      }
+
+      return response;
+    }
+
     if (!user?.email) {
       return NextResponse.redirect(new URL("/login", request.url));
-    }
-  }
-
-  if (isPublicPath(pathname)) {
-    if (!user?.email || pathname === "/acceso-denegado") {
-      return response;
     }
 
     const normalizedEmail = normalizeEmail(user.email);
@@ -64,43 +98,28 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/acceso-denegado", request.url));
     }
 
-    if (pathname === "/login" || pathname === "/") {
-      return NextResponse.redirect(new URL(resolveHomeByRole(whitelistUser.rol as UserRole), request.url));
+    const role = whitelistUser.rol as UserRole;
+    const isDirectorArea = DIRECTOR_PATHS.some((path) => pathname.startsWith(path));
+    const isAdminArea = ADMIN_PATHS.some((path) => pathname.startsWith(path));
+
+    if (isDirectorArea && role !== "director") {
+      return NextResponse.redirect(new URL(resolveHomeByRole(role), request.url));
+    }
+
+    if (isAdminArea && role !== "admin") {
+      return NextResponse.redirect(new URL(resolveHomeByRole(role), request.url));
     }
 
     return response;
+  } catch (error) {
+    console.error("Middleware invocation failed", error);
+
+    if (isPublicPath(pathname)) {
+      return NextResponse.next();
+    }
+
+    return NextResponse.redirect(new URL("/login?message=No%20se%20pudo%20verificar%20la%20sesion", request.url));
   }
-
-  if (!user?.email) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
-
-  const normalizedEmail = normalizeEmail(user.email);
-
-  const { data: whitelistUser } = await supabase
-    .from("whitelist_usuarios")
-    .select("rol, activo")
-    .eq("email", normalizedEmail)
-    .eq("activo", true)
-    .maybeSingle();
-
-  if (!whitelistUser) {
-    return NextResponse.redirect(new URL("/acceso-denegado", request.url));
-  }
-
-  const role = whitelistUser.rol as UserRole;
-  const isDirectorArea = DIRECTOR_PATHS.some((path) => pathname.startsWith(path));
-  const isAdminArea = ADMIN_PATHS.some((path) => pathname.startsWith(path));
-
-  if (isDirectorArea && role !== "director") {
-    return NextResponse.redirect(new URL(resolveHomeByRole(role), request.url));
-  }
-
-  if (isAdminArea && role !== "admin") {
-    return NextResponse.redirect(new URL(resolveHomeByRole(role), request.url));
-  }
-
-  return response;
 }
 
 export const config = {
