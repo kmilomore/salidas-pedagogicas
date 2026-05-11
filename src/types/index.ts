@@ -110,6 +110,18 @@ export interface TripStaffMember {
   cargo: string;
 }
 
+export interface PmeSubdimensionOption {
+  value: string;
+  label: string;
+}
+
+export interface PmeDimensionOption {
+  value: string;
+  label: string;
+  sourceDimension: string;
+  subdimensions: PmeSubdimensionOption[];
+}
+
 export interface SaveTripResponse {
   tripId: string | null;
   error: string | null;

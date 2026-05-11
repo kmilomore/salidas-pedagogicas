@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 
 import NuevaSalidaWizard from "@/components/nueva-salida/NuevaSalidaWizard";
+import { buildPmeDimensions } from "@/lib/pme/eid";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import type { DirectorSchoolProfile, SchoolOption, SchoolRecord, UserRole } from "@/types";
+import type { DirectorSchoolProfile, PmeDimensionOption, SchoolOption, SchoolRecord, UserRole } from "@/types";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -131,6 +132,17 @@ async function getAdminSchoolOptions() {
     );
 }
 
+async function getPmeDimensions(): Promise<PmeDimensionOption[]> {
+  const adminSupabase = createAdminClient();
+  const { data, error } = await adminSupabase.from("eid").select("dimension, sub_dimension").order("dimension", { ascending: true });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return buildPmeDimensions(data);
+}
+
 interface NewTripPageProps {
   searchParams?: {
     rbd?: string;
@@ -169,6 +181,7 @@ function AdminSchoolSelector({ schoolOptions, selectedRbd }: { schoolOptions: Sc
 
 export default async function NewTripPage({ searchParams }: NewTripPageProps) {
   const { whitelistUser, whitelistError } = await getDirectorSchoolProfile();
+  const pmeDimensions = await getPmeDimensions();
 
   if (whitelistError || !whitelistUser) {
     return (
@@ -253,5 +266,5 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
     );
   }
 
-  return <NuevaSalidaWizard schoolProfile={profile} viewerRole={role} schoolOptions={schoolOptions} />;
+  return <NuevaSalidaWizard schoolProfile={profile} viewerRole={role} schoolOptions={schoolOptions} pmeDimensions={pmeDimensions} />;
 }

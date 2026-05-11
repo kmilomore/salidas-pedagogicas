@@ -1,39 +1,30 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-let ratelimit: Ratelimit | null = null;
+const LIMIT_PER_HOUR = 10;
 
-function getRateLimitInstance() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+export async function limitTripCreation(supabase: SupabaseClient, userId: string) {
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const { count, error } = await supabase
+    .from("salidas_pedagogicas")
+    .select("id", { count: "exact", head: true })
+    .eq("director_id", userId)
+    .gte("created_at", oneHourAgo);
 
-  if (!url || !token) {
-    return null;
-  }
-
-  if (!ratelimit) {
-    ratelimit = new Ratelimit({
-      redis: new Redis({ url, token }),
-      limiter: Ratelimit.slidingWindow(10, "1 h"),
-      analytics: true,
-      prefix: "salidas-pedagogicas",
-    });
-  }
-
-  return ratelimit;
-}
-
-export async function limitTripCreation(userId: string) {
-  const limiter = getRateLimitInstance();
-
-  if (!limiter) {
+  if (error) {
     return {
       success: true,
-      limit: null,
-      reset: null,
+      limit: LIMIT_PER_HOUR,
       remaining: null,
+      reset: null,
     };
   }
 
-  return limiter.limit(`crear-salida:${userId}`);
+  const used = count ?? 0;
+
+  return {
+    success: used < LIMIT_PER_HOUR,
+    limit: LIMIT_PER_HOUR,
+    remaining: Math.max(LIMIT_PER_HOUR - used, 0),
+    reset: oneHourAgo,
+  };
 }

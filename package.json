@@ -14,13 +14,8 @@
     "@react-google-maps/api": "^2.20.8",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
-    "@types/dompurify": "^3.0.5",
     "@types/mapbox__polyline": "^1.0.5",
-    "@upstash/ratelimit": "^2.0.8",
-    "@upstash/redis": "^1.38.0",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.4.2",
-    "jsdom": "^29.1.1",
     "next": "^14.2.35",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -29,7 +24,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/jsdom": "^28.0.1",
     "@types/node": "^20",
     "@types/react": "^18.3.26",
     "@types/react-dom": "^18.3.7",

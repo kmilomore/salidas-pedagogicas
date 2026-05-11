@@ -1,13 +1,14 @@
 import { z } from "zod";
 
+import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText } from "@/lib/input-normalization";
+
 const rutPattern = /^\d{1,8}-[\dkK]$/;
 
-function normalizeRut(value: string) {
-  return value.replace(/\./g, "").trim();
-}
+export { formatRut } from "@/lib/input-normalization";
+export const normalizeRut = normalizeRutForStorage;
 
 export function isValidRut(value: string) {
-  const normalized = normalizeRut(value);
+  const normalized = normalizeRutForStorage(value);
 
   if (!rutPattern.test(normalized)) {
     return false;
@@ -34,35 +35,35 @@ export function isValidRut(value: string) {
 }
 
 export const funcionarioSchema = z.object({
-  nombre_completo: z.string().trim().min(5, "El nombre del funcionario debe tener al menos 5 caracteres."),
+  nombre_completo: z.string().transform(normalizeSingleLineText).pipe(z.string().min(5, "El nombre del funcionario debe tener al menos 5 caracteres.")),
   rut: z
     .string()
-    .trim()
-    .min(1, "Ingresa el RUT del funcionario.")
+    .transform(normalizeRutForStorage)
+    .pipe(z.string().min(1, "Ingresa el RUT del funcionario."))
     .refine((value) => isValidRut(value), "Ingresa un RUT chileno valido."),
-  cargo: z.string().trim().min(3, "Ingresa el cargo del funcionario."),
+  cargo: z.string().transform(normalizeSingleLineText).pipe(z.string().min(3, "Ingresa el cargo del funcionario.")),
 });
 
 export const salidaSchema = z.object({
-  rbd: z.string().trim().min(1),
-  fecha: z.string().trim().min(1, "Selecciona la fecha de la salida."),
-  hora_salida: z.string().trim().min(1, "Ingresa la hora de salida."),
-  hora_regreso: z.string().trim().optional().or(z.literal("")),
-  pme_dimension: z.string().trim().min(1, "Selecciona la dimension del PME."),
-  pme_subdimension: z.string().trim().min(1, "Selecciona la subdimension del PME."),
-  actividad: z.string().trim().min(5, "Ingresa el nombre de la accion."),
-  objetivo: z.string().trim().min(10, "Describe el objetivo pedagogico."),
-  lugar_nombre: z.string().trim().min(1),
-  lugar_direccion: z.string().trim().min(1),
+  rbd: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  fecha: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1, "Selecciona la fecha de la salida.")),
+  hora_salida: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1, "Ingresa la hora de salida.")),
+  hora_regreso: z.string().transform(normalizeSingleLineText).optional().or(z.literal("")),
+  pme_dimension: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1, "Selecciona la dimension del PME.")),
+  pme_subdimension: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1, "Selecciona la subdimension del PME.")),
+  actividad: z.string().transform(normalizeSingleLineText).pipe(z.string().min(5, "Ingresa el nombre de la accion.")),
+  objetivo: z.string().transform(normalizeMultilineText).pipe(z.string().min(10, "Describe el objetivo pedagogico.")),
+  lugar_nombre: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  lugar_direccion: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   lugar_lat: z.coerce.number(),
   lugar_lng: z.coerce.number(),
-  lugar_place_id: z.string().trim().min(1),
-  lugar_comuna: z.string().trim().min(1),
-  lugar_region: z.string().trim().min(1),
+  lugar_place_id: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  lugar_comuna: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  lugar_region: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   distancia_km: z.coerce.number().nonnegative(),
   duracion_minutos: z.coerce.number().int().nonnegative(),
-  ruta_polyline: z.string().trim().min(1),
-  ruta_resumen: z.string().trim().min(1),
+  ruta_polyline: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  ruta_resumen: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   cantidad_estudiantes: z.coerce.number().int().min(1, "Ingresa al menos 1 estudiante."),
   cantidad_apoderados: z.coerce.number().int().min(0, "La cantidad de apoderados no puede ser negativa."),
   funcionarios: z.array(funcionarioSchema).min(1, "Debes registrar al menos un funcionario."),

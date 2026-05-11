@@ -1,12 +1,14 @@
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 
-import { PME_DIMENSIONS, getPmeDimensionByValue } from "@/lib/pme/eid";
-import type { TripDraftFormValues } from "@/types";
+import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/input-normalization";
+import { getPmeDimensionByValue } from "@/lib/pme/eid";
+import type { PmeDimensionOption, TripDraftFormValues } from "@/types";
 
 interface StepDatosViajeProps {
   register: UseFormRegister<TripDraftFormValues>;
   errors: FieldErrors<TripDraftFormValues>;
   minDate: string;
+  pmeDimensions: PmeDimensionOption[];
   selectedDimension: string;
   onDimensionChange: (value: string) => void;
   onSubdimensionChange: (value: string) => void;
@@ -24,11 +26,12 @@ export default function StepDatosViaje({
   register,
   errors,
   minDate,
+  pmeDimensions,
   selectedDimension,
   onDimensionChange,
   onSubdimensionChange,
 }: StepDatosViajeProps) {
-  const availableSubdimensions = getPmeDimensionByValue(selectedDimension)?.subdimensions ?? [];
+  const availableSubdimensions = getPmeDimensionByValue(pmeDimensions, selectedDimension)?.subdimensions ?? [];
 
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
@@ -59,6 +62,7 @@ export default function StepDatosViaje({
             type="time"
             className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
             {...register("hora_salida", {
+              setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               required: "Ingresa la hora de salida.",
             })}
           />
@@ -71,6 +75,7 @@ export default function StepDatosViaje({
             type="time"
             className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
             {...register("hora_regreso", {
+              setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               validate: (value, formValues) => {
                 if (!value || !formValues.hora_salida) {
                   return true;
@@ -93,7 +98,7 @@ export default function StepDatosViaje({
             })}
           >
             <option value="">Selecciona una dimension</option>
-            {PME_DIMENSIONS.map((dimension) => (
+            {pmeDimensions.map((dimension) => (
               <option key={dimension.value} value={dimension.value}>
                 {dimension.label}
               </option>
@@ -129,6 +134,7 @@ export default function StepDatosViaje({
             className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
             placeholder="Ejemplo: visita guiada al museo"
             {...register("actividad", {
+              setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               required: "Ingresa el nombre de la accion.",
               minLength: {
                 value: 5,
@@ -146,6 +152,7 @@ export default function StepDatosViaje({
             className="mt-2 w-full rounded-[24px] border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
             placeholder="Describe el objetivo de aprendizaje de la salida."
             {...register("objetivo", {
+              setValueAs: (value) => normalizeMultilineText(String(value ?? "")),
               required: "Describe el objetivo pedagogico.",
               minLength: {
                 value: 10,

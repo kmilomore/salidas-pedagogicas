@@ -14,6 +14,7 @@ import { isValidRut } from "@/lib/validations/salida";
 import type {
   DestinationFlow,
   DirectorSchoolProfile,
+  PmeDimensionOption,
   RouteCalculationResult,
   RouteStop,
   SchoolOption,
@@ -83,9 +84,10 @@ interface NuevaSalidaWizardProps {
   schoolProfile: DirectorSchoolProfile;
   viewerRole: UserRole;
   schoolOptions?: SchoolOption[];
+  pmeDimensions: PmeDimensionOption[];
 }
 
-export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOptions = [] }: NuevaSalidaWizardProps) {
+export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOptions = [], pmeDimensions }: NuevaSalidaWizardProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [destinationFlow, setDestinationFlow] = useState<DestinationFlow>("single");
@@ -302,7 +304,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
   };
 
   const handlePmeDimensionChange = (dimensionValue: string) => {
-    const selectedDimension = getPmeDimensionByValue(dimensionValue);
+    const selectedDimension = getPmeDimensionByValue(pmeDimensions, dimensionValue);
 
     setValue("pme_dimension", dimensionValue, { shouldDirty: true, shouldValidate: true });
     setValue("pme_dimension_label", selectedDimension?.label ?? "", { shouldDirty: true });
@@ -312,7 +314,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
   };
 
   const handlePmeSubdimensionChange = (subdimensionValue: string) => {
-    const selectedDimension = getPmeDimensionByValue(values.pme_dimension);
+    const selectedDimension = getPmeDimensionByValue(pmeDimensions, values.pme_dimension);
     const selectedSubdimension = selectedDimension?.subdimensions.find((subdimension) => subdimension.value === subdimensionValue) ?? null;
 
     setValue("pme_subdimension", subdimensionValue, { shouldDirty: true, shouldValidate: true });
@@ -461,6 +463,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
             register={register}
             errors={errors}
             minDate={minDate}
+            pmeDimensions={pmeDimensions}
             selectedDimension={values.pme_dimension}
             onDimensionChange={handlePmeDimensionChange}
             onSubdimensionChange={handlePmeSubdimensionChange}
@@ -491,7 +494,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
 
         {currentStep === 2 ? (
           <div className="space-y-6">
-            <StepParticipantes register={register} errors={errors} fields={fields} append={append} remove={remove} />
+            <StepParticipantes register={register} setValue={setValue} errors={errors} fields={fields} append={append} remove={remove} />
 
             <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen final</p>

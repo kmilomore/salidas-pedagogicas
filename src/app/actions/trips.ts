@@ -1,19 +1,10 @@
 "use server";
 
-import createDOMPurify from "dompurify";
-import { JSDOM } from "jsdom";
-
+import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText } from "@/lib/input-normalization";
 import { limitTripCreation } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
 import type { SaveTripResponse, UserRole } from "@/types";
-
-const window = new JSDOM("").window;
-const DOMPurify = createDOMPurify(window);
-
-function sanitizeText(value: string) {
-  return DOMPurify.sanitize(value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim();
-}
 
 export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise<SaveTripResponse> {
   try {
@@ -44,7 +35,7 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
       };
     }
 
-    const rateLimit = await limitTripCreation(user.id);
+    const rateLimit = await limitTripCreation(supabase, user.id);
 
     if (!rateLimit.success) {
       return {
@@ -55,19 +46,19 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
 
     const payload = salidaSchema.parse({
       ...input,
-      pme_dimension: sanitizeText(input.pme_dimension),
-      pme_subdimension: sanitizeText(input.pme_subdimension),
-      actividad: sanitizeText(input.actividad),
-      objetivo: sanitizeText(input.objetivo),
-      lugar_nombre: sanitizeText(input.lugar_nombre),
-      lugar_direccion: sanitizeText(input.lugar_direccion),
-      lugar_comuna: sanitizeText(input.lugar_comuna),
-      lugar_region: sanitizeText(input.lugar_region),
-      ruta_resumen: sanitizeText(input.ruta_resumen),
-      funcionarios: input.funcionarios.map((funcionario) => ({
-        nombre_completo: sanitizeText(funcionario.nombre_completo),
-        rut: sanitizeText(funcionario.rut),
-        cargo: sanitizeText(funcionario.cargo),
+      pme_dimension: normalizeSingleLineText(input.pme_dimension),
+      pme_subdimension: normalizeSingleLineText(input.pme_subdimension),
+      actividad: normalizeSingleLineText(input.actividad),
+      objetivo: normalizeMultilineText(input.objetivo),
+      lugar_nombre: normalizeSingleLineText(input.lugar_nombre),
+      lugar_direccion: normalizeSingleLineText(input.lugar_direccion),
+      lugar_comuna: normalizeSingleLineText(input.lugar_comuna),
+      lugar_region: normalizeSingleLineText(input.lugar_region),
+      ruta_resumen: normalizeSingleLineText(input.ruta_resumen),
+      funcionarios: (input.funcionarios ?? []).map((funcionario) => ({
+        nombre_completo: normalizeSingleLineText(funcionario.nombre_completo),
+        rut: normalizeRutForStorage(funcionario.rut),
+        cargo: normalizeSingleLineText(funcionario.cargo),
       })),
     });
 

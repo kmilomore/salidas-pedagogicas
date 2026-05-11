@@ -503,22 +503,20 @@ la validación completa con Zod y el Server Action de creación de la salida.
 - `FuncionariosList.tsx` ya existe con filas dinámicas, mínimo una fila, validación de RUT y eliminación controlada.
 - `StepParticipantes.tsx` ya existe e incorpora `cantidad_estudiantes`, `cantidad_apoderados` y lista de funcionarios.
 - `src/lib/validations/salida.ts` ya centraliza la validación del payload completo de los 3 pasos.
-- `src/lib/rate-limit.ts` ya aplica límite de 10 formularios por hora por usuario cuando `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` están configuradas.
+- `src/lib/rate-limit.ts` ya aplica límite de 10 formularios por hora por usuario consultando `salidas_pedagogicas` en Supabase, sin Redis ni servicios externos.
 - El guardado final se resuelve hoy en `src/app/actions/trips.ts` mediante `guardarSalidaPedagogica`, con sanitización server-side, validación Zod e insert en `salidas_pedagogicas` con `estado = 'enviada'`.
 - Ya existe pantalla de éxito en `src/app/(director)/nueva-salida/exito/page.tsx`.
 - Validación técnica confirmada: `npm run build` exitoso tras integrar Fase 3.
+- El catálogo PME ya no sale de un archivo local fijo: se carga desde `public.eid` en el server controller del formulario.
 
 ## Dependencias a instalar
 ```bash
-npm install \
-  @upstash/ratelimit \
-  @upstash/redis
+# Sin dependencias externas adicionales para rate limiting.
 ```
 
 ## Variables de entorno a agregar
 ```env
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
+# No requiere variables adicionales para rate limiting.
 ```
 
 ## Tareas
@@ -866,10 +864,6 @@ GOOGLE_MAPS_SERVER_KEY=                       # Fase 2 — servidor
 # ── Google Apps Script ─────────────────────────────────
 APPS_SCRIPT_WEBHOOK_URL=                      # Fase 4
 APPS_SCRIPT_SECRET=                           # Fase 4
-
-# ── Rate Limiting (Upstash) ────────────────────────────
-UPSTASH_REDIS_REST_URL=                       # Fase 3
-UPSTASH_REDIS_REST_TOKEN=                     # Fase 3
 
 # ── App ────────────────────────────────────────────────
 NEXT_PUBLIC_APP_URL=http://localhost:3000      # Cambiar a URL de Vercel en prod

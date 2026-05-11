@@ -1,4 +1,4 @@
-import type { FieldErrors, UseFieldArrayAppend, UseFieldArrayRemove, UseFieldArrayReturn, UseFormRegister } from "react-hook-form";
+import type { FieldErrors, UseFieldArrayAppend, UseFieldArrayRemove, UseFieldArrayReturn, UseFormRegister, UseFormSetValue } from "react-hook-form";
 
 import type { TripDraftFormValues } from "@/types";
 
@@ -6,6 +6,7 @@ import FuncionariosList from "./FuncionariosList";
 
 interface StepParticipantesProps {
   register: UseFormRegister<TripDraftFormValues>;
+  setValue: UseFormSetValue<TripDraftFormValues>;
   errors: FieldErrors<TripDraftFormValues>;
   fields: UseFieldArrayReturn<TripDraftFormValues, "funcionarios", "id">["fields"];
   append: UseFieldArrayAppend<TripDraftFormValues, "funcionarios">;
@@ -20,7 +21,7 @@ function FieldError({ message }: { message?: string }) {
   return <p className="mt-2 text-sm text-rose-600">{message}</p>;
 }
 
-export default function StepParticipantes({ register, errors, fields, append, remove }: StepParticipantesProps) {
+export default function StepParticipantes({ register, setValue, errors, fields, append, remove }: StepParticipantesProps) {
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 3</p>
@@ -67,7 +68,7 @@ export default function StepParticipantes({ register, errors, fields, append, re
       </div>
 
       <div className="mt-8">
-        <FuncionariosList register={register} errors={errors} fields={fields} append={append} remove={remove} />
+        <FuncionariosList register={register} setValue={setValue} errors={errors} fields={fields} append={append} remove={remove} />
       </div>
     </section>
   );
