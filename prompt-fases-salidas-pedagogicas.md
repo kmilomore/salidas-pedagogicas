@@ -31,12 +31,22 @@ Vas a construir esta aplicación **fase por fase**.
 - Ya existe SQL de fase 1 en `supabase/phase-1-schema.sql`.
 
 ### Fase 2
-- Iniciada y parcialmente implementada.
+- Implementada en código y validada localmente con credenciales reales.
 - Ya están instaladas las dependencias de Google Maps, React Hook Form y polyline.
 - Ya existe `src/app/actions/maps.ts` para cálculo de ruta con Google Directions API desde servidor.
 - Ya existe el flujo de `nueva-salida` con stepper, paso 1, paso 2, autocomplete, mapa y resumen de ruta.
 - El establecimiento de origen ya se resuelve automáticamente desde la whitelist y la tabla maestra de escuelas.
-- La Fase 2 sigue pendiente de validación funcional con credenciales reales de Google Maps.
+- Los administradores ya pueden abrir el mismo formulario operativo que usan los directores y cambiar el establecimiento dentro del formulario.
+- Ya existe lectura de la tabla maestra mediante `SUPABASE_SERVICE_ROLE_KEY` para evitar bloqueos por permisos al cargar establecimientos desde administración.
+- Ya se validó localmente el cálculo real de rutas contra Google Maps con una `GOOGLE_MAPS_SERVER_KEY` funcional.
+- Sigue pendiente validar el mismo flujo en Vercel con las variables de entorno de producción correctamente cargadas.
+
+### Hallazgos operativos verificados
+- La tabla maestra de escuelas guarda `LATITUD` y `LONGITUD` como texto y en varios casos usa formato con comas múltiples, por ejemplo `-34,709,095`; el parser del proyecto ya fue ajustado para normalizar ese formato antes de convertirlo a número.
+- Para calcular la ruta no se debe bloquear una escuela real por faltar `DIRECTOR/A`, `CORREO ELECTRÓNICO` o `DIRECCIÓN`; el origen operativo de Fase 2 solo requiere RBD, nombre, comuna y coordenadas válidas.
+- La `GOOGLE_MAPS_SERVER_KEY` no puede tener restricción por `HTTP referrers` si se usa desde el servidor; en ese caso Google responde `REQUEST_DENIED`.
+- La acción `calcularRuta` ya no rompe el render con un 500 opaco cuando Google falla; ahora devuelve errores controlados para mostrar el motivo real en UI.
+- El loader de cálculo de ruta ya fue mejorado para mostrar un estado visual más sólido durante la consulta a Google Maps.
 
 ### Restricción vigente para todas las fases
 - No reemplazar datos reales por mocks para destrabar desarrollo.
@@ -353,6 +363,12 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=    # Places API + Maps JS API (cliente)
 GOOGLE_MAPS_SERVER_KEY=             # Directions API + Static Maps API (servidor)
 ```
 
+**Estado real actual de instalación y configuración:**
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`: ya configurada localmente y utilizada por el autocomplete y el mapa.
+- `GOOGLE_MAPS_SERVER_KEY`: ya validada localmente contra Google Directions API.
+- `SUPABASE_SERVICE_ROLE_KEY`: requerida para cargar establecimientos desde administración leyendo la tabla maestra real.
+- `NEXT_PUBLIC_APP_URL`: debe mantenerse alineada con el dominio real de Vercel para evitar redirecciones a localhost.
+
 ## Tareas
 
 **Nota de estado:** las tareas 2.1 a 2.7 ya quedaron implementadas en el repositorio actual. Lo pendiente en esta fase no es de desarrollo base, sino de validación funcional con credenciales reales, navegación en navegador y ajuste fino según reglas de negocio finales.
@@ -381,7 +397,7 @@ Campos:
 - Mostrar badge verde de confirmación
 - Campo guardián: `lugar_place_id` (solo se llena al seleccionar del dropdown)
 - Botón "Cambiar lugar" para resetear
-- Estado actual: implementado, pendiente de validación con API key real
+- Estado actual: implementado y validado localmente con Google Places real
 
 ### 2.4 Server Action `calcularRuta` — `src/app/actions/maps.ts`
 ```typescript
@@ -390,7 +406,8 @@ Campos:
 // Retorna: { distancia_km, duracion_minutos, polyline, resumen }
 // NUNCA exponer GOOGLE_MAPS_SERVER_KEY al bundle del cliente
 ```
-- Estado actual: implementado, pendiente de validación con `GOOGLE_MAPS_SERVER_KEY` real
+- Estado actual: implementado y validado localmente con `GOOGLE_MAPS_SERVER_KEY` real
+- Hallazgo aplicado: la action devuelve errores controlados cuando Google responde error, para evitar 500 opacos en producción
 
 ### 2.5 Componente `MapaRuta.tsx`
 - Aparece con animación slide-down al confirmar el lugar
@@ -399,7 +416,7 @@ Campos:
 - Polyline decodificado con `@mapbox/polyline` (color: #1B4F8A, grosor: 4px)
 - `fitBounds` automático
 - Card superpuesta con: nombre ruta, distancia, duración, vía, región/comuna destino
-- Estado actual: implementado, pendiente de prueba visual en navegador
+- Estado actual: implementado y acompañado por loader visual mejorado durante el cálculo de ruta
 
 ### 2.6 Card `DistanciaResumen.tsx`
 ```
@@ -414,15 +431,21 @@ Campos:
 ### 2.7 Paso 2 del formulario — `StepDestino.tsx`
 - `LugarAutocomplete.tsx`
 - Al confirmar: disparar `calcularRuta` → mostrar `MapaRuta.tsx` + `DistanciaResumen.tsx`
-- Estado de carga: skeleton sobre el área del mapa
+- Estado de carga: loader visual institucional con feedback de progreso durante la consulta de Google Maps
 - Campos hidden en el formulario: todos los datos de ruta generados por el servidor
 - Botón "Siguiente" deshabilitado hasta que `lugar_place_id` esté presente
 - Estado actual: implementado
 
+### 2.8 Acceso administrativo al formulario operativo
+- El rol `admin` puede entrar a rutas de director cuando corresponde a supervisión operativa del formulario.
+- Administración puede abrir `/nueva-salida`, seleccionar un establecimiento real y revisar el mismo flujo que usa un director.
+- La lista de establecimientos para administración se obtiene desde la tabla maestra real usando cliente server-side con service role.
+- Estado actual: implementado
+
 ## Pendientes reales para cerrar Fase 2
 
-- Completar `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` y `GOOGLE_MAPS_SERVER_KEY` con credenciales reales.
-- Probar en navegador el flujo completo de paso 1 y paso 2 con un director real de la whitelist.
+- Replicar en Vercel las mismas variables reales que ya fueron validadas localmente (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `GOOGLE_MAPS_SERVER_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`).
+- Probar en navegador el flujo completo de paso 1 y paso 2 en producción con un director real y con un administrador.
 - Confirmar que el establecimiento se detecta automáticamente por email y no requiere selector manual.
 - Confirmar que el bias de 150 km es suficiente o ajustarlo según el alcance real de las salidas.
 - Validar si el mapa debe quedar interactivo o restringido a solo visualización.
@@ -432,16 +455,18 @@ Campos:
 
 - Ya implementado en código: `Stepper.tsx`, `StepDatosViaje.tsx`, `LugarAutocomplete.tsx`, `MapaRuta.tsx`, `DistanciaResumen.tsx`, `StepDestino.tsx`, `NuevaSalidaWizard.tsx` y `src/app/actions/maps.ts`.
 - Ya instaladas las dependencias de esta fase.
-- Ya agregadas las variables `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` y `GOOGLE_MAPS_SERVER_KEY` en `.env.local` como pendientes de completar con valores reales.
+- Ya configuradas localmente las variables `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` y `GOOGLE_MAPS_SERVER_KEY` con credenciales reales de trabajo.
 - Ya implementada la detección automática del establecimiento de origen desde `whitelist_usuarios` y la tabla `BASE DE DATOS ESCUELAS SLEP`.
-- Pendiente de validación externa: credenciales reales de Google Maps y prueba funcional end-to-end en navegador.
+- Ya implementado el acceso administrativo al mismo formulario operativo, con selector de establecimiento real.
+- Ya corregido el parseo de coordenadas para formatos de tabla maestra como `-34,709,095`.
+- Ya validada localmente una ruta real con Google Directions API.
+- Pendiente de validación externa: prueba end-to-end en navegador sobre Vercel con las variables productivas definitivas.
 - El paso 3 sigue reservado para Fase 3; no se debe simular submit final en esta fase.
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 2
 
-1. **¿Ya tienes las API Keys de Google Maps?**  
-   ¿Habilitaste en Google Cloud Console: Places API, Maps JavaScript API,  
-   Directions API y Static Maps API?
+1. **¿Ya replicaste en Vercel las mismas variables que funcionan localmente?**  
+   Deben existir al menos `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`, `GOOGLE_MAPS_SERVER_KEY`, `SUPABASE_SERVICE_ROLE_KEY` y `NEXT_PUBLIC_APP_URL`.
 
 2. **Al cargar el formulario, ¿el sistema debe detectar automáticamente  
    qué establecimiento es del director según su email en la whitelist,  

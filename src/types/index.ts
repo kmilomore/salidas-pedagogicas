@@ -59,16 +59,31 @@ export interface RoutePoint {
   lng: number;
 }
 
+export type DestinationFlow = "single" | "multiple";
+
+export interface RouteStop extends RoutePoint {
+  placeId: string;
+  name: string;
+  address: string;
+  comuna: string;
+  region: string;
+}
+
 export interface RouteCalculationInput {
   origen: RoutePoint;
-  destino: RoutePoint;
+  destinos: RouteStop[];
 }
 
 export interface RouteCalculationResult {
   distancia_km: number;
   duracion_minutos: number;
+  distancia_ida_km: number;
+  distancia_vuelta_km: number;
+  duracion_ida_minutos: number;
+  duracion_vuelta_minutos: number;
   polyline: string;
   resumen: string;
+  destinos: RouteStop[];
 }
 
 export interface RouteCalculationResponse {
@@ -82,6 +97,9 @@ export interface TripDraftFormValues {
   hora_regreso: string;
   objetivo: string;
   actividad: string;
+  destino_flujo: DestinationFlow;
+  cantidad_destinos: string;
+  lugares_json: string;
   lugar_query: string;
   lugar_nombre: string;
   lugar_direccion: string;
@@ -91,7 +109,11 @@ export interface TripDraftFormValues {
   lugar_comuna: string;
   lugar_region: string;
   distancia_km: string;
+  distancia_ida_km: string;
+  distancia_vuelta_km: string;
   duracion_minutos: string;
+  duracion_ida_minutos: string;
+  duracion_vuelta_minutos: string;
   ruta_polyline: string;
   ruta_resumen: string;
 }

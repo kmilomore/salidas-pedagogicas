@@ -1,4 +1,4 @@
-import type { DirectorSchoolProfile, RouteCalculationResult } from "@/types";
+import type { DestinationFlow, DirectorSchoolProfile, RouteCalculationResult } from "@/types";
 
 import DistanciaResumen from "./DistanciaResumen";
 import LugarAutocomplete, { type SelectedPlace } from "./LugarAutocomplete";
@@ -6,30 +6,29 @@ import MapaRuta from "./MapaRuta";
 
 interface StepDestinoProps {
   schoolProfile: DirectorSchoolProfile;
+  destinationFlow: DestinationFlow;
   destinationQuery: string;
-  selectedPlace: SelectedPlace | null;
+  destinations: SelectedPlace[];
   routeResult: RouteCalculationResult | null;
   isGoogleMapsReady: boolean;
   isRouteLoading: boolean;
   routeError: string | null;
   googleMapsError: string | null;
+  onDestinationFlowChange: (flow: DestinationFlow) => void;
   onDestinationQueryChange: (value: string) => void;
   onSelectPlace: (place: SelectedPlace) => void;
   onResetPlace: () => void;
+  onRemoveDestination: (placeId: string) => void;
 }
 
-function RouteLoader({ destinationName }: { destinationName: string | null }) {
+function RouteLoader({ label }: { label: string }) {
   return (
     <div className="overflow-hidden rounded-[28px] border border-slep/15 bg-[linear-gradient(135deg,rgba(27,79,138,0.08),rgba(255,255,255,0.96)_35%,rgba(217,232,247,0.7))] p-6 shadow-soft">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="max-w-xl">
           <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slep">Calculando ruta</p>
           <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Preparando mapa, distancia y tiempo estimado</h4>
-          <p className="mt-3 text-sm leading-6 text-slate-600">
-            {destinationName
-              ? `Estamos consultando Google Maps para obtener la ruta real hacia ${destinationName}.`
-              : "Estamos consultando Google Maps para obtener la ruta real del trayecto seleccionado."}
-          </p>
+          <p className="mt-3 text-sm leading-6 text-slate-600">{label}</p>
         </div>
 
         <div className="flex items-center justify-center">
@@ -46,7 +45,7 @@ function RouteLoader({ destinationName }: { destinationName: string | null }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-950">Trazando recorrido</p>
-              <p className="mt-1 text-sm text-slate-600">Origen institucional, destino confirmado y polilinea del trayecto.</p>
+              <p className="mt-1 text-sm text-slate-600">Origen institucional, paradas confirmadas y retorno referencial al establecimiento.</p>
             </div>
             <span className="rounded-full bg-slep/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slep">En proceso</span>
           </div>
@@ -71,7 +70,7 @@ function RouteLoader({ destinationName }: { destinationName: string | null }) {
         </div>
 
         <div className="grid gap-4">
-          {["Validando coordenadas del establecimiento", "Consultando Google Directions", "Preparando resumen del trayecto"].map((item, index) => (
+          {["Validando coordenadas del establecimiento", "Consultando Google Directions", "Preparando kilometraje ida y vuelta"].map((item, index) => (
             <div key={item} className="rounded-[22px] border border-white/70 bg-white/85 p-4">
               <div className="flex items-start gap-3">
                 <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slep/10 text-xs font-semibold text-slep">
@@ -94,26 +93,78 @@ function RouteLoader({ destinationName }: { destinationName: string | null }) {
 
 export default function StepDestino({
   schoolProfile,
+  destinationFlow,
   destinationQuery,
-  selectedPlace,
+  destinations,
   routeResult,
   isGoogleMapsReady,
   isRouteLoading,
   routeError,
   googleMapsError,
+  onDestinationFlowChange,
   onDestinationQueryChange,
   onSelectPlace,
   onResetPlace,
+  onRemoveDestination,
 }: StepDestinoProps) {
-  const showRoute = Boolean(selectedPlace && routeResult);
+  const showRoute = Boolean(destinations.length && routeResult);
+  const minimumDestinations = destinationFlow === "multiple" ? 2 : 1;
+  const routeLoaderLabel =
+    destinationFlow === "multiple"
+      ? `Estamos calculando el circuito con ${Math.max(destinations.length, 1)} parada(s) y el regreso al establecimiento.`
+      : `Estamos consultando Google Maps para obtener la ruta de ida y vuelta hacia ${destinations[0]?.name ?? "el destino seleccionado"}.`;
 
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 2</p>
       <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Destino y ruta</h3>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-        El destino solo queda validado cuando proviene del selector de Google Places. Al confirmarlo, la aplicacion calcula la ruta desde el establecimiento asociado al director.
+        Primero define si la salida considera un unico destino o multiples paradas. Para ambos flujos el kilometraje de ida y vuelta queda calculado de forma referencial para la licitacion del servicio.
       </p>
+
+      <div className="mt-8 grid gap-4 lg:grid-cols-2">
+        {[
+          {
+            value: "single" as const,
+            title: "Un destino",
+            description: "Mantiene el flujo actual con un destino confirmado y retorno al establecimiento.",
+          },
+          {
+            value: "multiple" as const,
+            title: "Multiples destinos",
+            description: "Permite agregar varias paradas y calcular el circuito completo con regreso al origen.",
+          },
+        ].map((option) => {
+          const isActive = destinationFlow === option.value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onDestinationFlowChange(option.value)}
+              className={[
+                "rounded-[24px] border px-5 py-5 text-left transition",
+                isActive ? "border-slep bg-slep/5 shadow-sm" : "border-slate-200 bg-slate-50 hover:border-slate-300",
+              ].join(" ")}
+            >
+              <div className="flex items-start gap-4">
+                <span
+                  className={[
+                    "mt-1 flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
+                    isActive ? "border-slep bg-slep text-white" : "border-slate-300 text-slate-500",
+                  ].join(" ")}
+                >
+                  {isActive ? "✓" : ""}
+                </span>
+                <div>
+                  <p className="text-base font-semibold text-slate-950">{option.title}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{option.description}</p>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
       <div className="mt-8 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
         <aside className="space-y-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6">
@@ -125,7 +176,9 @@ export default function StepDestino({
           </div>
 
           <div>
-            <label className="text-sm font-semibold text-slate-800">Buscar destino</label>
+            <label className="text-sm font-semibold text-slate-800">
+              {destinationFlow === "multiple" ? "Agregar parada al recorrido" : "Buscar destino"}
+            </label>
             {googleMapsError ? (
               <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
                 {googleMapsError}
@@ -134,7 +187,7 @@ export default function StepDestino({
               <div className="mt-3">
                 <LugarAutocomplete
                   value={destinationQuery}
-                  selectedPlace={selectedPlace}
+                  selectedPlace={destinationFlow === "single" ? destinations[0] ?? null : null}
                   onChange={onDestinationQueryChange}
                   onSelect={onSelectPlace}
                   onReset={onResetPlace}
@@ -144,16 +197,47 @@ export default function StepDestino({
             )}
           </div>
 
+          {destinationFlow === "multiple" ? (
+            <div className="rounded-[20px] bg-white p-4 text-sm leading-6 text-slate-600">
+              <p className="font-semibold text-slate-950">Paradas agregadas</p>
+              {destinations.length ? (
+                <div className="mt-3 space-y-3">
+                  {destinations.map((destination, index) => (
+                    <div key={destination.placeId} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3">
+                      <div>
+                        <p className="font-semibold text-slate-900">
+                          {index + 1}. {destination.name}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">{destination.comuna}, {destination.region}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onRemoveDestination(destination.placeId)}
+                        className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700"
+                      >
+                        Quitar
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2">Aun no se agregan paradas al circuito.</p>
+              )}
+            </div>
+          ) : null}
+
           <div className="rounded-[20px] bg-white p-4 text-sm leading-6 text-slate-600">
             <p className="font-semibold text-slate-950">Requisitos del paso</p>
             <p className="mt-2">
-              Debes confirmar un lugar valido desde el dropdown de Google Places. El boton Siguiente se habilita cuando existe un place id valido y la ruta ya fue calculada.
+              {destinationFlow === "multiple"
+                ? `Debes confirmar al menos ${minimumDestinations} destinos desde Google Places. El boton Siguiente se habilita cuando el circuito ya fue calculado y el kilometraje ida y vuelta esta disponible.`
+                : "Debes confirmar un destino valido desde Google Places. El boton Siguiente se habilita cuando la ruta de ida y vuelta ya fue calculada."}
             </p>
           </div>
         </aside>
 
         <div className={["overflow-hidden transition-all duration-500 ease-out", showRoute || isRouteLoading || Boolean(routeError) ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"].join(" ")}>
-          {isRouteLoading ? <RouteLoader destinationName={selectedPlace?.name ?? null} /> : null}
+          {isRouteLoading ? <RouteLoader label={routeLoaderLabel} /> : null}
 
           {!isRouteLoading && routeError ? (
             <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm leading-6 text-rose-700">
@@ -161,10 +245,10 @@ export default function StepDestino({
             </div>
           ) : null}
 
-          {!isRouteLoading && selectedPlace && routeResult ? (
+          {!isRouteLoading && destinations.length > 0 && routeResult ? (
             <div className="space-y-6">
-              <MapaRuta schoolProfile={schoolProfile} destination={selectedPlace} route={routeResult} />
-              <DistanciaResumen schoolProfile={schoolProfile} destination={selectedPlace} route={routeResult} />
+              <MapaRuta schoolProfile={schoolProfile} destinations={destinations} route={routeResult} />
+              <DistanciaResumen schoolProfile={schoolProfile} destinations={destinations} route={routeResult} />
             </div>
           ) : null}
         </div>

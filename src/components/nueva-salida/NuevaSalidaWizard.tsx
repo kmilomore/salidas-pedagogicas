@@ -7,7 +7,15 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
 import { calcularRuta } from "@/app/actions/maps";
-import type { DirectorSchoolProfile, RouteCalculationResult, SchoolOption, TripDraftFormValues, UserRole } from "@/types";
+import type {
+  DestinationFlow,
+  DirectorSchoolProfile,
+  RouteCalculationResult,
+  RouteStop,
+  SchoolOption,
+  TripDraftFormValues,
+  UserRole,
+} from "@/types";
 
 import type { SelectedPlace } from "./LugarAutocomplete";
 import StepDestino from "./StepDestino";
@@ -37,6 +45,9 @@ const stepOneFields: Array<keyof TripDraftFormValues> = ["fecha", "hora_salida",
 
 function createEmptyRouteState() {
   return {
+    destino_flujo: "single" as const,
+    cantidad_destinos: "0",
+    lugares_json: "[]",
     lugar_nombre: "",
     lugar_direccion: "",
     lugar_lat: "",
@@ -45,7 +56,11 @@ function createEmptyRouteState() {
     lugar_comuna: "",
     lugar_region: "",
     distancia_km: "",
+    distancia_ida_km: "",
+    distancia_vuelta_km: "",
     duracion_minutos: "",
+    duracion_ida_minutos: "",
+    duracion_vuelta_minutos: "",
     ruta_polyline: "",
     ruta_resumen: "",
   };
@@ -60,7 +75,8 @@ interface NuevaSalidaWizardProps {
 export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOptions = [] }: NuevaSalidaWizardProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+  const [destinationFlow, setDestinationFlow] = useState<DestinationFlow>("single");
+  const [selectedPlaces, setSelectedPlaces] = useState<SelectedPlace[]>([]);
   const [routeResult, setRouteResult] = useState<RouteCalculationResult | null>(null);
   const [routeError, setRouteError] = useState<string | null>(null);
   const [isRouteLoading, startRouteTransition] = useTransition();
@@ -106,42 +122,82 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     (!values.hora_regreso || values.hora_regreso > values.hora_salida) &&
     values.objetivo.trim().length >= 10 &&
     values.actividad.trim().length >= 5;
-  const isStepTwoReady = Boolean(values.lugar_place_id && values.ruta_polyline && values.distancia_km && values.duracion_minutos);
+  const minimumDestinations = destinationFlow === "multiple" ? 2 : 1;
+  const isStepTwoReady = Boolean(
+    selectedPlaces.length >= minimumDestinations && values.ruta_polyline && values.distancia_km && values.duracion_minutos,
+  );
   const canGoForward = currentStep === 0 ? isStepOneReady : currentStep === 1 ? isStepTwoReady : false;
 
-  const resetRouteFields = () => {
+  const syncSelectedPlacesToForm = (places: SelectedPlace[]) => {
+    const firstPlace = places[0];
+
+    setValue("cantidad_destinos", String(places.length), { shouldDirty: true });
+    setValue("lugares_json", JSON.stringify(places), { shouldDirty: true });
+    setValue("lugar_nombre", places.map((place) => place.name).join(" | "), { shouldDirty: true });
+    setValue("lugar_direccion", places.map((place) => place.address).join(" | "), { shouldDirty: true });
+    setValue("lugar_place_id", places.map((place) => place.placeId).join(","), { shouldDirty: true });
+    setValue("lugar_comuna", places.map((place) => place.comuna).join(" | "), { shouldDirty: true });
+    setValue("lugar_region", places.map((place) => place.region).join(" | "), { shouldDirty: true });
+    setValue("lugar_lat", firstPlace ? String(firstPlace.lat) : "", { shouldDirty: true });
+    setValue("lugar_lng", firstPlace ? String(firstPlace.lng) : "", { shouldDirty: true });
+  };
+
+  const clearComputedRouteState = () => {
+    setRouteResult(null);
+    setValue("distancia_km", "", { shouldDirty: true });
+    setValue("distancia_ida_km", "", { shouldDirty: true });
+    setValue("distancia_vuelta_km", "", { shouldDirty: true });
+    setValue("duracion_minutos", "", { shouldDirty: true });
+    setValue("duracion_ida_minutos", "", { shouldDirty: true });
+    setValue("duracion_vuelta_minutos", "", { shouldDirty: true });
+    setValue("ruta_polyline", "", { shouldDirty: true });
+    setValue("ruta_resumen", "", { shouldDirty: true });
+  };
+
+  const resetRouteFields = (flow: DestinationFlow = destinationFlow) => {
     const emptyState = createEmptyRouteState();
 
     Object.entries(emptyState).forEach(([key, value]) => {
       setValue(key as keyof TripDraftFormValues, value, { shouldValidate: false, shouldDirty: true });
     });
 
-    setSelectedPlace(null);
-    setRouteResult(null);
+    setValue("destino_flujo", flow, { shouldDirty: true });
+    setSelectedPlaces([]);
+    clearComputedRouteState();
     setRouteError(null);
   };
 
-  const handleDestinationQueryChange = (value: string) => {
-    setValue("lugar_query", value, { shouldDirty: true });
+  const applyRouteResult = (places: SelectedPlace[], route: RouteCalculationResult) => {
+    setRouteResult(route);
+    setValue("distancia_km", String(route.distancia_km), { shouldDirty: true });
+    setValue("distancia_ida_km", String(route.distancia_ida_km), { shouldDirty: true });
+    setValue("distancia_vuelta_km", String(route.distancia_vuelta_km), { shouldDirty: true });
+    setValue("duracion_minutos", String(route.duracion_minutos), { shouldDirty: true });
+    setValue("duracion_ida_minutos", String(route.duracion_ida_minutos), { shouldDirty: true });
+    setValue("duracion_vuelta_minutos", String(route.duracion_vuelta_minutos), { shouldDirty: true });
+    setValue("ruta_polyline", route.polyline, { shouldDirty: true });
+    setValue("ruta_resumen", route.resumen, { shouldDirty: true });
+    syncSelectedPlacesToForm(places);
+  };
 
-    if (selectedPlace) {
-      resetRouteFields();
-      setValue("lugar_query", value, { shouldDirty: true });
+  const recalculateRoute = (places: SelectedPlace[]) => {
+    syncSelectedPlacesToForm(places);
+    clearComputedRouteState();
+    setRouteError(null);
+
+    if (!places.length) {
+      return;
     }
-  };
 
-  const handleSelectPlace = (place: SelectedPlace) => {
-    setSelectedPlace(place);
-    setRouteResult(null);
-    setRouteError(null);
-    setValue("lugar_query", place.name, { shouldDirty: true });
-    setValue("lugar_nombre", place.name, { shouldDirty: true });
-    setValue("lugar_direccion", place.address, { shouldDirty: true });
-    setValue("lugar_lat", String(place.lat), { shouldDirty: true });
-    setValue("lugar_lng", String(place.lng), { shouldDirty: true });
-    setValue("lugar_place_id", place.placeId, { shouldDirty: true });
-    setValue("lugar_comuna", place.comuna, { shouldDirty: true });
-    setValue("lugar_region", place.region, { shouldDirty: true });
+    const stops: RouteStop[] = places.map((place) => ({
+      placeId: place.placeId,
+      name: place.name,
+      address: place.address,
+      comuna: place.comuna,
+      region: place.region,
+      lat: place.lat,
+      lng: place.lng,
+    }));
 
     startRouteTransition(() => {
       void (async () => {
@@ -151,33 +207,56 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
               lat: schoolProfile.latitud,
               lng: schoolProfile.longitud,
             },
-            destino: {
-              lat: place.lat,
-              lng: place.lng,
-            },
+            destinos: stops,
           });
 
           if (!result.route) {
-            throw new Error(result.error ?? "No fue posible calcular la ruta para el destino seleccionado.");
+            throw new Error(result.error ?? "No fue posible calcular la ruta para los destinos seleccionados.");
           }
 
-          const route = result.route;
-
-          setRouteResult(route);
-          setValue("distancia_km", String(route.distancia_km), { shouldDirty: true });
-          setValue("duracion_minutos", String(route.duracion_minutos), { shouldDirty: true });
-          setValue("ruta_polyline", route.polyline, { shouldDirty: true });
-          setValue("ruta_resumen", route.resumen, { shouldDirty: true });
+          applyRouteResult(places, result.route);
         } catch (error) {
-          setRouteResult(null);
-          setValue("distancia_km", "", { shouldDirty: true });
-          setValue("duracion_minutos", "", { shouldDirty: true });
-          setValue("ruta_polyline", "", { shouldDirty: true });
-          setValue("ruta_resumen", "", { shouldDirty: true });
-          setRouteError(error instanceof Error ? error.message : "No fue posible calcular la ruta para el destino seleccionado.");
+          clearComputedRouteState();
+          setRouteError(error instanceof Error ? error.message : "No fue posible calcular la ruta para los destinos seleccionados.");
         }
       })();
     });
+  };
+
+  const handleDestinationQueryChange = (value: string) => {
+    setValue("lugar_query", value, { shouldDirty: true });
+
+    if (destinationFlow === "single" && selectedPlaces.length > 0) {
+      setSelectedPlaces([]);
+      syncSelectedPlacesToForm([]);
+      clearComputedRouteState();
+      setRouteError(null);
+    }
+  };
+
+  const handleSelectPlace = (place: SelectedPlace) => {
+    const nextPlaces =
+      destinationFlow === "single"
+        ? [place]
+        : [...selectedPlaces.filter((selectedPlace) => selectedPlace.placeId !== place.placeId), place];
+
+    setSelectedPlaces(nextPlaces);
+    setValue("lugar_query", destinationFlow === "single" ? place.name : "", { shouldDirty: true });
+    recalculateRoute(nextPlaces);
+  };
+
+  const handleRemoveDestination = (placeId: string) => {
+    const nextPlaces = selectedPlaces.filter((place) => place.placeId !== placeId);
+
+    setSelectedPlaces(nextPlaces);
+    setValue("lugar_query", "", { shouldDirty: true });
+    recalculateRoute(nextPlaces);
+  };
+
+  const handleDestinationFlowChange = (flow: DestinationFlow) => {
+    setDestinationFlow(flow);
+    setValue("lugar_query", "", { shouldDirty: true });
+    resetRouteFields(flow);
   };
 
   const handleNext = async () => {
@@ -237,6 +316,9 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
 
       <form className="space-y-6">
         <input type="hidden" {...register("lugar_query")} />
+        <input type="hidden" {...register("destino_flujo")} />
+        <input type="hidden" {...register("cantidad_destinos")} />
+        <input type="hidden" {...register("lugares_json")} />
         <input type="hidden" {...register("lugar_nombre")} />
         <input type="hidden" {...register("lugar_direccion")} />
         <input type="hidden" {...register("lugar_lat")} />
@@ -245,7 +327,11 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
         <input type="hidden" {...register("lugar_comuna")} />
         <input type="hidden" {...register("lugar_region")} />
         <input type="hidden" {...register("distancia_km")} />
+        <input type="hidden" {...register("distancia_ida_km")} />
+        <input type="hidden" {...register("distancia_vuelta_km")} />
         <input type="hidden" {...register("duracion_minutos")} />
+        <input type="hidden" {...register("duracion_ida_minutos")} />
+        <input type="hidden" {...register("duracion_vuelta_minutos")} />
         <input type="hidden" {...register("ruta_polyline")} />
         <input type="hidden" {...register("ruta_resumen")} />
 
@@ -254,19 +340,22 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
         {currentStep === 1 ? (
           <StepDestino
             schoolProfile={schoolProfile}
+            destinationFlow={destinationFlow}
             destinationQuery={values.lugar_query}
-            selectedPlace={selectedPlace}
+            destinations={selectedPlaces}
             routeResult={routeResult}
             isGoogleMapsReady={isLoaded}
             isRouteLoading={isRouteLoading}
             routeError={routeError}
             googleMapsError={googleMapsError}
+            onDestinationFlowChange={handleDestinationFlowChange}
             onDestinationQueryChange={handleDestinationQueryChange}
             onSelectPlace={handleSelectPlace}
             onResetPlace={() => {
               resetRouteFields();
               setValue("lugar_query", "", { shouldDirty: true });
             }}
+            onRemoveDestination={handleRemoveDestination}
           />
         ) : null}
 
@@ -281,8 +370,11 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
               <p className="font-semibold text-slate-950">Resumen preparado</p>
               <p className="mt-2">Fecha: {getValues("fecha") || "-"}</p>
               <p>Hora salida: {getValues("hora_salida") || "-"}</p>
-              <p>Destino: {getValues("lugar_nombre") || "-"}</p>
-              <p>Distancia: {getValues("distancia_km") || "-"} km</p>
+              <p>Flujo: {destinationFlow === "multiple" ? "Multiples destinos" : "Un destino"}</p>
+              <p>Destino{selectedPlaces.length > 1 ? "s" : ""}: {getValues("lugar_nombre") || "-"}</p>
+              <p>Ida: {getValues("distancia_ida_km") || "-"} km</p>
+              <p>Vuelta: {getValues("distancia_vuelta_km") || "-"} km</p>
+              <p>Total: {getValues("distancia_km") || "-"} km</p>
             </div>
           </section>
         ) : null}
