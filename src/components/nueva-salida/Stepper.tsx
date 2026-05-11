@@ -8,6 +8,8 @@ interface StepperProps {
   canGoBack: boolean;
   canGoForward: boolean;
   isFinalStep: boolean;
+  isBusy?: boolean;
+  busyLabel?: string;
   onPrevious: () => void;
   onNext: () => void;
 }
@@ -18,6 +20,8 @@ export default function Stepper({
   canGoBack,
   canGoForward,
   isFinalStep,
+  isBusy = false,
+  busyLabel = "Procesando paso actual...",
   onPrevious,
   onNext,
 }: StepperProps) {
@@ -59,6 +63,13 @@ export default function Stepper({
         })}
       </div>
 
+      {isBusy ? (
+        <div className="mt-5 flex items-center gap-3 rounded-[20px] border border-slep/15 bg-slep/5 px-4 py-3 text-sm text-slate-700">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slep/20 border-t-slep" />
+          <p>{busyLabel}</p>
+        </div>
+      ) : null}
+
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">
           {isFinalStep
@@ -69,7 +80,7 @@ export default function Stepper({
           <button
             type="button"
             onClick={onPrevious}
-            disabled={!canGoBack}
+            disabled={!canGoBack || isBusy}
             className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-50"
           >
             Anterior
@@ -77,10 +88,10 @@ export default function Stepper({
           <button
             type="button"
             onClick={onNext}
-            disabled={!canGoForward}
+            disabled={!canGoForward || isBusy}
             className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isFinalStep ? "Enviar en Fase 3" : "Siguiente"}
+            {isBusy ? "Calculando..." : isFinalStep ? "Enviar en Fase 3" : "Siguiente"}
           </button>
         </div>
       </div>

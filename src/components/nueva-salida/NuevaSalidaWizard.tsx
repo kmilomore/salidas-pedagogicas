@@ -293,6 +293,8 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           canGoBack={currentStep > 0}
           canGoForward={canGoForward}
           isFinalStep={currentStep === steps.length - 1}
+          isBusy={currentStep === 1 && isRouteLoading}
+          busyLabel="Consultando Google Maps y preparando el resumen del trayecto..."
           onPrevious={() => setCurrentStep((previousStep) => Math.max(0, previousStep - 1))}
           onNext={() => void handleNext()}
         />
