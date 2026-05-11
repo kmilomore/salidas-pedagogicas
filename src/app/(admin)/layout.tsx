@@ -1,6 +1,9 @@
 import Link from "next/link";
 
-const adminLinks = [{ href: "/panel", label: "Panel" }];
+const adminLinks = [
+  { href: "/panel", label: "Panel" },
+  { href: "/nueva-salida", label: "Ver formulario" },
+];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Portal administrador</p>
             <h1 className="font-display mt-2 text-3xl font-semibold text-slate-950">SLEP Colchagua</h1>
           </div>
-          <nav className="flex gap-3">
+          <nav className="flex flex-wrap gap-3">
             {adminLinks.map((link) => (
               <Link
                 key={link.href}

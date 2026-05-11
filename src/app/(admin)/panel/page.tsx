@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function AdminPanelPage() {
   return (
     <section className="grid gap-6 lg:grid-cols-3">
@@ -7,6 +9,14 @@ export default function AdminPanelPage() {
         <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
           No hay registros administrativos disponibles para mostrar en este momento.
         </p>
+        <div className="mt-6">
+          <Link
+            href="/nueva-salida"
+            className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
+          >
+            Abrir formulario de salidas
+          </Link>
+        </div>
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft">

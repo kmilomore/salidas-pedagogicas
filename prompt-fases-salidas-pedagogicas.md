@@ -11,6 +11,8 @@ Vas a construir esta aplicación **fase por fase**.
 
 **REQUISITO OPERATIVO NO NEGOCIABLE:** la implementación, instalación, configuración y despliegue deben quedar **listas para producción**. No se permiten datos mock, seeds ficticios, credenciales inventadas, respuestas simuladas, componentes de demo ni contenido de ejemplo que no corresponda a datos reales del proyecto. Si falta un dato sensible o de negocio, se debe dejar la integración preparada y solicitar el dato real al usuario, sin inventarlo.
 
+**REGLA NO NEGOCIABLE DE CONTENIDO VISIBLE:** no puede quedar ningun texto demo, placeholder, checklist de desarrollo, mensaje de "fase", copy de staging, texto de "proximamente", ni referencias a que algo sera implementado despues dentro de la interfaz visible al usuario final. Si una funcionalidad aun no existe, debe mostrarse un estado vacio real, un `notFound()`, o directamente no exponerse en navegacion, pero nunca texto de maqueta o roadmap.
+
 **REGLA CRÍTICA:** Al terminar cada fase, DEBES:
 1. Listar exactamente qué archivos creaste o modificaste.
 2. Hacer las preguntas de validación indicadas al final de cada fase.
@@ -40,6 +42,7 @@ Vas a construir esta aplicación **fase por fase**.
 - No reemplazar datos reales por mocks para destrabar desarrollo.
 - No agregar seeds de prueba con correos ficticios.
 - No dejar placeholders funcionales en entregables que se marquen como listos.
+- No dejar texto demo, texto de fase, checklist tecnico, copy de desarrollo o mensajes de roadmap visibles en produccion.
 - Si falta una API key, secreto, logo oficial, dominio o webhook real, dejar la integración preparada y documentar exactamente qué falta.
 
 ---
@@ -174,7 +177,7 @@ src/
 │   │       └── page.tsx          # Panel base operativo
 │   ├── ruta/
 │   │   └── [id]/
-│   │       └── page.tsx          # Ruta pública (placeholder)
+│   │       └── page.tsx          # Ruta pública real o notFound hasta su implementación
 │   ├── layout.tsx
 │   └── page.tsx                  # Redirect a /login
 ├── lib/
@@ -615,7 +618,7 @@ APPS_SCRIPT_SECRET=
    ¿Tienes la URL del script? ¿El correo de envío será tu correo institucional SLEP?
 
 2. **¿Tienes el logo de SLEP Colchagua en formato PNG para incluirlo en el PDF?**  
-   (Se puede usar un placeholder por ahora, pero confirma)
+   (Debe usarse el logo oficial real. Si aun no existe el archivo final, detener la entrega visual de produccion y solicitarlo.)
 
 3. **¿El PDF debe tener número correlativo automático (001, 002, 003...),  
    o puede usar los primeros 8 caracteres del UUID como identificador?**

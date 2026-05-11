@@ -102,7 +102,7 @@ export async function middleware(request: NextRequest) {
     const isDirectorArea = DIRECTOR_PATHS.some((path) => pathname.startsWith(path));
     const isAdminArea = ADMIN_PATHS.some((path) => pathname.startsWith(path));
 
-    if (isDirectorArea && role !== "director") {
+    if (isDirectorArea && role !== "director" && role !== "admin") {
       return NextResponse.redirect(new URL(resolveHomeByRole(role), request.url));
     }
 

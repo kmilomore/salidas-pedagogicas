@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { useJsApiLoader } from "@react-google-maps/api";
 
 import { calcularRuta } from "@/app/actions/maps";
-import type { DirectorSchoolProfile, RouteCalculationResult, TripDraftFormValues } from "@/types";
+import type { DirectorSchoolProfile, RouteCalculationResult, TripDraftFormValues, UserRole } from "@/types";
 
 import type { SelectedPlace } from "./LugarAutocomplete";
 import StepDestino from "./StepDestino";
@@ -52,9 +52,10 @@ function createEmptyRouteState() {
 
 interface NuevaSalidaWizardProps {
   schoolProfile: DirectorSchoolProfile;
+  viewerRole: UserRole;
 }
 
-export default function NuevaSalidaWizard({ schoolProfile }: NuevaSalidaWizardProps) {
+export default function NuevaSalidaWizard({ schoolProfile, viewerRole }: NuevaSalidaWizardProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [routeResult, setRouteResult] = useState<RouteCalculationResult | null>(null);
@@ -186,19 +187,23 @@ export default function NuevaSalidaWizard({ schoolProfile }: NuevaSalidaWizardPr
     }
   };
 
+  const isAdminView = viewerRole === "admin";
+
   return (
     <section className="space-y-6">
       <div className="rounded-[28px] bg-white p-8 shadow-soft">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Fase 2</p>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Formulario de salida</p>
             <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950">Nueva salida pedagogica</h2>
             <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-              El establecimiento de origen se detecta automaticamente desde la whitelist del director. En esta fase quedan operativos los pasos de datos del viaje, destino, resumen y mapa de ruta.
+              {isAdminView
+                ? "Estas revisando el mismo formulario operativo que utilizan los directores, usando un establecimiento real seleccionado por administracion."
+                : "El establecimiento de origen se detecta automaticamente desde la whitelist del director. En esta fase quedan operativos los pasos de datos del viaje, destino, resumen y mapa de ruta."}
             </p>
           </div>
           <div className="rounded-[24px] border border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
-            <p className="font-semibold text-slate-950">Establecimiento asignado</p>
+            <p className="font-semibold text-slate-950">{isAdminView ? "Establecimiento seleccionado" : "Establecimiento asignado"}</p>
             <p className="mt-1">{schoolProfile.nombre}</p>
             <p>{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
           </div>
