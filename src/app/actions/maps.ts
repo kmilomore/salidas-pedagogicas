@@ -1,5 +1,6 @@
 "use server";
 
+import polyline from "@mapbox/polyline";
 import { z } from "zod";
 
 import type { RouteCalculationInput, RouteCalculationResponse } from "@/types";
@@ -40,8 +41,35 @@ interface GoogleDirectionsResponse {
       };
       start_address?: string;
       end_address?: string;
+      steps?: Array<{
+        polyline?: {
+          points?: string;
+        };
+      }>;
     }>;
   }>;
+}
+
+function decodeLegPath(encodedSteps: Array<{ polyline?: { points?: string } }> | undefined) {
+  if (!encodedSteps?.length) {
+    return [];
+  }
+
+  return encodedSteps.flatMap((step, stepIndex) => {
+    const encoded = step.polyline?.points;
+
+    if (!encoded) {
+      return [];
+    }
+
+    const decodedStep = polyline.decode(encoded).map(([lat, lng]) => ({ lat, lng }));
+
+    if (stepIndex === 0) {
+      return decodedStep;
+    }
+
+    return decodedStep.slice(1);
+  });
 }
 
 export async function calcularRuta(input: RouteCalculationInput): Promise<RouteCalculationResponse> {
@@ -122,6 +150,24 @@ export async function calcularRuta(input: RouteCalculationInput): Promise<RouteC
       };
     }
 
+    const segmentos = legs.map((leg, index) => {
+      const isReturn = index === legs.length - 1;
+      const isSingleDestination = orderedDestinos.length === 1;
+      const path = decodeLegPath(leg.steps);
+
+      return {
+        id: `segment-${index + 1}`,
+        label: isReturn ? (isSingleDestination ? "Vuelta" : "Regreso") : isSingleDestination ? "Ida" : `Ruta ${index + 1}`,
+        kind: isReturn ? ("return" as const) : ("outbound" as const),
+        order: index,
+        distanceKm: Number((((leg.distance?.value ?? 0) / 1000)).toFixed(2)),
+        durationMinutes: Math.max(1, Math.round((leg.duration?.value ?? 0) / 60)),
+        startLabel: leg.start_address ?? (index === 0 ? "Origen institucional" : orderedDestinos[index - 1]?.name ?? "Punto intermedio"),
+        endLabel: leg.end_address ?? (isReturn ? "Retorno al establecimiento" : orderedDestinos[index]?.name ?? "Destino"),
+        path,
+      };
+    });
+
     return {
       route: {
         distancia_km: Number((distanceMeters / 1000).toFixed(2)),
@@ -135,6 +181,7 @@ export async function calcularRuta(input: RouteCalculationInput): Promise<RouteC
           selectedRoute.summary ||
           `${legs[0]?.start_address ?? "Origen institucional"} hasta ${orderedDestinos.at(-1)?.name ?? "destino"} y regreso`,
         destinos: orderedDestinos,
+        segmentos,
       },
       error: null,
     };

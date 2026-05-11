@@ -30,18 +30,58 @@ export default function DistanciaResumen({ schoolProfile, destinations, route }:
       : `${destinations.length} destinos confirmados en el circuito`;
 
   return (
-    <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-6 text-emerald-950">
-      <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Recorrido confirmado</p>
-      <div className="mt-4 grid gap-3 text-sm leading-6 sm:grid-cols-2">
-        <p>Destinos: {destinationLabel}</p>
-        <p>Origen: {schoolProfile.nombre}</p>
-        <p>Ida referencial: {route.distancia_ida_km} km</p>
-        <p>Vuelta referencial: {route.distancia_vuelta_km} km</p>
-        <p>Total referencial: {route.distancia_km} km</p>
-        <p>Tiempo ida: {formatDuration(route.duracion_ida_minutos)}</p>
-        <p>Tiempo vuelta: {formatDuration(route.duracion_vuelta_minutos)}</p>
-        <p>Tiempo total estimado: {formatDuration(route.duracion_minutos)}</p>
-        <p>Via principal: {route.resumen}</p>
+    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slep">Ruta calculada</p>
+          <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Resumen operativo del recorrido</h4>
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+            Se consolida el kilometraje referencial total, el desglose de ida y vuelta y los puntos efectivamente considerados en el trazado.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+          <p className="font-semibold text-slate-950">Origen institucional</p>
+          <p className="mt-1">{schoolProfile.nombre}</p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Destinos</p>
+          <p className="mt-2 text-sm leading-6 text-slate-800">{destinationLabel}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#eff6ff_0%,#ffffff_100%)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Ida</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-950">{route.distancia_ida_km} km</p>
+          <p className="mt-1 text-sm text-slate-600">{formatDuration(route.duracion_ida_minutos)}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#fff7ed_0%,#ffffff_100%)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Vuelta</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-950">{route.distancia_vuelta_km} km</p>
+          <p className="mt-1 text-sm text-slate-600">{formatDuration(route.duracion_vuelta_minutos)}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-[linear-gradient(180deg,#ecfdf5_0%,#ffffff_100%)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Total</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-950">{route.distancia_km} km</p>
+          <p className="mt-1 text-sm text-slate-600">{formatDuration(route.duracion_minutos)}</p>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-700">
+          <p className="font-semibold text-slate-950">Via principal y trazado</p>
+          <p className="mt-2">{route.resumen}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm leading-6 text-slate-700">
+          <p className="font-semibold text-slate-950">Puntos confirmados</p>
+          <div className="mt-2 space-y-1">
+            {destinations.map((destination, index) => (
+              <div key={destination.placeId}>
+                {index + 1}. {destination.name} · {destination.comuna}, {destination.region}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

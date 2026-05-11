@@ -166,16 +166,16 @@ export default function StepDestino({
         })}
       </div>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <aside className="space-y-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6">
-          <div>
+      <div className="mt-8 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-5 shadow-sm sm:p-6">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
+          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Origen detectado</p>
             <h4 className="mt-3 text-xl font-semibold text-slate-950">{schoolProfile.nombre}</h4>
             <p className="mt-2 text-sm leading-6 text-slate-600">{schoolProfile.direccion}</p>
             <p className="mt-1 text-sm text-slate-600">{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
           </div>
 
-          <div>
+          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
             <label className="text-sm font-semibold text-slate-800">
               {destinationFlow === "multiple" ? "Agregar parada al recorrido" : "Buscar destino"}
             </label>
@@ -195,38 +195,38 @@ export default function StepDestino({
                 />
               </div>
             )}
+
+            {destinationFlow === "multiple" ? (
+              <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+                <p className="font-semibold text-slate-950">Paradas agregadas</p>
+                {destinations.length ? (
+                  <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                    {destinations.map((destination, index) => (
+                      <div key={destination.placeId} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            {index + 1}. {destination.name}
+                          </p>
+                          <p className="mt-1 text-sm text-slate-600">{destination.comuna}, {destination.region}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => onRemoveDestination(destination.placeId)}
+                          className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2">Aun no se agregan paradas al circuito.</p>
+                )}
+              </div>
+            ) : null}
           </div>
 
-          {destinationFlow === "multiple" ? (
-            <div className="rounded-[20px] bg-white p-4 text-sm leading-6 text-slate-600">
-              <p className="font-semibold text-slate-950">Paradas agregadas</p>
-              {destinations.length ? (
-                <div className="mt-3 space-y-3">
-                  {destinations.map((destination, index) => (
-                    <div key={destination.placeId} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 px-4 py-3">
-                      <div>
-                        <p className="font-semibold text-slate-900">
-                          {index + 1}. {destination.name}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">{destination.comuna}, {destination.region}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => onRemoveDestination(destination.placeId)}
-                        className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700"
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="mt-2">Aun no se agregan paradas al circuito.</p>
-              )}
-            </div>
-          ) : null}
-
-          <div className="rounded-[20px] bg-white p-4 text-sm leading-6 text-slate-600">
+          <div className="rounded-[24px] border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-600">
             <p className="font-semibold text-slate-950">Requisitos del paso</p>
             <p className="mt-2">
               {destinationFlow === "multiple"
@@ -234,9 +234,10 @@ export default function StepDestino({
                 : "Debes confirmar un destino valido desde Google Places. El boton Siguiente se habilita cuando la ruta de ida y vuelta ya fue calculada."}
             </p>
           </div>
-        </aside>
+        </div>
+      </div>
 
-        <div className={["overflow-hidden transition-all duration-500 ease-out", showRoute || isRouteLoading || Boolean(routeError) ? "max-h-[1200px] opacity-100" : "max-h-0 opacity-0"].join(" ")}>
+      <div className={["mt-6 overflow-hidden transition-all duration-500 ease-out", showRoute || isRouteLoading || Boolean(routeError) ? "max-h-[2200px] opacity-100" : "max-h-0 opacity-0"].join(" ")}>
           {isRouteLoading ? <RouteLoader label={routeLoaderLabel} /> : null}
 
           {!isRouteLoading && routeError ? (
@@ -251,7 +252,6 @@ export default function StepDestino({
               <DistanciaResumen schoolProfile={schoolProfile} destinations={destinations} route={routeResult} />
             </div>
           ) : null}
-        </div>
       </div>
     </section>
   );

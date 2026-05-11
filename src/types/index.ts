@@ -69,6 +69,18 @@ export interface RouteStop extends RoutePoint {
   region: string;
 }
 
+export interface RouteSegment {
+  id: string;
+  label: string;
+  kind: "outbound" | "return";
+  order: number;
+  distanceKm: number;
+  durationMinutes: number;
+  startLabel: string;
+  endLabel: string;
+  path: RoutePoint[];
+}
+
 export interface RouteCalculationInput {
   origen: RoutePoint;
   destinos: RouteStop[];
@@ -84,6 +96,7 @@ export interface RouteCalculationResult {
   polyline: string;
   resumen: string;
   destinos: RouteStop[];
+  segmentos: RouteSegment[];
 }
 
 export interface RouteCalculationResponse {
