@@ -35,10 +35,17 @@ Vas a construir esta aplicación **fase por fase**.
 - Ya están instaladas las dependencias de Google Maps, React Hook Form y polyline.
 - Ya existe `src/app/actions/maps.ts` para cálculo de ruta con Google Directions API desde servidor.
 - Ya existe el flujo de `nueva-salida` con stepper, paso 1, paso 2, autocomplete, mapa y resumen de ruta.
+- El paso 2 ya soporta flujo de un destino o multiples destinos, con cálculo de ida, vuelta y total usando Google Directions con waypoints y regreso al establecimiento.
+- El mapa ya diferencia visualmente cada tramo del circuito y el retorno mediante colores por segmento.
 - El establecimiento de origen ya se resuelve automáticamente desde la whitelist y la tabla maestra de escuelas.
 - Los administradores ya pueden abrir el mismo formulario operativo que usan los directores y cambiar el establecimiento dentro del formulario.
+- Si el usuario es administrador y entra al formulario compartido, ya existe un botón visible para volver al panel administrativo.
+- Ya existe cierre de sesión operativo en los layouts autenticados.
 - Ya existe lectura de la tabla maestra mediante `SUPABASE_SERVICE_ROLE_KEY` para evitar bloqueos por permisos al cargar establecimientos desde administración.
 - Ya se validó localmente el cálculo real de rutas contra Google Maps con una `GOOGLE_MAPS_SERVER_KEY` funcional.
+- Ya se amplió el ancho útil del portal en director, admin, login y pantallas principales para mejorar la lectura en escritorio y rangos intermedios.
+- Ya se centralizó una paleta reutilizable de colores para portal, estados y rutas en `globals.css` y `tailwind.config.ts`.
+- Los headers autenticados ya muestran una etiqueta visual del rol activo para que el usuario identifique de inmediato si navega como director o administrador.
 - Sigue pendiente validar el mismo flujo en Vercel con las variables de entorno de producción correctamente cargadas.
 
 ### Hallazgos operativos verificados
@@ -47,6 +54,7 @@ Vas a construir esta aplicación **fase por fase**.
 - La `GOOGLE_MAPS_SERVER_KEY` no puede tener restricción por `HTTP referrers` si se usa desde el servidor; en ese caso Google responde `REQUEST_DENIED`.
 - La acción `calcularRuta` ya no rompe el render con un 500 opaco cuando Google falla; ahora devuelve errores controlados para mostrar el motivo real en UI.
 - El loader de cálculo de ruta ya fue mejorado para mostrar un estado visual más sólido durante la consulta a Google Maps.
+- Varias pantallas compartían clases repetidas de navegación y contenedores; ya se empezó a consolidar esa base en utilidades globales reutilizables para reducir divergencia visual y deuda de mantenimiento.
 
 ### Restricción vigente para todas las fases
 - No reemplazar datos reales por mocks para destrabar desarrollo.

@@ -32,7 +32,7 @@ export default function SignOutButton({ className }: SignOutButtonProps) {
       type="button"
       onClick={handleSignOut}
       disabled={isLoading}
-      className={className ?? "rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-70"}
+      className={className ?? "portal-nav-link disabled:cursor-not-allowed disabled:opacity-70"}
     >
       {isLoading ? "Cerrando sesion..." : "Cerrar sesion"}
     </button>

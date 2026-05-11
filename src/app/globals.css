@@ -69,6 +69,53 @@ a {
   border: 1px solid var(--surface-line);
 }
 
+.portal-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid var(--surface-line);
+  background: rgba(255, 255, 255, 0.82);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #334155;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.portal-nav-link:hover {
+  border-color: var(--slep-blue);
+  color: var(--slep-blue);
+  background: rgba(217, 232, 247, 0.36);
+}
+
+.portal-role-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.45rem 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.portal-role-badge--director {
+  border: 1px solid color-mix(in srgb, var(--slep-blue) 24%, white);
+  background: color-mix(in srgb, var(--slep-blue) 10%, white);
+  color: var(--slep-blue-dark);
+}
+
+.portal-role-badge--admin {
+  border: 1px solid color-mix(in srgb, var(--status-success) 24%, white);
+  background: color-mix(in srgb, var(--status-success) 10%, white);
+  color: #115e59;
+}
+
 .status-card-warning {
   border: 1px solid color-mix(in srgb, var(--status-warning) 24%, white);
   background: color-mix(in srgb, var(--status-warning) 10%, white);

@@ -14,14 +14,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="flex flex-col gap-6 border-b border-slate-200/80 px-6 py-6 sm:px-8 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Portal administrador</p>
-            <h1 className="font-display mt-2 text-3xl font-semibold text-slate-950">SLEP Colchagua</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <h1 className="font-display text-3xl font-semibold text-slate-950">SLEP Colchagua</h1>
+              <span className="portal-role-badge portal-role-badge--admin">Administrador</span>
+            </div>
           </div>
           <nav className="flex flex-wrap gap-3">
             {adminLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slep hover:text-slep"
+                className="portal-nav-link"
               >
                 {link.label}
               </Link>
