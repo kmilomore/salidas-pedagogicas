@@ -24,6 +24,13 @@ alter table public.salidas_pedagogicas
   alter column cantidad_apoderados set default 0;
 
 alter table public.salidas_pedagogicas
+  add column if not exists distancia_ida_km decimal(8, 2) not null default 0,
+  add column if not exists distancia_vuelta_km decimal(8, 2) not null default 0,
+  add column if not exists duracion_ida_minutos integer not null default 0,
+  add column if not exists duracion_vuelta_minutos integer not null default 0,
+  add column if not exists ruta_segmentos jsonb not null default '[]';
+
+alter table public.salidas_pedagogicas
   drop constraint if exists salidas_pedagogicas_cantidad_estudiantes_check,
   drop constraint if exists salidas_pedagogicas_cantidad_apoderados_check;
 
@@ -33,3 +40,4 @@ alter table public.salidas_pedagogicas
 
 create index if not exists salidas_pedagogicas_pme_dimension_idx on public.salidas_pedagogicas (pme_dimension);
 create index if not exists salidas_pedagogicas_pme_subdimension_idx on public.salidas_pedagogicas (pme_subdimension);
+create index if not exists salidas_pedagogicas_fecha_idx on public.salidas_pedagogicas (fecha);

@@ -15,6 +15,8 @@ Este directorio organiza el contexto funcional y técnico del portal para iterar
 ## Contextos por componentes
 - [Índice de componentes](./components/README.md)
 - [Wizard de nueva salida](./components/nueva-salida/README.md)
+- [Componentes administrativos](./components/admin/README.md)
+- [Componentes y assets PDF](./components/pdf/README.md)
 
 ## Contextos por página
 - [Login](./pages/login.md)

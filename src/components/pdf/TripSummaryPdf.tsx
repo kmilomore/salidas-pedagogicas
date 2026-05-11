@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
   heroLogo: {
     width: 72,
     height: 72,
-    objectFit: "contain",
   },
   heroKicker: {
     fontSize: 9,
@@ -183,7 +182,6 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 290,
     borderRadius: 12,
-    objectFit: "cover",
   },
   mapFallback: {
     minHeight: 150,
@@ -437,6 +435,7 @@ export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl,
           <View style={styles.routeLegCard}>
             <Text style={styles.routeLegTitle}>Ruta de ida</Text>
             <Text style={styles.routeLegText}>{outboundRoute}</Text>
+            <Text style={styles.routeLegMeta}>{formatDistance(trip.distancia_ida_km)} · {formatDuration(trip.duracion_ida_minutos)}</Text>
             <Text style={styles.routeLegMeta}>{trip.school_address}</Text>
             <Text style={styles.routeLegMeta}>{trip.lugar_direccion}</Text>
           </View>
@@ -444,6 +443,7 @@ export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl,
           <View style={styles.routeLegCard}>
             <Text style={styles.routeLegTitle}>Ruta de vuelta</Text>
             <Text style={styles.routeLegText}>{returnRoute}</Text>
+            <Text style={styles.routeLegMeta}>{formatDistance(trip.distancia_vuelta_km)} · {formatDuration(trip.duracion_vuelta_minutos)}</Text>
             <Text style={styles.routeLegMeta}>{trip.lugar_direccion}</Text>
             <Text style={styles.routeLegMeta}>{trip.school_address}</Text>
           </View>

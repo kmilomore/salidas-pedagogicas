@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import type { AdminTripRecord, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
+import type { AdminTripRecord, RouteSegment, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
 
 interface AdminTripQueryRow {
   id: string;
@@ -20,9 +20,14 @@ interface AdminTripQueryRow {
   lugar_comuna: string;
   lugar_region: string;
   distancia_km: number;
+  distancia_ida_km: number | null;
+  distancia_vuelta_km: number | null;
   duracion_minutos: number;
+  duracion_ida_minutos: number | null;
+  duracion_vuelta_minutos: number | null;
   ruta_polyline: string;
   ruta_resumen: string;
+  ruta_segmentos: RouteSegment[] | null;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
@@ -132,6 +137,11 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
 
     return {
       ...trip,
+      distancia_ida_km: Number(trip.distancia_ida_km ?? 0),
+      distancia_vuelta_km: Number(trip.distancia_vuelta_km ?? 0),
+      duracion_ida_minutos: Number(trip.duracion_ida_minutos ?? 0),
+      duracion_vuelta_minutos: Number(trip.duracion_vuelta_minutos ?? 0),
+      ruta_segmentos: Array.isArray(trip.ruta_segmentos) ? trip.ruta_segmentos : [],
       funcionarios: Array.isArray(trip.funcionarios) ? trip.funcionarios : [],
       school_name: school?.["NOMBRE ESTABLECIMIENTO"]?.trim() || `RBD ${trip.rbd}`,
       school_comuna: school?.COMUNA?.trim() || "Comuna no disponible",
@@ -148,7 +158,7 @@ export async function getAdminTrips(limit?: number) {
   let query = supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -170,7 +180,7 @@ export async function getDirectorTrips() {
   const { data: trips, error } = await supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
     )
     .eq("director_id", userId)
     .order("created_at", { ascending: false })
@@ -188,7 +198,7 @@ export async function getAuthorizedTripById(id: string) {
   let query = supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
     )
     .eq("id", id);
 
@@ -263,7 +273,11 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     "lugar_comuna",
     "lugar_region",
     "distancia_km",
+    "distancia_ida_km",
+    "distancia_vuelta_km",
     "duracion_minutos",
+    "duracion_ida_minutos",
+    "duracion_vuelta_minutos",
     "cantidad_estudiantes",
     "cantidad_apoderados",
     "ruta_resumen",
@@ -295,7 +309,11 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     trip.lugar_comuna,
     trip.lugar_region,
     trip.distancia_km,
+    trip.distancia_ida_km,
+    trip.distancia_vuelta_km,
     trip.duracion_minutos,
+    trip.duracion_ida_minutos,
+    trip.duracion_vuelta_minutos,
     trip.cantidad_estudiantes,
     trip.cantidad_apoderados,
     trip.ruta_resumen,

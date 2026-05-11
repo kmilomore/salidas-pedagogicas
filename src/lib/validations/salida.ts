@@ -44,6 +44,23 @@ export const funcionarioSchema = z.object({
   cargo: z.string().transform(normalizeSingleLineText).pipe(z.string().min(3, "Ingresa el cargo del funcionario.")),
 });
 
+const routePointSchema = z.object({
+  lat: z.number(),
+  lng: z.number(),
+});
+
+const routeSegmentSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  kind: z.enum(["outbound", "return"]),
+  order: z.number().int().min(0),
+  distanceKm: z.number().nonnegative(),
+  durationMinutes: z.number().int().nonnegative(),
+  startLabel: z.string().min(1),
+  endLabel: z.string().min(1),
+  path: z.array(routePointSchema).min(1),
+});
+
 export const salidaSchema = z.object({
   rbd: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   fecha: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1, "Selecciona la fecha de la salida.")),
@@ -61,9 +78,14 @@ export const salidaSchema = z.object({
   lugar_comuna: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   lugar_region: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   distancia_km: z.coerce.number().nonnegative(),
+  distancia_ida_km: z.coerce.number().nonnegative(),
+  distancia_vuelta_km: z.coerce.number().nonnegative(),
   duracion_minutos: z.coerce.number().int().nonnegative(),
+  duracion_ida_minutos: z.coerce.number().int().nonnegative(),
+  duracion_vuelta_minutos: z.coerce.number().int().nonnegative(),
   ruta_polyline: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
   ruta_resumen: z.string().transform(normalizeSingleLineText).pipe(z.string().min(1)),
+  ruta_segmentos: z.array(routeSegmentSchema).min(1, "La ruta debe incluir al menos un segmento."),
   cantidad_estudiantes: z.coerce.number().int().min(1, "Ingresa al menos 1 estudiante."),
   cantidad_apoderados: z.coerce.number().int().min(0, "La cantidad de apoderados no puede ser negativa."),
   funcionarios: z.array(funcionarioSchema).min(1, "Debes registrar al menos un funcionario."),

@@ -29,14 +29,14 @@ function formatDuration(minutes: number) {
 }
 
 const outboundPalette = [
-  "var(--route-blue)",
-  "var(--route-teal)",
-  "var(--route-cyan)",
-  "var(--route-gold)",
-  "var(--route-berry)",
-  "var(--slep-blue-dark)",
+  "#1B4F8A",
+  "#0F766E",
+  "#0369A1",
+  "#C98908",
+  "#BE123C",
+  "#143B66",
 ];
-const returnColor = "var(--route-return)";
+const returnColor = "#EA580C";
 
 export default function MapaRuta({ schoolProfile, destinations, route }: MapaRutaProps) {
   const isMultiDestination = destinations.length > 1;

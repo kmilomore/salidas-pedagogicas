@@ -107,6 +107,14 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Duracion</p>
                   <p className="mt-2 text-sm font-medium text-slate-950">{formatDuration(trip.duracion_minutos)}</p>
                 </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ida</p>
+                  <p className="mt-2 text-sm font-medium text-slate-950">{formatDistance(trip.distancia_ida_km)} · {formatDuration(trip.duracion_ida_minutos)}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Vuelta</p>
+                  <p className="mt-2 text-sm font-medium text-slate-950">{formatDistance(trip.distancia_vuelta_km)} · {formatDuration(trip.duracion_vuelta_minutos)}</p>
+                </div>
               </div>
             </section>
 
@@ -225,7 +233,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                     <PolylineF
                       path={routePath}
                       options={{
-                        strokeColor: "var(--route-blue)",
+                        strokeColor: "#1B4F8A",
                         strokeOpacity: 0.95,
                         strokeWeight: 6,
                       }}
@@ -236,6 +244,19 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                     No fue posible renderizar el mapa de detalle con los datos actualmente disponibles de esta salida.
                   </div>
                 )}
+              </div>
+            </section>
+
+            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+              <div className="border-b border-slate-200 px-5 py-4">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Visor previo del PDF</p>
+              </div>
+              <div className="bg-slate-50 p-4">
+                <iframe
+                  title={`Vista previa PDF salida ${trip.id}`}
+                  src={`/api/trips/${trip.id}/pdf?preview=1`}
+                  className="h-[520px] w-full rounded-[20px] border border-slate-200 bg-white"
+                />
               </div>
             </section>
           </div>

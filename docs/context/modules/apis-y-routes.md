@@ -66,6 +66,7 @@ Documentar las rutas server-side que exponen exportaciones, autenticación y gen
 - Verificar que el usuario autenticado pueda acceder a esa salida.
 - Cargar assets del PDF: logo, QR y mapa estático.
 - Generar un comprobante PDF bajo demanda.
+- Responder en modo descarga o en modo `inline` para visor previo dentro del modal administrativo.
 
 ### Fuente de datos
 - `getAuthorizedTripById()`
@@ -81,3 +82,4 @@ Documentar las rutas server-side que exponen exportaciones, autenticación y gen
 - Filtros inconsistentes entre UI y route handlers.
 - Problemas de permisos si el PDF se solicita para una salida ajena.
 - Dependencia de `GOOGLE_MAPS_SERVER_KEY` para incrustar imagen estática en PDF.
+- Desalineación entre mapa interactivo y PDF si `ruta_segmentos` no se persiste junto al resto de la salida.

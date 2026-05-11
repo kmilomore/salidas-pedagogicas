@@ -25,10 +25,11 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 ## Capacidades actuales
 - Métricas base del panel.
 - Filtros básicos por texto, RBD y estado.
-- Modal con detalle operativo y mapa.
+- Modal con detalle operativo, mapa y visor previo del PDF.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
 - PDF por salida con QR, logo institucional y mapa estático.
+- Persistencia de métricas separadas de ida/vuelta y segmentos de ruta para reutilización documental.
 
 ## Pendientes dentro del módulo
 - Paginación.

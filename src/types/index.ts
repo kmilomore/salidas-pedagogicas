@@ -144,9 +144,14 @@ export interface AdminTripRecord {
   lugar_comuna: string;
   lugar_region: string;
   distancia_km: number;
+  distancia_ida_km: number;
+  distancia_vuelta_km: number;
   duracion_minutos: number;
+  duracion_ida_minutos: number;
+  duracion_vuelta_minutos: number;
   ruta_polyline: string;
   ruta_resumen: string;
+  ruta_segmentos: RouteSegment[];
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;

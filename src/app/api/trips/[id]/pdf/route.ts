@@ -15,7 +15,7 @@ interface RouteContext {
   };
 }
 
-export async function GET(_request: Request, { params }: RouteContext) {
+export async function GET(request: Request, { params }: RouteContext) {
   const trip = await getAuthorizedTripById(params.id);
 
   if (!trip) {
@@ -26,12 +26,14 @@ export async function GET(_request: Request, { params }: RouteContext) {
   const document = createElement(TripSummaryPdf, { trip, ...pdfAssets }) as unknown as ReactElement<DocumentProps, string | JSXElementConstructor<object>>;
   const buffer = await renderToBuffer(document);
   const body = new Uint8Array(buffer);
+  const { searchParams } = new URL(request.url);
+  const disposition = searchParams.get("preview") === "1" ? "inline" : "attachment";
 
   return new Response(body, {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="salida-${trip.rbd}-${trip.fecha}.pdf"`,
+      "Content-Disposition": `${disposition}; filename="salida-${trip.rbd}-${trip.fecha}.pdf"`,
       "Cache-Control": "no-store",
     },
   });
