@@ -22,13 +22,13 @@ function mapSchoolRecord(record: SchoolRecord): DirectorSchoolProfile | null {
   const rbd = record.RBD?.trim();
   const nombre = record["NOMBRE ESTABLECIMIENTO"]?.trim();
   const comuna = record.COMUNA?.trim();
-  const direccion = record.DIRECCIÓN?.trim();
-  const director = record["DIRECTOR/A"]?.trim();
-  const email = record["CORREO ELECTRÓNICO"]?.trim();
+  const direccion = record.DIRECCIÓN?.trim() || "Direccion no disponible";
+  const director = record["DIRECTOR/A"]?.trim() || "";
+  const email = record["CORREO ELECTRÓNICO"]?.trim() || "";
   const latitud = parseCoordinate(record.LATITUD);
   const longitud = parseCoordinate(record.LONGITUD);
 
-  if (!rbd || !nombre || !comuna || !direccion || !director || !email || latitud === null || longitud === null) {
+  if (!rbd || !nombre || !comuna || latitud === null || longitud === null) {
     return null;
   }
 
@@ -83,7 +83,7 @@ async function getSchoolProfileByRbd(rbd: string) {
   if (!profile) {
     return {
       profile: null,
-      reason: "El establecimiento existe, pero faltan datos obligatorios como direccion o coordenadas para calcular la ruta.",
+      reason: "El establecimiento existe, pero no tiene coordenadas validas para calcular la ruta.",
     };
   }
 
