@@ -10,6 +10,8 @@ interface StepperProps {
   isFinalStep: boolean;
   isBusy?: boolean;
   busyLabel?: string;
+  helperText?: string;
+  nextLabel?: string;
   onPrevious: () => void;
   onNext: () => void;
 }
@@ -22,6 +24,8 @@ export default function Stepper({
   isFinalStep,
   isBusy = false,
   busyLabel = "Procesando paso actual...",
+  helperText,
+  nextLabel,
   onPrevious,
   onNext,
 }: StepperProps) {
@@ -72,9 +76,7 @@ export default function Stepper({
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-slate-600">
-          {isFinalStep
-            ? "El paso 3 queda reservado para participantes y envio en la siguiente fase."
-            : "Completa los datos obligatorios del paso actual para continuar."}
+          {helperText ?? (isFinalStep ? "Revisa el resumen y ejecuta la accion final del formulario." : "Completa los datos obligatorios del paso actual para continuar.")}
         </p>
         <div className="flex flex-wrap gap-3">
           <button
@@ -91,7 +93,7 @@ export default function Stepper({
             disabled={!canGoForward || isBusy}
             className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {isBusy ? "Calculando..." : isFinalStep ? "Enviar en Fase 3" : "Siguiente"}
+            {isBusy ? "Procesando..." : nextLabel ?? (isFinalStep ? "Finalizar" : "Siguiente")}
           </button>
         </div>
       </div>

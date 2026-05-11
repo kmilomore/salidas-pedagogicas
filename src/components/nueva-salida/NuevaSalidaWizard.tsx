@@ -8,6 +8,8 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
 import { calcularRuta } from "@/app/actions/maps";
+import { guardarSalidaPedagogica } from "@/app/actions/trips";
+import { getPmeDimensionByValue } from "@/lib/pme/eid";
 import type {
   DestinationFlow,
   DirectorSchoolProfile,
@@ -42,7 +44,15 @@ const steps = [
 ];
 
 const googleLibraries: ["places"] = ["places"];
-const stepOneFields: Array<keyof TripDraftFormValues> = ["fecha", "hora_salida", "hora_regreso", "objetivo", "actividad"];
+const stepOneFields: Array<keyof TripDraftFormValues> = [
+  "fecha",
+  "hora_salida",
+  "hora_regreso",
+  "pme_dimension",
+  "pme_subdimension",
+  "objetivo",
+  "actividad",
+];
 
 function createEmptyRouteState() {
   return {
@@ -80,7 +90,10 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
   const [selectedPlaces, setSelectedPlaces] = useState<SelectedPlace[]>([]);
   const [routeResult, setRouteResult] = useState<RouteCalculationResult | null>(null);
   const [routeError, setRouteError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccessId, setSaveSuccessId] = useState<string | null>(null);
   const [isRouteLoading, startRouteTransition] = useTransition();
+  const [isSaveLoading, startSaveTransition] = useTransition();
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
   const {
@@ -96,6 +109,11 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
       fecha: "",
       hora_salida: "",
       hora_regreso: "",
+      pme_dimension: "",
+      pme_dimension_label: "",
+      pme_dimension_source: "",
+      pme_subdimension: "",
+      pme_subdimension_label: "",
       objetivo: "",
       actividad: "",
       lugar_query: "",
@@ -121,6 +139,8 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     values.fecha >= minDate &&
     Boolean(values.hora_salida) &&
     (!values.hora_regreso || values.hora_regreso > values.hora_salida) &&
+    Boolean(values.pme_dimension) &&
+    Boolean(values.pme_subdimension) &&
     values.objetivo.trim().length >= 10 &&
     values.actividad.trim().length >= 5;
   const minimumDestinations = destinationFlow === "multiple" ? 2 : 1;
@@ -260,6 +280,24 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     resetRouteFields(flow);
   };
 
+  const handlePmeDimensionChange = (dimensionValue: string) => {
+    const selectedDimension = getPmeDimensionByValue(dimensionValue);
+
+    setValue("pme_dimension", dimensionValue, { shouldDirty: true, shouldValidate: true });
+    setValue("pme_dimension_label", selectedDimension?.label ?? "", { shouldDirty: true });
+    setValue("pme_dimension_source", selectedDimension?.sourceDimension ?? "", { shouldDirty: true });
+    setValue("pme_subdimension", "", { shouldDirty: true, shouldValidate: true });
+    setValue("pme_subdimension_label", "", { shouldDirty: true });
+  };
+
+  const handlePmeSubdimensionChange = (subdimensionValue: string) => {
+    const selectedDimension = getPmeDimensionByValue(values.pme_dimension);
+    const selectedSubdimension = selectedDimension?.subdimensions.find((subdimension) => subdimension.value === subdimensionValue) ?? null;
+
+    setValue("pme_subdimension", subdimensionValue, { shouldDirty: true, shouldValidate: true });
+    setValue("pme_subdimension_label", selectedSubdimension?.label ?? "", { shouldDirty: true });
+  };
+
   const handleNext = async () => {
     if (currentStep === 0) {
       const isValid = await trigger(stepOneFields);
@@ -273,6 +311,47 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
 
     if (currentStep === 1 && isStepTwoReady) {
       setCurrentStep(2);
+      setSaveError(null);
+      setSaveSuccessId(null);
+      return;
+    }
+
+    if (currentStep === 2) {
+      setSaveError(null);
+      setSaveSuccessId(null);
+
+      startSaveTransition(() => {
+        void (async () => {
+          const result = await guardarSalidaPedagogica({
+            rbd: schoolProfile.rbd,
+            fecha: getValues("fecha"),
+            hora_salida: getValues("hora_salida"),
+            hora_regreso: getValues("hora_regreso"),
+            pme_dimension: getValues("pme_dimension_source") || getValues("pme_dimension_label"),
+            pme_subdimension: getValues("pme_subdimension_label"),
+            objetivo: getValues("objetivo"),
+            actividad: getValues("actividad"),
+            lugar_nombre: getValues("lugar_nombre"),
+            lugar_direccion: getValues("lugar_direccion"),
+            lugar_lat: getValues("lugar_lat"),
+            lugar_lng: getValues("lugar_lng"),
+            lugar_place_id: getValues("lugar_place_id"),
+            lugar_comuna: getValues("lugar_comuna"),
+            lugar_region: getValues("lugar_region"),
+            distancia_km: getValues("distancia_km"),
+            duracion_minutos: getValues("duracion_minutos"),
+            ruta_polyline: getValues("ruta_polyline"),
+            ruta_resumen: getValues("ruta_resumen"),
+          });
+
+          if (result.error || !result.tripId) {
+            setSaveError(result.error ?? "No fue posible guardar la salida pedagogica.");
+            return;
+          }
+
+          setSaveSuccessId(result.tripId);
+        })();
+      });
     }
   };
 
@@ -346,7 +425,16 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
         <input type="hidden" {...register("ruta_polyline")} />
         <input type="hidden" {...register("ruta_resumen")} />
 
-        {currentStep === 0 ? <StepDatosViaje register={register} errors={errors} minDate={minDate} /> : null}
+        {currentStep === 0 ? (
+          <StepDatosViaje
+            register={register}
+            errors={errors}
+            minDate={minDate}
+            selectedDimension={values.pme_dimension}
+            onDimensionChange={handlePmeDimensionChange}
+            onSubdimensionChange={handlePmeSubdimensionChange}
+          />
+        ) : null}
 
         {currentStep === 1 ? (
           <StepDestino
@@ -373,20 +461,35 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
         {currentStep === 2 ? (
           <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 3</p>
-            <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Participantes y envio</h3>
+            <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Resumen y guardado</h3>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Este paso queda reservado para la Fase 3. El stepper y los datos previos ya quedaron preparados para conectar validacion final, lista de funcionarios y submit al servidor sin rehacer la UX.
+              Revisa la informacion consolidada de la salida y guarda el registro en la base de datos. En esta etapa el registro se persiste como borrador operativo con los datos disponibles del formulario.
             </p>
             <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 text-sm leading-6 text-slate-700">
               <p className="font-semibold text-slate-950">Resumen preparado</p>
               <p className="mt-2">Fecha: {getValues("fecha") || "-"}</p>
               <p>Hora salida: {getValues("hora_salida") || "-"}</p>
+              <p>Dimension PME: {getValues("pme_dimension_label") || "-"}</p>
+              <p>Subdimension PME: {getValues("pme_subdimension_label") || "-"}</p>
+              <p>Nombre de la accion: {getValues("actividad") || "-"}</p>
               <p>Flujo: {destinationFlow === "multiple" ? "Multiples destinos" : "Un destino"}</p>
               <p>Destino{selectedPlaces.length > 1 ? "s" : ""}: {getValues("lugar_nombre") || "-"}</p>
               <p>Ida: {getValues("distancia_ida_km") || "-"} km</p>
               <p>Vuelta: {getValues("distancia_vuelta_km") || "-"} km</p>
               <p>Total: {getValues("distancia_km") || "-"} km</p>
             </div>
+
+            {saveError ? (
+              <div className="status-card-danger mt-6 rounded-2xl px-4 py-3 text-sm">
+                {saveError}
+              </div>
+            ) : null}
+
+            {saveSuccessId ? (
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                La salida fue guardada correctamente con ID {saveSuccessId}.
+              </div>
+            ) : null}
           </section>
         ) : null}
 
@@ -394,10 +497,12 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           steps={steps}
           currentStep={currentStep}
           canGoBack={currentStep > 0}
-          canGoForward={canGoForward}
+          canGoForward={currentStep === 2 ? !Boolean(saveSuccessId) : canGoForward}
           isFinalStep={currentStep === steps.length - 1}
-          isBusy={currentStep === 1 && isRouteLoading}
-          busyLabel="Consultando Google Maps y preparando el resumen del trayecto..."
+          isBusy={(currentStep === 1 && isRouteLoading) || (currentStep === 2 && isSaveLoading)}
+          busyLabel={currentStep === 2 ? "Guardando la salida pedagogica en Supabase..." : "Consultando Google Maps y preparando el resumen del trayecto..."}
+          helperText={currentStep === 2 ? "Guarda la salida para persistir fecha, PME, accion, objetivo y datos de ruta en la base de datos." : undefined}
+          nextLabel={currentStep === 2 ? (saveSuccessId ? "Guardada" : "Guardar salida") : undefined}
           onPrevious={() => setCurrentStep((previousStep) => Math.max(0, previousStep - 1))}
           onNext={() => void handleNext()}
         />

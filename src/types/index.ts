@@ -104,10 +104,20 @@ export interface RouteCalculationResponse {
   error: string | null;
 }
 
+export interface SaveTripResponse {
+  tripId: string | null;
+  error: string | null;
+}
+
 export interface TripDraftFormValues {
   fecha: string;
   hora_salida: string;
   hora_regreso: string;
+  pme_dimension: string;
+  pme_dimension_label: string;
+  pme_dimension_source: string;
+  pme_subdimension: string;
+  pme_subdimension_label: string;
   objetivo: string;
   actividad: string;
   destino_flujo: DestinationFlow;
