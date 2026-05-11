@@ -48,6 +48,28 @@ Vas a construir esta aplicación **fase por fase**.
 - Los headers autenticados ya muestran una etiqueta visual del rol activo para que el usuario identifique de inmediato si navega como director o administrador.
 - Sigue pendiente validar el mismo flujo en Vercel con las variables de entorno de producción correctamente cargadas.
 
+### Fase 3
+- Implementada en código base y validada con `npm run build`.
+- Ya existe paso 3 real con participantes, cantidades y funcionarios.
+- El guardado final ya inserta en `salidas_pedagogicas` con `estado = 'enviada'`.
+- El rate limiting ya funciona sin librerías externas, consultando `salidas_pedagogicas` en Supabase por ventana de una hora.
+- El RUT ya se normaliza automáticamente aunque el usuario lo escriba sin puntos ni guion.
+- Los campos de texto ya pasan por normalización y limpieza consistente en cliente y servidor.
+- Ya existe pantalla de éxito después del guardado.
+- Sigue pendiente verificar el guardado end-to-end en producción con un flujo completo real sobre Vercel.
+
+### Fase 6
+- Implementación parcial.
+- El panel administrativo ya dejó de ser estático y ahora consulta salidas reales desde `salidas_pedagogicas`.
+- Ya muestra métricas base, listado reciente, kilometraje acumulado y estado por registro.
+- Sigue pendiente la versión completa del panel: filtros, paginación, ordenamiento, detalle, exportación y acciones administrativas.
+
+### Pendientes transversales relevantes
+- `mis-salidas` del director sigue estático y debe conectarse a datos reales.
+- La ruta pública `/ruta/[id]` sigue sin implementación funcional final.
+- PDF, imagen estática del mapa y correo todavía no están construidos.
+- Falta validación funcional completa en Vercel para login, guardado, panel admin y URL pública.
+
 ### Hallazgos operativos verificados
 - La tabla maestra de escuelas guarda `LATITUD` y `LONGITUD` como texto y en varios casos usa formato con comas múltiples, por ejemplo `-34,709,095`; el parser del proyecto ya fue ajustado para normalizar ese formato antes de convertirlo a número.
 - Para calcular la ruta no se debe bloquear una escuela real por faltar `DIRECTOR/A`, `CORREO ELECTRÓNICO` o `DIRECCIÓN`; el origen operativo de Fase 2 solo requiere RBD, nombre, comuna y coordenadas válidas.
@@ -159,9 +181,7 @@ npx create-next-app@latest salidas-pedagogicas \
 npm install \
   @supabase/supabase-js \
   @supabase/ssr \
-  zod \
-  dompurify \
-  @types/dompurify
+   zod
 ```
 
 ### 1.3 Variables de entorno — crear `.env.local`
@@ -469,7 +489,7 @@ Campos:
 - Ya corregido el parseo de coordenadas para formatos de tabla maestra como `-34,709,095`.
 - Ya validada localmente una ruta real con Google Directions API.
 - Pendiente de validación externa: prueba end-to-end en navegador sobre Vercel con las variables productivas definitivas.
-- Fase 3 ya quedó implementada sobre el wizard real: participantes, funcionarios, validación, rate limiting condicional por Upstash, sanitización server-side y pantalla de éxito.
+- Fase 3 ya quedó implementada sobre el wizard real: participantes, funcionarios, validación, rate limiting nativo con Supabase, normalización server-side y pantalla de éxito.
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 2
 
@@ -504,10 +524,12 @@ la validación completa con Zod y el Server Action de creación de la salida.
 - `StepParticipantes.tsx` ya existe e incorpora `cantidad_estudiantes`, `cantidad_apoderados` y lista de funcionarios.
 - `src/lib/validations/salida.ts` ya centraliza la validación del payload completo de los 3 pasos.
 - `src/lib/rate-limit.ts` ya aplica límite de 10 formularios por hora por usuario consultando `salidas_pedagogicas` en Supabase, sin Redis ni servicios externos.
-- El guardado final se resuelve hoy en `src/app/actions/trips.ts` mediante `guardarSalidaPedagogica`, con sanitización server-side, validación Zod e insert en `salidas_pedagogicas` con `estado = 'enviada'`.
+- El guardado final se resuelve hoy en `src/app/actions/trips.ts` mediante `guardarSalidaPedagogica`, con normalización server-side, validación Zod e insert en `salidas_pedagogicas` con `estado = 'enviada'`.
 - Ya existe pantalla de éxito en `src/app/(director)/nueva-salida/exito/page.tsx`.
 - Validación técnica confirmada: `npm run build` exitoso tras integrar Fase 3.
 - El catálogo PME ya no sale de un archivo local fijo: se carga desde `public.eid` en el server controller del formulario.
+- Los textos libres ya se limpian y normalizan con helpers propios compartidos; no dependen de DOMPurify ni jsdom.
+- El RUT de funcionarios ya se formatea automáticamente al salir del campo y se persiste normalizado.
 
 ## Dependencias a instalar
 ```bash
@@ -543,13 +565,13 @@ la validación completa con Zod y el Server Action de creación de la salida.
 ### 3.4 Rate Limiting — `src/lib/rate-limit.ts`
 - 10 formularios por hora por usuario
 - Retornar error claro si se supera el límite
-- Si Upstash no está configurado aún, el helper no rompe la aplicación y deja pasar el guardado para no bloquear ambientes incompletos.
+- Implementación actual: conteo directo en `salidas_pedagogicas` por `director_id` y `created_at` en Supabase.
 
 ### 3.5 Server Action `crearSalida` — `src/app/actions/trips.ts`
 ```typescript
 // 1. Verificar sesión y rol (director) desde el servidor
 // 2. Aplicar rate limiting por userId
-// 3. Sanitizar inputs con DOMPurify (server-side)
+// 3. Normalizar y limpiar inputs con helpers propios server-side
 // 4. Validar con Zod schema
 // 5. INSERT en salidas_pedagogicas
 // 6. Retornar { id, success } → el cliente redirige a la pantalla de éxito
@@ -563,8 +585,8 @@ la validación completa con Zod y el Server Action de creación de la salida.
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 3
 
-1. **¿Necesitas Upstash para el rate limiting, o prefieres una alternativa  
-   más simple para la fase de pruebas (como un contador en Supabase)?**
+1. **¿El guardado debe seguir registrándose directamente como `enviada`,  
+   o quieres introducir un estado intermedio de revisión administrativa?**
 
 2. **Para el campo "Cargo" del funcionario, ¿debe ser texto libre  
    o un dropdown con opciones predefinidas?**  
@@ -734,6 +756,12 @@ export async function generateMetadata({ params }) {
 Construir el panel completo para los administradores SLEP:
 tabla de registros, filtros, detalle con mapa y exportación.
 
+## Estado actual validado en el repositorio
+- `src/app/(admin)/panel/page.tsx` ya consulta `salidas_pedagogicas` y muestra registros reales recientes.
+- Ya existen métricas base visibles: establecimientos con actividad, solicitudes, enviadas y kilometraje acumulado.
+- El panel actual todavía es una primera versión operativa: no tiene filtros avanzados, paginación, ordenamiento, modal de detalle ni exportación.
+- La vista `mis-salidas` del director sigue pendiente de conexión a datos reales, por lo que el seguimiento no está completo en ambos roles.
+
 ## Dependencias a instalar
 ```bash
 npm install xlsx
@@ -746,6 +774,8 @@ npm install xlsx
 - Indicador del usuario admin logueado
 
 ### 6.2 Tabla de registros — `src/app/(admin)/panel/page.tsx`
+**Estado actual:** implementado parcialmente.
+
 Filtros:
 - Establecimiento (dropdown desde "BASE DE DATOS ESCUELAS SLEP")
 - Comuna (dropdown)
@@ -759,6 +789,10 @@ Comportamiento:
 - Paginación: 25 registros por página
 - Ordenamiento por columna (click en header)
 - Búsqueda rápida por nombre de lugar o establecimiento
+
+Pendiente real sobre esta tarea:
+- Extender la tabla actual para incluir filtros, ordenamiento, paginación y columnas completas de operación.
+- Incorporar el nombre del director y cantidades de participantes en la consulta principal.
 
 ### 6.3 Modal de detalle — `src/components/admin/DetalleSalida.tsx`
 - Todos los datos de la salida
@@ -807,7 +841,7 @@ y despliegue en Vercel conectado al Supabase de producción.
 - Agregar headers de seguridad: CSP, X-Frame-Options, X-Content-Type-Options
 - Verificar que ninguna API key de servidor llega al bundle del cliente
 - Revisar todos los Server Actions: re-verifican sesión y rol
-- Sanitización DOMPurify en todos los campos de texto
+- Mantener normalización y limpieza propia en todos los campos de texto, sin depender de DOMPurify
 
 ### 7.2 Optimización
 - `loading.tsx` en cada ruta protegida (skeleton loaders)
@@ -828,6 +862,8 @@ y despliegue en Vercel conectado al Supabase de producción.
 - [ ] Login con Google de un admin
 - [ ] Intento de login con email no en whitelist
 - [ ] Formulario completo paso a paso con lugar seleccionado
+- [ ] Guardado completo visible luego en `mis-salidas`
+- [ ] Guardado completo visible luego en el panel admin
 - [ ] Intento de submit sin seleccionar lugar del autocomplete (debe fallar)
 - [ ] Generación y descarga del PDF
 - [ ] Recepción del correo en el email del director

@@ -127,6 +127,39 @@ export interface SaveTripResponse {
   error: string | null;
 }
 
+export interface AdminTripRecord {
+  id: string;
+  rbd: string;
+  fecha: string;
+  hora_salida: string;
+  hora_regreso: string | null;
+  pme_dimension: string;
+  pme_subdimension: string;
+  objetivo: string;
+  actividad: string;
+  lugar_nombre: string;
+  lugar_direccion: string;
+  lugar_lat: number;
+  lugar_lng: number;
+  lugar_comuna: string;
+  lugar_region: string;
+  distancia_km: number;
+  duracion_minutos: number;
+  ruta_polyline: string;
+  ruta_resumen: string;
+  estado: "borrador" | "enviada";
+  cantidad_estudiantes: number;
+  cantidad_apoderados: number;
+  funcionarios: TripStaffMember[];
+  created_at: string;
+  school_name: string;
+  school_comuna: string;
+  school_address: string;
+  school_lat: number | null;
+  school_lng: number | null;
+  director_email: string | null;
+}
+
 export interface TripDraftFormValues {
   fecha: string;
   hora_salida: string;

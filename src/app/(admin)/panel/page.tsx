@@ -1,104 +1,11 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 
-import { createAdminClient, createClient } from "@/lib/supabase/server";
-import type { UserRole } from "@/types";
-
-interface AdminTripRow {
-  id: string;
-  rbd: string;
-  fecha: string;
-  actividad: string;
-  lugar_nombre: string;
-  distancia_km: number;
-  estado: "borrador" | "enviada";
-  created_at: string;
-}
-
-interface SchoolNameRow {
-  RBD: string | null;
-  "NOMBRE ESTABLECIMIENTO": string | null;
-}
-
-function formatTripDate(value: string) {
-  return new Intl.DateTimeFormat("es-CL", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
-}
-
-function formatDistance(value: number) {
-  return `${Number(value ?? 0).toFixed(1)} km`;
-}
-
-function getStatusLabel(status: AdminTripRow["estado"]) {
-  return status === "enviada" ? "Enviada" : "Borrador";
-}
-
-function getStatusClasses(status: AdminTripRow["estado"]) {
-  return status === "enviada"
-    ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-    : "border-amber-200 bg-amber-50 text-amber-900";
-}
-
-async function getAdminTrips() {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user?.email) {
-    redirect("/login");
-  }
-
-  const { data: whitelistUser, error: whitelistError } = await supabase
-    .from("whitelist_usuarios")
-    .select("rol")
-    .eq("email", user.email.trim().toLowerCase())
-    .eq("activo", true)
-    .maybeSingle<{ rol: UserRole }>();
-
-  if (whitelistError || !whitelistUser || whitelistUser.rol !== "admin") {
-    redirect("/acceso-denegado");
-  }
-
-  const { data: trips, error } = await supabase
-    .from("salidas_pedagogicas")
-    .select("id, rbd, fecha, actividad, lugar_nombre, distancia_km, estado, created_at")
-    .order("created_at", { ascending: false })
-    .limit(20)
-    .returns<AdminTripRow[]>();
-
-  if (error || !trips) {
-    return [] as AdminTripRow[];
-  }
-
-  return trips;
-}
-
-async function getSchoolNamesByRbd(rbds: string[]) {
-  if (!rbds.length) {
-    return new Map<string, string>();
-  }
-
-  const adminSupabase = createAdminClient();
-  const { data } = await adminSupabase
-    .from("BASE DE DATOS ESCUELAS SLEP")
-    .select('RBD,"NOMBRE ESTABLECIMIENTO"')
-    .in("RBD", rbds)
-    .returns<SchoolNameRow[]>();
-
-  return new Map(
-    (data ?? [])
-      .filter((row) => row.RBD && row["NOMBRE ESTABLECIMIENTO"])
-      .map((row) => [row.RBD as string, row["NOMBRE ESTABLECIMIENTO"] as string]),
-  );
-}
+import AdminTripsTable from "@/components/admin/AdminTripsTable";
+import { formatDistance } from "@/lib/admin/trip-formatting";
+import { getAdminTrips } from "@/lib/admin/trips";
 
 export default async function AdminPanelPage() {
-  const trips = await getAdminTrips();
-  const schoolNames = await getSchoolNamesByRbd(Array.from(new Set(trips.map((trip) => trip.rbd))));
+  const trips = await getAdminTrips(20);
   const schoolCount = new Set(trips.map((trip) => trip.rbd)).size;
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
@@ -115,7 +22,13 @@ export default async function AdminPanelPage() {
               Consolida el seguimiento transversal de las salidas registradas por los establecimientos y muestra las ultimas cargas operativas reales.
             </p>
           </div>
-          <div className="mt-2">
+          <div className="mt-2 flex flex-wrap gap-3">
+            <a
+              href="/api/admin/export-csv"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+            >
+              Exportar CSV
+            </a>
             <Link
               href="/nueva-salida"
               className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
@@ -167,45 +80,7 @@ export default async function AdminPanelPage() {
           <p className="text-sm leading-6 text-slate-500">Se muestran las 20 cargas mas recientes.</p>
         </div>
 
-        <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200">
-          <div className="grid grid-cols-[1.2fr_0.8fr_1fr_0.8fr_0.7fr] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <span>Establecimiento</span>
-            <span>Fecha</span>
-            <span>Actividad / destino</span>
-            <span>Kilometraje</span>
-            <span>Estado</span>
-          </div>
-
-          {trips.length ? (
-            <div className="divide-y divide-slate-200 bg-white">
-              {trips.map((trip) => (
-                <div key={trip.id} className="grid grid-cols-[1.2fr_0.8fr_1fr_0.8fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
-                  <div>
-                    <p className="font-semibold text-slate-950">{schoolNames.get(trip.rbd) ?? `RBD ${trip.rbd}`}</p>
-                    <p className="text-slate-500">RBD {trip.rbd}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-950">{formatTripDate(trip.fecha)}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-950">{trip.actividad}</p>
-                    <p className="text-slate-500">{trip.lugar_nombre}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-slate-950">{formatDistance(Number(trip.distancia_km ?? 0))}</p>
-                  </div>
-                  <div>
-                    <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(trip.estado)}`}>
-                      {getStatusLabel(trip.estado)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-5 py-10 text-sm leading-6 text-slate-600">Aun no existen salidas registradas visibles para administracion.</div>
-          )}
-        </div>
+        <AdminTripsTable trips={trips} />
       </article>
     </section>
   );

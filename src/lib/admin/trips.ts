@@ -1,0 +1,206 @@
+import { redirect } from "next/navigation";
+
+import { createAdminClient, createClient } from "@/lib/supabase/server";
+import type { AdminTripRecord, SchoolRecord, TripStaffMember, UserRole } from "@/types";
+
+interface AdminTripQueryRow {
+  id: string;
+  rbd: string;
+  fecha: string;
+  hora_salida: string;
+  hora_regreso: string | null;
+  pme_dimension: string;
+  pme_subdimension: string;
+  objetivo: string;
+  actividad: string;
+  lugar_nombre: string;
+  lugar_direccion: string;
+  lugar_lat: number;
+  lugar_lng: number;
+  lugar_comuna: string;
+  lugar_region: string;
+  distancia_km: number;
+  duracion_minutos: number;
+  ruta_polyline: string;
+  ruta_resumen: string;
+  estado: "borrador" | "enviada";
+  cantidad_estudiantes: number;
+  cantidad_apoderados: number;
+  funcionarios: TripStaffMember[] | null;
+  created_at: string;
+}
+
+interface SchoolLookupRow extends Pick<SchoolRecord, "RBD" | "COMUNA" | "LATITUD" | "LONGITUD" | "DIRECCIÓN"> {
+  "NOMBRE ESTABLECIMIENTO": string | null;
+}
+
+interface DirectorLookupRow {
+  email: string;
+  rbd: string | null;
+}
+
+function parseCoordinate(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const sanitized = value.trim().replace(/\s/g, "");
+
+  if (!sanitized) {
+    return null;
+  }
+
+  let normalizedText = sanitized;
+
+  if (sanitized.includes(",") && !sanitized.includes(".")) {
+    const segments = sanitized.split(",").filter(Boolean);
+    normalizedText = segments.length >= 2 ? `${segments[0]}.${segments.slice(1).join("")}` : sanitized.replace(",", ".");
+  } else if (sanitized.includes(",") && sanitized.includes(".")) {
+    normalizedText = sanitized.replace(/,/g, "");
+  }
+
+  const normalized = Number(normalizedText);
+  return Number.isFinite(normalized) ? normalized : null;
+}
+
+export async function assertAdminAccess() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    redirect("/login");
+  }
+
+  const { data: whitelistUser, error: whitelistError } = await supabase
+    .from("whitelist_usuarios")
+    .select("rol")
+    .eq("email", user.email.trim().toLowerCase())
+    .eq("activo", true)
+    .maybeSingle<{ rol: UserRole }>();
+
+  if (whitelistError || !whitelistUser || whitelistUser.rol !== "admin") {
+    redirect("/acceso-denegado");
+  }
+
+  return supabase;
+}
+
+export async function getAdminTrips(limit?: number) {
+  const supabase = await assertAdminAccess();
+  let query = supabase
+    .from("salidas_pedagogicas")
+    .select(
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (typeof limit === "number") {
+    query = query.limit(limit);
+  }
+
+  const { data: trips, error } = await query.returns<AdminTripQueryRow[]>();
+
+  if (error || !trips?.length) {
+    return [] as AdminTripRecord[];
+  }
+
+  const rbds = Array.from(new Set(trips.map((trip) => trip.rbd)));
+  const adminSupabase = createAdminClient();
+  const [{ data: schools }, { data: directors }] = await Promise.all([
+    adminSupabase
+      .from("BASE DE DATOS ESCUELAS SLEP")
+      .select('RBD,"NOMBRE ESTABLECIMIENTO",COMUNA,LATITUD,LONGITUD,"DIRECCIÓN"')
+      .in("RBD", rbds)
+      .returns<SchoolLookupRow[]>(),
+    adminSupabase
+      .from("whitelist_usuarios")
+      .select("email, rbd")
+      .eq("rol", "director")
+      .eq("activo", true)
+      .in("rbd", rbds)
+      .returns<DirectorLookupRow[]>(),
+  ]);
+
+  const schoolMap = new Map((schools ?? []).filter((school) => school.RBD).map((school) => [school.RBD as string, school]));
+  const directorMap = new Map((directors ?? []).filter((director) => director.rbd).map((director) => [director.rbd as string, director.email]));
+
+  return trips.map((trip) => {
+    const school = schoolMap.get(trip.rbd);
+
+    return {
+      ...trip,
+      funcionarios: Array.isArray(trip.funcionarios) ? trip.funcionarios : [],
+      school_name: school?.["NOMBRE ESTABLECIMIENTO"]?.trim() || `RBD ${trip.rbd}`,
+      school_comuna: school?.COMUNA?.trim() || "Comuna no disponible",
+      school_address: school?.DIRECCIÓN?.trim() || "Direccion no disponible",
+      school_lat: parseCoordinate(school?.LATITUD ?? null),
+      school_lng: parseCoordinate(school?.LONGITUD ?? null),
+      director_email: directorMap.get(trip.rbd) ?? null,
+    } satisfies AdminTripRecord;
+  });
+}
+
+export function buildTripsCsv(trips: AdminTripRecord[]) {
+  const headers = [
+    "id",
+    "fecha",
+    "hora_salida",
+    "hora_regreso",
+    "estado",
+    "rbd",
+    "establecimiento",
+    "comuna_establecimiento",
+    "director_email",
+    "pme_dimension",
+    "pme_subdimension",
+    "actividad",
+    "objetivo",
+    "lugar_nombre",
+    "lugar_direccion",
+    "lugar_comuna",
+    "lugar_region",
+    "distancia_km",
+    "duracion_minutos",
+    "cantidad_estudiantes",
+    "cantidad_apoderados",
+    "ruta_resumen",
+    "funcionarios_json",
+    "created_at",
+  ];
+
+  const escapeCsv = (value: string | number | null) => {
+    const text = String(value ?? "").replace(/"/g, '""');
+    return `"${text}"`;
+  };
+
+  const rows = trips.map((trip) => [
+    trip.id,
+    trip.fecha,
+    trip.hora_salida,
+    trip.hora_regreso,
+    trip.estado,
+    trip.rbd,
+    trip.school_name,
+    trip.school_comuna,
+    trip.director_email,
+    trip.pme_dimension,
+    trip.pme_subdimension,
+    trip.actividad,
+    trip.objetivo,
+    trip.lugar_nombre,
+    trip.lugar_direccion,
+    trip.lugar_comuna,
+    trip.lugar_region,
+    trip.distancia_km,
+    trip.duracion_minutos,
+    trip.cantidad_estudiantes,
+    trip.cantidad_apoderados,
+    trip.ruta_resumen,
+    JSON.stringify(trip.funcionarios),
+    trip.created_at,
+  ]);
+
+  return [headers, ...rows].map((row) => row.map((cell) => escapeCsv(cell)).join(",")).join("\n");
+}
