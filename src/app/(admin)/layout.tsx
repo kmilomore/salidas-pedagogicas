@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import SignOutButton from "@/components/auth/SignOutButton";
+
 const adminLinks = [
   { href: "/panel", label: "Panel" },
   { href: "/nueva-salida", label: "Ver formulario" },
@@ -24,6 +26,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {link.label}
               </Link>
             ))}
+            <SignOutButton />
           </nav>
         </header>
         <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8 xl:px-10">{children}</div>

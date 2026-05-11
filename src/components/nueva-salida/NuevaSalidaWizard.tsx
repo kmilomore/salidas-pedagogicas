@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useJsApiLoader } from "@react-google-maps/api";
@@ -306,10 +307,20 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
               </div>
             ) : null}
           </div>
-          <div className="rounded-[24px] border border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
-            <p className="font-semibold text-slate-950">{isAdminView ? "Establecimiento seleccionado" : "Establecimiento asignado"}</p>
-            <p className="mt-1">{schoolProfile.nombre}</p>
-            <p>{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
+          <div className="flex flex-col gap-4 lg:items-end">
+            {isAdminView ? (
+              <Link
+                href="/panel"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+              >
+                Volver a panel admin
+              </Link>
+            ) : null}
+            <div className="rounded-[24px] border border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
+              <p className="font-semibold text-slate-950">{isAdminView ? "Establecimiento seleccionado" : "Establecimiento asignado"}</p>
+              <p className="mt-1">{schoolProfile.nombre}</p>
+              <p>{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
+            </div>
           </div>
         </div>
       </div>
