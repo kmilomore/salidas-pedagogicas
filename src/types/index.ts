@@ -71,6 +71,11 @@ export interface RouteCalculationResult {
   resumen: string;
 }
 
+export interface RouteCalculationResponse {
+  route: RouteCalculationResult | null;
+  error: string | null;
+}
+
 export interface TripDraftFormValues {
   fecha: string;
   hora_salida: string;

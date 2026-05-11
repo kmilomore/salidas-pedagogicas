@@ -146,7 +146,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     startRouteTransition(() => {
       void (async () => {
         try {
-          const route = await calcularRuta({
+          const result = await calcularRuta({
             origen: {
               lat: schoolProfile.latitud,
               lng: schoolProfile.longitud,
@@ -156,6 +156,12 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
               lng: place.lng,
             },
           });
+
+          if (!result.route) {
+            throw new Error(result.error ?? "No fue posible calcular la ruta para el destino seleccionado.");
+          }
+
+          const route = result.route;
 
           setRouteResult(route);
           setValue("distancia_km", String(route.distancia_km), { shouldDirty: true });
