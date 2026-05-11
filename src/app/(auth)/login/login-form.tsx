@@ -53,13 +53,13 @@ export default function LoginForm({ statusMessage }: LoginFormProps) {
   return (
     <>
       {statusMessage ? (
-        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="status-card-warning mt-6 rounded-2xl px-4 py-3 text-sm">
           {statusMessage}
         </div>
       ) : null}
 
       {errorMessage ? (
-        <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+        <div className="status-card-danger mt-4 rounded-2xl px-4 py-3 text-sm">
           {errorMessage}
         </div>
       ) : null}

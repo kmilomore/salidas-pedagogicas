@@ -28,8 +28,15 @@ function formatDuration(minutes: number) {
   return `${hours} h ${remainingMinutes} min`;
 }
 
-const outboundPalette = ["#1B4F8A", "#0F766E", "#0369A1", "#C98908", "#BE123C", "#143B66"];
-const returnColor = "#EA580C";
+const outboundPalette = [
+  "var(--route-blue)",
+  "var(--route-teal)",
+  "var(--route-cyan)",
+  "var(--route-gold)",
+  "var(--route-berry)",
+  "var(--slep-blue-dark)",
+];
+const returnColor = "var(--route-return)";
 
 export default function MapaRuta({ schoolProfile, destinations, route }: MapaRutaProps) {
   const isMultiDestination = destinations.length > 1;

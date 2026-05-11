@@ -8,6 +8,12 @@
   --slep-blue: #1b4f8a;
   --slep-blue-dark: #143b66;
   --slep-blue-soft: #d9e8f7;
+  --surface-solid: rgba(255, 255, 255, 0.94);
+  --surface-soft: #f8fbff;
+  --surface-line: #dbe6f2;
+  --status-success: #0f766e;
+  --status-warning: #b45309;
+  --status-danger: #be123c;
   --route-blue: #1b4f8a;
   --route-teal: #0f766e;
   --route-cyan: #0369a1;
@@ -51,6 +57,26 @@ a {
 }
 
 .portal-panel {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-solid);
   box-shadow: 0 20px 50px rgba(16, 36, 61, 0.08);
+}
+
+.portal-tint {
+  background: linear-gradient(180deg, #ffffff 0%, var(--surface-soft) 100%);
+}
+
+.portal-outline {
+  border: 1px solid var(--surface-line);
+}
+
+.status-card-warning {
+  border: 1px solid color-mix(in srgb, var(--status-warning) 24%, white);
+  background: color-mix(in srgb, var(--status-warning) 10%, white);
+  color: #7c2d12;
+}
+
+.status-card-danger {
+  border: 1px solid color-mix(in srgb, var(--status-danger) 22%, white);
+  background: color-mix(in srgb, var(--status-danger) 8%, white);
+  color: #881337;
 }

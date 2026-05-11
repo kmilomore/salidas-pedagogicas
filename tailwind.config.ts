@@ -6,9 +6,26 @@ const config: Config = {
     extend: {
       colors: {
         slep: {
-          DEFAULT: "#1B4F8A",
-          dark: "#143B66",
-          soft: "#D9E8F7",
+          DEFAULT: "var(--slep-blue)",
+          dark: "var(--slep-blue-dark)",
+          soft: "var(--slep-blue-soft)",
+        },
+        portal: {
+          ink: "var(--foreground)",
+          surface: "var(--surface-solid)",
+          soft: "var(--surface-soft)",
+          line: "var(--surface-line)",
+          success: "var(--status-success)",
+          warning: "var(--status-warning)",
+          danger: "var(--status-danger)",
+        },
+        route: {
+          blue: "var(--route-blue)",
+          teal: "var(--route-teal)",
+          cyan: "var(--route-cyan)",
+          gold: "var(--route-gold)",
+          berry: "var(--route-berry)",
+          return: "var(--route-return)",
         },
       },
       boxShadow: {
