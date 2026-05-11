@@ -48,6 +48,12 @@ export interface DirectorSchoolProfile {
   longitud: number;
 }
 
+export interface SchoolOption {
+  rbd: string;
+  nombre: string;
+  comuna: string;
+}
+
 export interface RoutePoint {
   lat: number;
   lng: number;

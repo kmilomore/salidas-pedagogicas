@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 
 import NuevaSalidaWizard from "@/components/nueva-salida/NuevaSalidaWizard";
 import { createClient } from "@/lib/supabase/server";
-import type { DirectorSchoolProfile, SchoolRecord, UserRole } from "@/types";
+import type { DirectorSchoolProfile, SchoolOption, SchoolRecord, UserRole } from "@/types";
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
@@ -98,7 +97,16 @@ async function getAdminSchoolOptions(supabase: ReturnType<typeof createClient>) 
     .order("NOMBRE ESTABLECIMIENTO", { ascending: true })
     .limit(200);
 
-  return (schools ?? []).filter((school) => school.RBD && school["NOMBRE ESTABLECIMIENTO"]);
+  return (schools ?? [])
+    .filter((school) => school.RBD && school["NOMBRE ESTABLECIMIENTO"])
+    .map(
+      (school) =>
+        ({
+          rbd: school.RBD as string,
+          nombre: school["NOMBRE ESTABLECIMIENTO"] as string,
+          comuna: school.COMUNA ?? "Comuna no disponible",
+        }) satisfies SchoolOption,
+    );
 }
 
 interface NewTripPageProps {
@@ -124,37 +132,20 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
   }
 
   const role = whitelistUser.rol as UserRole;
+  const schoolOptions = role === "admin" ? await getAdminSchoolOptions(supabase) : [];
   const requestedRbd = searchParams?.rbd?.trim();
-  const rbdToLoad = role === "admin" ? requestedRbd || whitelistUser.rbd || null : whitelistUser.rbd;
+  const fallbackAdminRbd = schoolOptions[0]?.rbd ?? null;
+  const rbdToLoad = role === "admin" ? requestedRbd || whitelistUser.rbd || fallbackAdminRbd : whitelistUser.rbd;
 
   if (role === "admin" && !rbdToLoad) {
-    const schools = await getAdminSchoolOptions(supabase);
-
     return (
-      <section className="space-y-6">
-        <div className="rounded-[28px] bg-white p-8 shadow-soft">
-          <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Administracion</p>
-          <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950">Seleccionar establecimiento</h2>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
-            Como administrador puedes abrir el mismo formulario operativo de directores usando un establecimiento real del padron institucional.
-          </p>
+      <section className="rounded-[28px] bg-white p-8 shadow-soft">
+        <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Formulario de salida</p>
+        <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950">Nueva salida</h2>
+        <div className="mt-6 rounded-[24px] border border-amber-200 bg-amber-50 p-6 text-amber-950">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em]">Sin establecimientos disponibles</p>
+          <p className="mt-3 max-w-2xl text-base leading-7">No se encontraron establecimientos validos para abrir el formulario desde administracion.</p>
         </div>
-
-        <section className="rounded-[28px] bg-white p-8 shadow-soft">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {schools.map((school) => (
-              <Link
-                key={school.RBD}
-                href={`/nueva-salida?rbd=${encodeURIComponent(school.RBD as string)}`}
-                className="rounded-[24px] border border-slate-200 px-5 py-4 transition hover:border-slep hover:bg-slep/5"
-              >
-                <p className="text-sm font-semibold text-slate-950">{school["NOMBRE ESTABLECIMIENTO"]}</p>
-                <p className="mt-1 text-sm text-slate-600">RBD {school.RBD}</p>
-                <p className="mt-1 text-sm text-slate-600">{school.COMUNA ?? "Comuna no disponible"}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
       </section>
     );
   }
@@ -190,5 +181,5 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
     );
   }
 
-  return <NuevaSalidaWizard schoolProfile={profile} viewerRole={role} />;
+  return <NuevaSalidaWizard schoolProfile={profile} viewerRole={role} schoolOptions={schoolOptions} />;
 }

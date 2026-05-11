@@ -4,9 +4,10 @@ import { format } from "date-fns";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { useJsApiLoader } from "@react-google-maps/api";
+import { useRouter } from "next/navigation";
 
 import { calcularRuta } from "@/app/actions/maps";
-import type { DirectorSchoolProfile, RouteCalculationResult, TripDraftFormValues, UserRole } from "@/types";
+import type { DirectorSchoolProfile, RouteCalculationResult, SchoolOption, TripDraftFormValues, UserRole } from "@/types";
 
 import type { SelectedPlace } from "./LugarAutocomplete";
 import StepDestino from "./StepDestino";
@@ -53,9 +54,11 @@ function createEmptyRouteState() {
 interface NuevaSalidaWizardProps {
   schoolProfile: DirectorSchoolProfile;
   viewerRole: UserRole;
+  schoolOptions?: SchoolOption[];
 }
 
-export default function NuevaSalidaWizard({ schoolProfile, viewerRole }: NuevaSalidaWizardProps) {
+export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOptions = [] }: NuevaSalidaWizardProps) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [routeResult, setRouteResult] = useState<RouteCalculationResult | null>(null);
@@ -201,6 +204,22 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole }: NuevaSa
                 ? "Estas revisando el mismo formulario operativo que utilizan los directores, usando un establecimiento real seleccionado por administracion."
                 : "El establecimiento de origen se detecta automaticamente desde la whitelist del director. En esta fase quedan operativos los pasos de datos del viaje, destino, resumen y mapa de ruta."}
             </p>
+            {isAdminView && schoolOptions.length > 0 ? (
+              <div className="mt-6 max-w-md">
+                <label className="block text-sm font-semibold text-slate-800">Establecimiento a visualizar</label>
+                <select
+                  value={schoolProfile.rbd}
+                  onChange={(event) => router.push(`/nueva-salida?rbd=${encodeURIComponent(event.target.value)}`)}
+                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                >
+                  {schoolOptions.map((schoolOption) => (
+                    <option key={schoolOption.rbd} value={schoolOption.rbd}>
+                      {schoolOption.nombre} · {schoolOption.comuna}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
           <div className="rounded-[24px] border border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
             <p className="font-semibold text-slate-950">{isAdminView ? "Establecimiento seleccionado" : "Establecimiento asignado"}</p>
