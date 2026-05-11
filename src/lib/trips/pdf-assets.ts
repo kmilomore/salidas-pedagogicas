@@ -1,9 +1,13 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import QRCode from "qrcode";
 
 import type { AdminTripRecord } from "@/types";
 
 interface TripPdfAssets {
   directionsUrl: string;
+  portalLogoDataUrl: string | null;
   qrCodeDataUrl: string | null;
   staticMapDataUrl: string | null;
 }
@@ -88,12 +92,28 @@ async function buildQrCodeDataUrl(value: string) {
   }
 }
 
+async function buildPortalLogoDataUrl() {
+  try {
+    const filePath = path.join(process.cwd(), "public", "SLEPCOLCHAGUA.webp");
+    const imageBuffer = await readFile(filePath);
+
+    return `data:image/webp;base64,${imageBuffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
+}
+
 export async function loadTripPdfAssets(trip: AdminTripRecord): Promise<TripPdfAssets> {
   const directionsUrl = buildTripDirectionsUrl(trip);
-  const [qrCodeDataUrl, staticMapDataUrl] = await Promise.all([buildQrCodeDataUrl(directionsUrl), buildStaticMapDataUrl(trip)]);
+  const [portalLogoDataUrl, qrCodeDataUrl, staticMapDataUrl] = await Promise.all([
+    buildPortalLogoDataUrl(),
+    buildQrCodeDataUrl(directionsUrl),
+    buildStaticMapDataUrl(trip),
+  ]);
 
   return {
     directionsUrl,
+    portalLogoDataUrl,
     qrCodeDataUrl,
     staticMapDataUrl,
   };

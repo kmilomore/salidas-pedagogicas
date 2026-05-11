@@ -27,6 +27,7 @@ function formatDuration(minutes: number) {
 interface TripSummaryPdfProps {
   trip: AdminTripRecord;
   directionsUrl: string;
+  portalLogoDataUrl: string | null;
   qrCodeDataUrl: string | null;
   staticMapDataUrl: string | null;
 }
@@ -44,6 +45,19 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 20,
     color: "#FFFFFF",
+  },
+  heroHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  heroHeaderText: {
+    flex: 1,
+  },
+  heroLogo: {
+    width: 72,
+    height: 72,
+    objectFit: "contain",
   },
   heroKicker: {
     fontSize: 9,
@@ -269,7 +283,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function TripSummaryPdf({ trip, directionsUrl, qrCodeDataUrl, staticMapDataUrl }: TripSummaryPdfProps) {
+export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl, qrCodeDataUrl, staticMapDataUrl }: TripSummaryPdfProps) {
   const outboundRoute = `${trip.school_name} -> ${trip.lugar_nombre}`;
   const returnRoute = `${trip.lugar_nombre} -> ${trip.school_name}`;
 
@@ -277,9 +291,14 @@ export default function TripSummaryPdf({ trip, directionsUrl, qrCodeDataUrl, sta
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.hero}>
-          <Text style={styles.heroKicker}>SLEP Colchagua</Text>
-          <Text style={styles.heroTitle}>Comprobante de salida pedagogica</Text>
-          <Text style={styles.heroSubtitle}>{trip.actividad} · {trip.school_name} · RBD {trip.rbd}</Text>
+          <View style={styles.heroHeader}>
+            {portalLogoDataUrl ? <Image style={styles.heroLogo} src={portalLogoDataUrl} /> : null}
+            <View style={styles.heroHeaderText}>
+              <Text style={styles.heroKicker}>SLEP Colchagua</Text>
+              <Text style={styles.heroTitle}>Comprobante de salida pedagogica</Text>
+              <Text style={styles.heroSubtitle}>{trip.actividad} · {trip.school_name} · RBD {trip.rbd}</Text>
+            </View>
+          </View>
 
           <View style={styles.metricRow}>
             <View style={styles.metricCard}>

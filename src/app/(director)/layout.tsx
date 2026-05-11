@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import SignOutButton from "@/components/auth/SignOutButton";
+import PortalLogo from "@/components/branding/PortalLogo";
 
 const directorLinks = [
   { href: "/dashboard", label: "Dashboard" },
@@ -16,7 +17,7 @@ export default function DirectorLayout({ children }: { children: React.ReactNode
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Portal director</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h1 className="font-display text-3xl font-semibold text-slate-950">Salidas Pedagogicas</h1>
+              <PortalLogo size="sm" />
               <span className="portal-role-badge portal-role-badge--director">Director</span>
             </div>
           </div>

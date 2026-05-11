@@ -15,6 +15,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "Salidas Pedagogicas | SLEP Colchagua",
   description: "Gestion institucional de salidas pedagogicas para establecimientos SLEP Colchagua.",
+  icons: {
+    icon: "/SLEPCOLCHAGUA.webp",
+    shortcut: "/SLEPCOLCHAGUA.webp",
+    apple: "/SLEPCOLCHAGUA.webp",
+  },
 };
 
 export default function RootLayout({

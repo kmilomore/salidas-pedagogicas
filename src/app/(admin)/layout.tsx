@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import SignOutButton from "@/components/auth/SignOutButton";
+import PortalLogo from "@/components/branding/PortalLogo";
 
 const adminLinks = [
   { href: "/panel", label: "Panel" },
@@ -15,7 +16,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Portal administrador</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <h1 className="font-display text-3xl font-semibold text-slate-950">SLEP Colchagua</h1>
+              <PortalLogo size="sm" />
               <span className="portal-role-badge portal-role-badge--admin">Administrador</span>
             </div>
           </div>
