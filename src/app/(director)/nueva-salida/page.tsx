@@ -13,7 +13,27 @@ function parseCoordinate(value: string | null) {
     return null;
   }
 
-  const normalized = Number(value.replace(",", "."));
+  const sanitized = value.trim().replace(/\s/g, "");
+
+  if (!sanitized) {
+    return null;
+  }
+
+  let normalizedText = sanitized;
+
+  if (sanitized.includes(",") && !sanitized.includes(".")) {
+    const segments = sanitized.split(",").filter(Boolean);
+
+    if (segments.length >= 2) {
+      normalizedText = `${segments[0]}.${segments.slice(1).join("")}`;
+    } else {
+      normalizedText = sanitized.replace(",", ".");
+    }
+  } else if (sanitized.includes(",") && sanitized.includes(".")) {
+    normalizedText = sanitized.replace(/,/g, "");
+  }
+
+  const normalized = Number(normalizedText);
 
   return Number.isFinite(normalized) ? normalized : null;
 }
@@ -211,7 +231,7 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
             <p className="text-sm font-semibold uppercase tracking-[0.2em]">Configuracion pendiente</p>
             <p className="mt-3 max-w-2xl text-base leading-7">{reason}</p>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-amber-900/80">
-              Para habilitar el formulario, el establecimiento seleccionado debe existir en la tabla maestra con direccion, latitud y longitud validas.
+              Para habilitar el formulario, el establecimiento seleccionado debe existir en la tabla maestra con latitud y longitud validas.
             </p>
           </div>
         </section>
