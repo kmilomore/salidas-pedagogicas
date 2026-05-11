@@ -117,6 +117,36 @@ interface NewTripPageProps {
   };
 }
 
+function AdminSchoolSelector({ schoolOptions, selectedRbd }: { schoolOptions: SchoolOption[]; selectedRbd: string | null }) {
+  return (
+    <form className="mt-6 max-w-xl" method="GET">
+      <label htmlFor="rbd" className="block text-sm font-semibold text-slate-800">
+        Establecimiento a visualizar
+      </label>
+      <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+        <select
+          id="rbd"
+          name="rbd"
+          defaultValue={selectedRbd ?? schoolOptions[0]?.rbd}
+          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+        >
+          {schoolOptions.map((schoolOption) => (
+            <option key={schoolOption.rbd} value={schoolOption.rbd}>
+              {schoolOption.nombre} · {schoolOption.comuna}
+            </option>
+          ))}
+        </select>
+        <button
+          type="submit"
+          className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
+        >
+          Cambiar escuela
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default async function NewTripPage({ searchParams }: NewTripPageProps) {
   const { whitelistUser, whitelistError } = await getDirectorSchoolProfile();
 
@@ -168,6 +198,26 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
   const { profile, reason } = await getSchoolProfileByRbd(rbdToLoad);
 
   if (!profile) {
+    if (role === "admin") {
+      return (
+        <section className="rounded-[28px] bg-white p-8 shadow-soft">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Formulario de salida</p>
+          <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950">Nueva salida</h2>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">
+            El establecimiento seleccionado no tiene los datos minimos requeridos para calcular la ruta. Selecciona otro establecimiento real para continuar.
+          </p>
+          <AdminSchoolSelector schoolOptions={schoolOptions} selectedRbd={rbdToLoad} />
+          <div className="mt-6 rounded-[24px] border border-amber-200 bg-amber-50 p-6 text-amber-950">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em]">Configuracion pendiente</p>
+            <p className="mt-3 max-w-2xl text-base leading-7">{reason}</p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-amber-900/80">
+              Para habilitar el formulario, el establecimiento seleccionado debe existir en la tabla maestra con direccion, latitud y longitud validas.
+            </p>
+          </div>
+        </section>
+      );
+    }
+
     return (
       <section className="rounded-[28px] bg-white p-8 shadow-soft">
         <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Formulario de salida</p>
