@@ -104,6 +104,12 @@ export interface RouteCalculationResponse {
   error: string | null;
 }
 
+export interface TripStaffMember {
+  nombre_completo: string;
+  rut: string;
+  cargo: string;
+}
+
 export interface SaveTripResponse {
   tripId: string | null;
   error: string | null;
@@ -118,6 +124,9 @@ export interface TripDraftFormValues {
   pme_dimension_source: string;
   pme_subdimension: string;
   pme_subdimension_label: string;
+  cantidad_estudiantes: number;
+  cantidad_apoderados: number;
+  funcionarios: TripStaffMember[];
   objetivo: string;
   actividad: string;
   destino_flujo: DestinationFlow;

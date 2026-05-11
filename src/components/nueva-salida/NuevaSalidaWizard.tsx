@@ -3,13 +3,14 @@
 import { format } from "date-fns";
 import Link from "next/link";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { useJsApiLoader } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
 import { calcularRuta } from "@/app/actions/maps";
 import { guardarSalidaPedagogica } from "@/app/actions/trips";
 import { getPmeDimensionByValue } from "@/lib/pme/eid";
+import { isValidRut } from "@/lib/validations/salida";
 import type {
   DestinationFlow,
   DirectorSchoolProfile,
@@ -23,6 +24,7 @@ import type {
 import type { SelectedPlace } from "./LugarAutocomplete";
 import StepDestino from "./StepDestino";
 import StepDatosViaje from "./StepDatosViaje";
+import StepParticipantes from "./StepParticipantes";
 import Stepper from "./Stepper";
 
 const steps = [
@@ -39,7 +41,7 @@ const steps = [
   {
     id: 3,
     title: "Participantes",
-    description: "Se habilita en la siguiente fase del desarrollo.",
+    description: "Participantes responsables y cantidades finales.",
   },
 ];
 
@@ -101,6 +103,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     trigger,
     getValues,
     setValue,
+    control,
     watch,
     formState: { errors },
   } = useForm<TripDraftFormValues>({
@@ -114,11 +117,19 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
       pme_dimension_source: "",
       pme_subdimension: "",
       pme_subdimension_label: "",
+      cantidad_estudiantes: 1,
+      cantidad_apoderados: 0,
+      funcionarios: [{ nombre_completo: "", rut: "", cargo: "" }],
       objetivo: "",
       actividad: "",
       lugar_query: "",
       ...createEmptyRouteState(),
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "funcionarios",
   });
 
   const { isLoaded, loadError } = useJsApiLoader({
@@ -143,11 +154,21 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     Boolean(values.pme_subdimension) &&
     values.objetivo.trim().length >= 10 &&
     values.actividad.trim().length >= 5;
+  const isStepThreeReady =
+    Number(values.cantidad_estudiantes) >= 1 &&
+    Number(values.cantidad_apoderados) >= 0 &&
+    values.funcionarios.length >= 1 &&
+    values.funcionarios.every(
+      (funcionario) =>
+        funcionario.nombre_completo.trim().length >= 5 &&
+        funcionario.cargo.trim().length >= 3 &&
+        isValidRut(funcionario.rut),
+    );
   const minimumDestinations = destinationFlow === "multiple" ? 2 : 1;
   const isStepTwoReady = Boolean(
     selectedPlaces.length >= minimumDestinations && values.ruta_polyline && values.distancia_km && values.duracion_minutos,
   );
-  const canGoForward = currentStep === 0 ? isStepOneReady : currentStep === 1 ? isStepTwoReady : false;
+  const canGoForward = currentStep === 0 ? isStepOneReady : currentStep === 1 ? isStepTwoReady : isStepThreeReady;
 
   const syncSelectedPlacesToForm = (places: SelectedPlace[]) => {
     const firstPlace = places[0];
@@ -317,6 +338,12 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     }
 
     if (currentStep === 2) {
+      const isValid = await trigger(["cantidad_estudiantes", "cantidad_apoderados", "funcionarios"]);
+
+      if (!isValid) {
+        return;
+      }
+
       setSaveError(null);
       setSaveSuccessId(null);
 
@@ -342,6 +369,9 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
             duracion_minutos: getValues("duracion_minutos"),
             ruta_polyline: getValues("ruta_polyline"),
             ruta_resumen: getValues("ruta_resumen"),
+            cantidad_estudiantes: getValues("cantidad_estudiantes"),
+            cantidad_apoderados: getValues("cantidad_apoderados"),
+            funcionarios: getValues("funcionarios"),
           });
 
           if (result.error || !result.tripId) {
@@ -350,6 +380,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           }
 
           setSaveSuccessId(result.tripId);
+          router.push(`/nueva-salida/exito?id=${encodeURIComponent(result.tripId)}`);
         })();
       });
     }
@@ -459,38 +490,45 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
         ) : null}
 
         {currentStep === 2 ? (
-          <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 3</p>
-            <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Resumen y guardado</h3>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Revisa la informacion consolidada de la salida y guarda el registro en la base de datos. En esta etapa el registro se persiste como borrador operativo con los datos disponibles del formulario.
-            </p>
-            <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 text-sm leading-6 text-slate-700">
-              <p className="font-semibold text-slate-950">Resumen preparado</p>
-              <p className="mt-2">Fecha: {getValues("fecha") || "-"}</p>
-              <p>Hora salida: {getValues("hora_salida") || "-"}</p>
-              <p>Dimension PME: {getValues("pme_dimension_label") || "-"}</p>
-              <p>Subdimension PME: {getValues("pme_subdimension_label") || "-"}</p>
-              <p>Nombre de la accion: {getValues("actividad") || "-"}</p>
-              <p>Flujo: {destinationFlow === "multiple" ? "Multiples destinos" : "Un destino"}</p>
-              <p>Destino{selectedPlaces.length > 1 ? "s" : ""}: {getValues("lugar_nombre") || "-"}</p>
-              <p>Ida: {getValues("distancia_ida_km") || "-"} km</p>
-              <p>Vuelta: {getValues("distancia_vuelta_km") || "-"} km</p>
-              <p>Total: {getValues("distancia_km") || "-"} km</p>
-            </div>
+          <div className="space-y-6">
+            <StepParticipantes register={register} errors={errors} fields={fields} append={append} remove={remove} />
 
-            {saveError ? (
-              <div className="status-card-danger mt-6 rounded-2xl px-4 py-3 text-sm">
-                {saveError}
+            <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen final</p>
+              <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Informacion consolidada</h3>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+                Verifica los datos del PME, la accion, la ruta y los participantes antes de guardar la salida definitiva.
+              </p>
+              <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 text-sm leading-6 text-slate-700">
+                <p className="font-semibold text-slate-950">Resumen preparado</p>
+                <p className="mt-2">Fecha: {getValues("fecha") || "-"}</p>
+                <p>Hora salida: {getValues("hora_salida") || "-"}</p>
+                <p>Dimension PME: {getValues("pme_dimension_label") || "-"}</p>
+                <p>Subdimension PME: {getValues("pme_subdimension_label") || "-"}</p>
+                <p>Nombre de la accion: {getValues("actividad") || "-"}</p>
+                <p>Flujo: {destinationFlow === "multiple" ? "Multiples destinos" : "Un destino"}</p>
+                <p>Destino{selectedPlaces.length > 1 ? "s" : ""}: {getValues("lugar_nombre") || "-"}</p>
+                <p>Estudiantes: {getValues("cantidad_estudiantes") || 0}</p>
+                <p>Apoderados: {getValues("cantidad_apoderados") || 0}</p>
+                <p>Funcionarios: {getValues("funcionarios")?.length ?? 0}</p>
+                <p>Ida: {getValues("distancia_ida_km") || "-"} km</p>
+                <p>Vuelta: {getValues("distancia_vuelta_km") || "-"} km</p>
+                <p>Total: {getValues("distancia_km") || "-"} km</p>
               </div>
-            ) : null}
 
-            {saveSuccessId ? (
-              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                La salida fue guardada correctamente con ID {saveSuccessId}.
-              </div>
-            ) : null}
-          </section>
+              {saveError ? (
+                <div className="status-card-danger mt-6 rounded-2xl px-4 py-3 text-sm">
+                  {saveError}
+                </div>
+              ) : null}
+
+              {saveSuccessId ? (
+                <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                  La salida fue guardada correctamente con ID {saveSuccessId}.
+                </div>
+              ) : null}
+            </section>
+          </div>
         ) : null}
 
         <Stepper

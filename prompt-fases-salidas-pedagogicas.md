@@ -469,7 +469,7 @@ Campos:
 - Ya corregido el parseo de coordenadas para formatos de tabla maestra como `-34,709,095`.
 - Ya validada localmente una ruta real con Google Directions API.
 - Pendiente de validación externa: prueba end-to-end en navegador sobre Vercel con las variables productivas definitivas.
-- El paso 3 sigue reservado para Fase 3; no se debe simular submit final en esta fase.
+- Fase 3 ya quedó implementada sobre el wizard real: participantes, funcionarios, validación, rate limiting condicional por Upstash, sanitización server-side y pantalla de éxito.
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 2
 
@@ -498,6 +498,15 @@ Campos:
 ## Objetivo
 Completar el formulario con el paso de participantes, la lista dinámica de funcionarios,
 la validación completa con Zod y el Server Action de creación de la salida.
+
+## Estado actual validado en el repositorio
+- `FuncionariosList.tsx` ya existe con filas dinámicas, mínimo una fila, validación de RUT y eliminación controlada.
+- `StepParticipantes.tsx` ya existe e incorpora `cantidad_estudiantes`, `cantidad_apoderados` y lista de funcionarios.
+- `src/lib/validations/salida.ts` ya centraliza la validación del payload completo de los 3 pasos.
+- `src/lib/rate-limit.ts` ya aplica límite de 10 formularios por hora por usuario cuando `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` están configuradas.
+- El guardado final se resuelve hoy en `src/app/actions/trips.ts` mediante `guardarSalidaPedagogica`, con sanitización server-side, validación Zod e insert en `salidas_pedagogicas` con `estado = 'enviada'`.
+- Ya existe pantalla de éxito en `src/app/(director)/nueva-salida/exito/page.tsx`.
+- Validación técnica confirmada: `npm run build` exitoso tras integrar Fase 3.
 
 ## Dependencias a instalar
 ```bash
@@ -536,8 +545,9 @@ UPSTASH_REDIS_REST_TOKEN=
 ### 3.4 Rate Limiting — `src/lib/rate-limit.ts`
 - 10 formularios por hora por usuario
 - Retornar error claro si se supera el límite
+- Si Upstash no está configurado aún, el helper no rompe la aplicación y deja pasar el guardado para no bloquear ambientes incompletos.
 
-### 3.5 Server Action `crearSalida` — `src/app/actions/salidas.ts`
+### 3.5 Server Action `crearSalida` — `src/app/actions/trips.ts`
 ```typescript
 // 1. Verificar sesión y rol (director) desde el servidor
 // 2. Aplicar rate limiting por userId

@@ -1,33 +1,21 @@
 "use server";
 
-import { z } from "zod";
+import createDOMPurify from "dompurify";
+import { JSDOM } from "jsdom";
 
+import { limitTripCreation } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
+import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
 import type { SaveTripResponse, UserRole } from "@/types";
 
-const saveTripSchema = z.object({
-  rbd: z.string().min(1),
-  fecha: z.string().min(1),
-  hora_salida: z.string().min(1),
-  hora_regreso: z.string().optional().or(z.literal("")),
-  pme_dimension: z.string().min(1),
-  pme_subdimension: z.string().min(1),
-  objetivo: z.string().min(10),
-  actividad: z.string().min(3),
-  lugar_nombre: z.string().min(1),
-  lugar_direccion: z.string().min(1),
-  lugar_lat: z.coerce.number(),
-  lugar_lng: z.coerce.number(),
-  lugar_place_id: z.string().min(1),
-  lugar_comuna: z.string().min(1),
-  lugar_region: z.string().min(1),
-  distancia_km: z.coerce.number().nonnegative(),
-  duracion_minutos: z.coerce.number().int().nonnegative(),
-  ruta_polyline: z.string().min(1),
-  ruta_resumen: z.string().min(1),
-});
+const window = new JSDOM("").window;
+const DOMPurify = createDOMPurify(window);
 
-export async function guardarSalidaPedagogica(input: z.input<typeof saveTripSchema>): Promise<SaveTripResponse> {
+function sanitizeText(value: string) {
+  return DOMPurify.sanitize(value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }).trim();
+}
+
+export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise<SaveTripResponse> {
   try {
     const supabase = createClient();
     const {
@@ -56,7 +44,32 @@ export async function guardarSalidaPedagogica(input: z.input<typeof saveTripSche
       };
     }
 
-    const payload = saveTripSchema.parse(input);
+    const rateLimit = await limitTripCreation(user.id);
+
+    if (!rateLimit.success) {
+      return {
+        tripId: null,
+        error: "Se alcanzo el limite de formularios por hora para este usuario. Intenta nuevamente mas tarde.",
+      };
+    }
+
+    const payload = salidaSchema.parse({
+      ...input,
+      pme_dimension: sanitizeText(input.pme_dimension),
+      pme_subdimension: sanitizeText(input.pme_subdimension),
+      actividad: sanitizeText(input.actividad),
+      objetivo: sanitizeText(input.objetivo),
+      lugar_nombre: sanitizeText(input.lugar_nombre),
+      lugar_direccion: sanitizeText(input.lugar_direccion),
+      lugar_comuna: sanitizeText(input.lugar_comuna),
+      lugar_region: sanitizeText(input.lugar_region),
+      ruta_resumen: sanitizeText(input.ruta_resumen),
+      funcionarios: input.funcionarios.map((funcionario) => ({
+        nombre_completo: sanitizeText(funcionario.nombre_completo),
+        rut: sanitizeText(funcionario.rut),
+        cargo: sanitizeText(funcionario.cargo),
+      })),
+    });
 
     const { data, error } = await supabase
       .from("salidas_pedagogicas")
@@ -81,10 +94,10 @@ export async function guardarSalidaPedagogica(input: z.input<typeof saveTripSche
         duracion_minutos: payload.duracion_minutos,
         ruta_polyline: payload.ruta_polyline,
         ruta_resumen: payload.ruta_resumen,
-        estado: "borrador",
-        cantidad_estudiantes: 0,
-        cantidad_apoderados: 0,
-        funcionarios: [],
+        estado: "enviada",
+        cantidad_estudiantes: payload.cantidad_estudiantes,
+        cantidad_apoderados: payload.cantidad_apoderados,
+        funcionarios: payload.funcionarios,
       })
       .select("id")
       .single<{ id: string }>();
