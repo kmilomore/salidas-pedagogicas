@@ -160,6 +160,12 @@ export interface AdminTripRecord {
   director_email: string | null;
 }
 
+export interface TripQueryFilters {
+  search?: string;
+  rbd?: string;
+  estado?: "borrador" | "enviada" | "all";
+}
+
 export interface TripDraftFormValues {
   fecha: string;
   hora_salida: string;

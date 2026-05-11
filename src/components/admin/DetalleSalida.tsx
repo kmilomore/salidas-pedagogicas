@@ -67,14 +67,24 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
             <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950 sm:text-3xl">{trip.actividad}</h3>
             <p className="mt-2 text-sm leading-6 text-slate-600">{trip.school_name} · RBD {trip.rbd}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 text-lg font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
-            aria-label="Cerrar detalle"
-          >
-            ×
-          </button>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/api/trips/${trip.id}/pdf`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+            >
+              Exportar PDF
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-300 text-lg font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-950"
+              aria-label="Cerrar detalle"
+            >
+              ×
+            </button>
+          </div>
         </div>
 
         <div className="grid max-h-[calc(92vh-88px)] gap-6 overflow-y-auto p-6 sm:p-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
@@ -93,7 +103,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Distancia</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Distancia Total</p>
                   <p className="mt-2 text-sm font-medium text-slate-950">{formatDistance(trip.distancia_km)}</p>
                 </div>
                 <div>
@@ -104,7 +114,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
             </section>
 
             <section className="rounded-[24px] border border-slate-200 bg-white p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">PEI y justificacion</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">PME y justificacion</p>
               <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
                 <div>
                   <p className="font-semibold text-slate-950">Dimension PME</p>

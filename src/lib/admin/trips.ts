@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import type { AdminTripRecord, SchoolRecord, TripStaffMember, UserRole } from "@/types";
+import type { AdminTripRecord, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
 
 interface AdminTripQueryRow {
   id: string;
@@ -39,6 +39,12 @@ interface DirectorLookupRow {
   rbd: string | null;
 }
 
+interface AuthContext {
+  supabase: ReturnType<typeof createClient>;
+  userId: string;
+  role: UserRole;
+}
+
 function parseCoordinate(value: string | null) {
   if (!value) {
     return null;
@@ -63,7 +69,7 @@ function parseCoordinate(value: string | null) {
   return Number.isFinite(normalized) ? normalized : null;
 }
 
-export async function assertAdminAccess() {
+async function assertRoleAccess(allowedRoles: UserRole[]): Promise<AuthContext> {
   const supabase = createClient();
   const {
     data: { user },
@@ -80,29 +86,24 @@ export async function assertAdminAccess() {
     .eq("activo", true)
     .maybeSingle<{ rol: UserRole }>();
 
-  if (whitelistError || !whitelistUser || whitelistUser.rol !== "admin") {
+  if (whitelistError || !whitelistUser || !allowedRoles.includes(whitelistUser.rol)) {
     redirect("/acceso-denegado");
   }
 
-  return supabase;
+  return {
+    supabase,
+    userId: user.id,
+    role: whitelistUser.rol,
+  };
 }
 
-export async function getAdminTrips(limit?: number) {
-  const supabase = await assertAdminAccess();
-  let query = supabase
-    .from("salidas_pedagogicas")
-    .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
-    )
-    .order("created_at", { ascending: false });
+export async function assertAdminAccess() {
+  const context = await assertRoleAccess(["admin"]);
+  return context.supabase;
+}
 
-  if (typeof limit === "number") {
-    query = query.limit(limit);
-  }
-
-  const { data: trips, error } = await query.returns<AdminTripQueryRow[]>();
-
-  if (error || !trips?.length) {
+async function enrichTrips(trips: AdminTripQueryRow[]) {
+  if (!trips.length) {
     return [] as AdminTripRecord[];
   }
 
@@ -140,6 +141,106 @@ export async function getAdminTrips(limit?: number) {
       director_email: directorMap.get(trip.rbd) ?? null,
     } satisfies AdminTripRecord;
   });
+}
+
+export async function getAdminTrips(limit?: number) {
+  const { supabase } = await assertRoleAccess(["admin"]);
+  let query = supabase
+    .from("salidas_pedagogicas")
+    .select(
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+    )
+    .order("created_at", { ascending: false });
+
+  if (typeof limit === "number") {
+    query = query.limit(limit);
+  }
+
+  const { data: trips, error } = await query.returns<AdminTripQueryRow[]>();
+
+  if (error || !trips?.length) {
+    return [] as AdminTripRecord[];
+  }
+
+  return enrichTrips(trips);
+}
+
+export async function getDirectorTrips() {
+  const { supabase, userId } = await assertRoleAccess(["director"]);
+  const { data: trips, error } = await supabase
+    .from("salidas_pedagogicas")
+    .select(
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+    )
+    .eq("director_id", userId)
+    .order("created_at", { ascending: false })
+    .returns<AdminTripQueryRow[]>();
+
+  if (error || !trips?.length) {
+    return [] as AdminTripRecord[];
+  }
+
+  return enrichTrips(trips);
+}
+
+export async function getAuthorizedTripById(id: string) {
+  const { supabase, userId, role } = await assertRoleAccess(["admin", "director"]);
+  let query = supabase
+    .from("salidas_pedagogicas")
+    .select(
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, duracion_minutos, ruta_polyline, ruta_resumen, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+    )
+    .eq("id", id);
+
+  if (role === "director") {
+    query = query.eq("director_id", userId);
+  }
+
+  const { data: rows, error } = await query.limit(1).returns<AdminTripQueryRow[]>();
+
+  if (error || !rows?.length) {
+    return null;
+  }
+
+  const [trip] = await enrichTrips(rows);
+
+  return trip ?? null;
+}
+
+export function filterTrips(trips: AdminTripRecord[], filters: TripQueryFilters) {
+  const normalizedSearch = filters.search?.trim().toLowerCase() ?? "";
+
+  return trips.filter((trip) => {
+    const matchesRbd = filters.rbd ? trip.rbd === filters.rbd : true;
+    const matchesEstado = filters.estado && filters.estado !== "all" ? trip.estado === filters.estado : true;
+    const matchesSearch = normalizedSearch
+      ? [trip.school_name, trip.actividad, trip.lugar_nombre, trip.pme_dimension, trip.pme_subdimension, trip.director_email ?? "", trip.rbd]
+          .join(" ")
+          .toLowerCase()
+          .includes(normalizedSearch)
+      : true;
+
+    return matchesRbd && matchesEstado && matchesSearch;
+  });
+}
+
+export function serializeTripFilters(filters: TripQueryFilters) {
+  const params = new URLSearchParams();
+
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
+  if (filters.rbd?.trim()) {
+    params.set("rbd", filters.rbd.trim());
+  }
+
+  if (filters.estado && filters.estado !== "all") {
+    params.set("estado", filters.estado);
+  }
+
+  const serialized = params.toString();
+  return serialized ? `?${serialized}` : "";
 }
 
 export function buildTripsCsv(trips: AdminTripRecord[]) {
