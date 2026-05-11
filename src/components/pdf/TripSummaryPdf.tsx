@@ -1,7 +1,35 @@
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+/* eslint-disable jsx-a11y/alt-text */
+
+import { Document, Image, Link, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTripRecord } from "@/types";
+
+function formatDistance(value: number) {
+  return `${Number(value ?? 0).toFixed(1)} km`;
+}
+
+function formatDuration(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (!hours) {
+    return `${remainingMinutes} min`;
+  }
+
+  if (!remainingMinutes) {
+    return `${hours} h`;
+  }
+
+  return `${hours} h ${remainingMinutes} min`;
+}
+
+interface TripSummaryPdfProps {
+  trip: AdminTripRecord;
+  directionsUrl: string;
+  qrCodeDataUrl: string | null;
+  staticMapDataUrl: string | null;
+}
 
 const styles = StyleSheet.create({
   page: {
@@ -120,6 +148,116 @@ const styles = StyleSheet.create({
   cellRole: {
     flex: 1,
   },
+  routePageTitle: {
+    fontSize: 18,
+    fontFamily: "Helvetica-Bold",
+    color: "#0F172A",
+  },
+  routePageSubtitle: {
+    marginTop: 6,
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: "#475569",
+  },
+  routeVisual: {
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+  },
+  mapImage: {
+    width: "100%",
+    height: 290,
+    borderRadius: 12,
+    objectFit: "cover",
+  },
+  mapFallback: {
+    minHeight: 150,
+    borderRadius: 12,
+    backgroundColor: "#E2E8F0",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 18,
+  },
+  mapFallbackText: {
+    fontSize: 10,
+    lineHeight: 1.5,
+    color: "#475569",
+    textAlign: "center",
+  },
+  routeLegGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 14,
+  },
+  routeLegCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 16,
+  },
+  routeLegTitle: {
+    fontSize: 9,
+    textTransform: "uppercase",
+    letterSpacing: 1.1,
+    color: "#0F4C81",
+    fontFamily: "Helvetica-Bold",
+  },
+  routeLegText: {
+    marginTop: 10,
+    fontSize: 11,
+    lineHeight: 1.5,
+    color: "#0F172A",
+  },
+  routeLegMeta: {
+    marginTop: 8,
+    fontSize: 9,
+    lineHeight: 1.5,
+    color: "#475569",
+  },
+  routeSupportGrid: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 14,
+  },
+  qrPanel: {
+    width: 180,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 14,
+    alignItems: "center",
+  },
+  qrImage: {
+    width: 118,
+    height: 118,
+  },
+  qrLabel: {
+    marginTop: 10,
+    fontSize: 8,
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    color: "#64748B",
+  },
+  qrHelp: {
+    marginTop: 8,
+    fontSize: 9,
+    lineHeight: 1.45,
+    color: "#334155",
+    textAlign: "center",
+  },
+  linkCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 16,
+  },
+  linkText: {
+    marginTop: 10,
+    fontSize: 10,
+    lineHeight: 1.55,
+    color: "#0F4C81",
+    textDecoration: "underline",
+  },
   footer: {
     marginTop: 16,
     paddingTop: 10,
@@ -131,30 +269,10 @@ const styles = StyleSheet.create({
   },
 });
 
-function formatDistance(value: number) {
-  return `${Number(value ?? 0).toFixed(1)} km`;
-}
+export default function TripSummaryPdf({ trip, directionsUrl, qrCodeDataUrl, staticMapDataUrl }: TripSummaryPdfProps) {
+  const outboundRoute = `${trip.school_name} -> ${trip.lugar_nombre}`;
+  const returnRoute = `${trip.lugar_nombre} -> ${trip.school_name}`;
 
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  if (!hours) {
-    return `${remainingMinutes} min`;
-  }
-
-  if (!remainingMinutes) {
-    return `${hours} h`;
-  }
-
-  return `${hours} h ${remainingMinutes} min`;
-}
-
-interface TripSummaryPdfProps {
-  trip: AdminTripRecord;
-}
-
-export default function TripSummaryPdf({ trip }: TripSummaryPdfProps) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -275,6 +393,62 @@ export default function TripSummaryPdf({ trip }: TripSummaryPdfProps) {
         </View>
 
         <Text style={styles.footer}>Documento generado automaticamente por Salidas Pedagogicas · Registro {trip.id}</Text>
+      </Page>
+
+      <Page size="A4" style={styles.page}>
+        <Text style={styles.routePageTitle}>Ruta operacional y acceso en terreno</Text>
+        <Text style={styles.routePageSubtitle}>
+          Este comprobante incorpora la referencia visual del trayecto y un QR para abrir la ruta en Google Maps desde un telefono.
+        </Text>
+
+        <View style={styles.routeVisual}>
+          <Text style={styles.sectionTitle}>Imagen de la ruta</Text>
+          {staticMapDataUrl ? (
+            <Image style={styles.mapImage} src={staticMapDataUrl} />
+          ) : (
+            <View style={styles.mapFallback}>
+              <Text style={styles.mapFallbackText}>
+                No fue posible incrustar la imagen estatica de la ruta con los datos disponibles o con la configuracion actual de Google Maps.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.routeLegGrid}>
+          <View style={styles.routeLegCard}>
+            <Text style={styles.routeLegTitle}>Ruta de ida</Text>
+            <Text style={styles.routeLegText}>{outboundRoute}</Text>
+            <Text style={styles.routeLegMeta}>{trip.school_address}</Text>
+            <Text style={styles.routeLegMeta}>{trip.lugar_direccion}</Text>
+          </View>
+
+          <View style={styles.routeLegCard}>
+            <Text style={styles.routeLegTitle}>Ruta de vuelta</Text>
+            <Text style={styles.routeLegText}>{returnRoute}</Text>
+            <Text style={styles.routeLegMeta}>{trip.lugar_direccion}</Text>
+            <Text style={styles.routeLegMeta}>{trip.school_address}</Text>
+          </View>
+        </View>
+
+        <View style={styles.routeSupportGrid}>
+          <View style={styles.qrPanel}>
+            {qrCodeDataUrl ? <Image style={styles.qrImage} src={qrCodeDataUrl} /> : null}
+            <Text style={styles.qrLabel}>QR Google Maps</Text>
+            <Text style={styles.qrHelp}>Escanea este codigo para abrir la ruta directamente en Google Maps.</Text>
+          </View>
+
+          <View style={styles.linkCard}>
+            <Text style={styles.sectionTitle}>Apertura directa en Maps</Text>
+            <Text style={styles.fieldValue}>Resumen vial registrado: {trip.ruta_resumen}</Text>
+            <Link src={directionsUrl} style={styles.linkText}>
+              Abrir ruta en Google Maps
+            </Link>
+            <Text style={styles.fieldValue}>Origen institucional: {trip.school_name}</Text>
+            <Text style={styles.fieldValue}>Destino operativo: {trip.lugar_nombre}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.footer}>Comprobante PDF con QR de navegacion y mapa estatico del trayecto · Registro {trip.id}</Text>
       </Page>
     </Document>
   );

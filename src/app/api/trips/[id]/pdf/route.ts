@@ -5,6 +5,7 @@ import type { JSXElementConstructor, ReactElement } from "react";
 
 import TripSummaryPdf from "@/components/pdf/TripSummaryPdf";
 import { getAuthorizedTripById } from "@/lib/admin/trips";
+import { loadTripPdfAssets } from "@/lib/trips/pdf-assets";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,8 @@ export async function GET(_request: Request, { params }: RouteContext) {
     return new Response("Salida no encontrada", { status: 404 });
   }
 
-  const document = createElement(TripSummaryPdf, { trip }) as unknown as ReactElement<DocumentProps, string | JSXElementConstructor<object>>;
+  const pdfAssets = await loadTripPdfAssets(trip);
+  const document = createElement(TripSummaryPdf, { trip, ...pdfAssets }) as unknown as ReactElement<DocumentProps, string | JSXElementConstructor<object>>;
   const buffer = await renderToBuffer(document);
   const body = new Uint8Array(buffer);
 

@@ -62,12 +62,21 @@ Vas a construir esta aplicación **fase por fase**.
 - Implementación parcial.
 - El panel administrativo ya dejó de ser estático y ahora consulta salidas reales desde `salidas_pedagogicas`.
 - Ya muestra métricas base, listado reciente, kilometraje acumulado y estado por registro.
-- Sigue pendiente la versión completa del panel: filtros, paginación, ordenamiento, detalle, exportación y acciones administrativas.
+- Ya existen filtros básicos por búsqueda, establecimiento y estado.
+- Ya existe modal de detalle con datos de la salida, mapa, participantes y descarga PDF individual.
+- Ya existen exportaciones administrativas a CSV y Excel (`xlsx`).
+- Sigue pendiente la versión más completa del panel: paginación, ordenamiento, filtros avanzados y acciones administrativas adicionales.
+
+### Fase 4
+- Implementación parcial.
+- Ya existe generación de PDF por salida mediante `@react-pdf/renderer` en una ruta server-side descargable por admin y director.
+- El PDF actual cubre un comprobante visual operativo con resumen, PME, ruta y participantes.
+- Sigue pendiente la parte completa de la fase: imagen estática del mapa, subida a Storage, persistencia de `pdf_url`, correo vía Apps Script y enlace público operativo.
 
 ### Pendientes transversales relevantes
-- `mis-salidas` del director sigue estático y debe conectarse a datos reales.
+- `mis-salidas` del director ya consume datos reales y permite descargar PDF por registro.
 - La ruta pública `/ruta/[id]` sigue sin implementación funcional final.
-- PDF, imagen estática del mapa y correo todavía no están construidos.
+- PDF operativo ya existe, pero todavía faltan imagen estática del mapa, persistencia en Storage y correo.
 - Falta validación funcional completa en Vercel para login, guardado, panel admin y URL pública.
 
 ### Hallazgos operativos verificados
@@ -612,6 +621,15 @@ la validación completa con Zod y el Server Action de creación de la salida.
 Generar el comprobante PDF con el mapa incrustado, subir los archivos a Supabase Storage,
 y enviar el correo al director vía Google Apps Script.
 
+## Estado actual validado en el repositorio
+- Ya está instalada la dependencia `@react-pdf/renderer`.
+- Ya existe un PDF operativo y descargable por salida en `src/app/api/trips/[id]/pdf/route.ts`.
+- Ya existe el componente `src/components/pdf/TripSummaryPdf.tsx` como base visual del comprobante.
+- El PDF actual ya incluye resumen, establecimiento, destino, PME, ruta y participantes.
+- Aún no está implementada la imagen estática del mapa dentro del PDF.
+- Aún no existe subida del PDF a Supabase Storage ni persistencia en `pdf_url`.
+- Aún no existe el envío de correo con Apps Script ni actualización de `email_enviado`.
+
 ## Dependencias a instalar
 ```bash
 npm install \
@@ -638,6 +656,8 @@ npm install \
 ```
 
 ### 4.2 Componente PDF — `src/components/pdf/ComprobantePDF.tsx`
+**Estado actual:** implementado parcialmente como `src/components/pdf/TripSummaryPdf.tsx`.
+
 Secciones del PDF (usar @react-pdf/renderer):
 1. Header: Logo SLEP Colchagua + "Comprobante de Salida Pedagógica" + N° correlativo
 2. Datos establecimiento: Nombre, RBD, Comuna, Dirección
@@ -668,6 +688,11 @@ Secciones del PDF (usar @react-pdf/renderer):
 - Botón "Descargar PDF" (URL firmada de Supabase Storage)
 - Botón "Copiar enlace de ruta" (copia `[APP_URL]/ruta/[UUID]` al portapapeles)
 - Mensaje "Se envió un comprobante a tu correo institucional"
+
+Pendiente real de esta fase:
+- Conectar el PDF actual al flujo post-guardado para que se persista en Storage y no solo se genere bajo demanda.
+- Incorporar el mapa estático real al documento final.
+- Completar el correo institucional con enlace público y comprobante adjunto o enlazado.
 
 ## Variables de entorno a agregar
 ```env
@@ -759,12 +784,17 @@ tabla de registros, filtros, detalle con mapa y exportación.
 ## Estado actual validado en el repositorio
 - `src/app/(admin)/panel/page.tsx` ya consulta `salidas_pedagogicas` y muestra registros reales recientes.
 - Ya existen métricas base visibles: establecimientos con actividad, solicitudes, enviadas y kilometraje acumulado.
-- El panel actual todavía es una primera versión operativa: no tiene filtros avanzados, paginación, ordenamiento, modal de detalle ni exportación.
-- La vista `mis-salidas` del director sigue pendiente de conexión a datos reales, por lo que el seguimiento no está completo en ambos roles.
+- Ya existen filtros básicos por búsqueda, establecimiento y estado dentro del panel.
+- Ya existe modal de detalle en `src/components/admin/DetalleSalida.tsx` con datos de la salida, mapa y tabla de funcionarios.
+- Ya existen exportaciones administrativas a CSV y Excel.
+- La vista `mis-salidas` del director ya consume datos reales y ofrece descarga PDF por registro.
+- El panel actual todavía es una primera versión operativa: faltan paginación, ordenamiento, filtros avanzados y acciones administrativas más completas.
 
 ## Dependencias a instalar
 ```bash
-npm install xlsx
+npm install \
+   xlsx \
+   @react-pdf/renderer
 ```
 
 ## Tareas
@@ -778,35 +808,39 @@ npm install xlsx
 
 Filtros:
 - Establecimiento (dropdown desde "BASE DE DATOS ESCUELAS SLEP")
-- Comuna (dropdown)
-- Rango de fechas (date range picker)
-- Región destino (dropdown)
+- Búsqueda libre por actividad, destino, establecimiento, dimensión PME, email director o RBD
+- Estado (`enviada` / `borrador` / todos)
+- Pendientes: comuna, rango de fechas y región destino
 
 Columnas de la tabla:
 Fecha | Establecimiento | Director | Destino | Distancia | Duración | Estudiantes | Funcionarios | Acciones
 
 Comportamiento:
-- Paginación: 25 registros por página
-- Ordenamiento por columna (click en header)
-- Búsqueda rápida por nombre de lugar o establecimiento
+- Búsqueda rápida operativa
+- Exportación respetando los filtros aplicados
+- Pendientes: paginación y ordenamiento por columna
 
 Pendiente real sobre esta tarea:
-- Extender la tabla actual para incluir filtros, ordenamiento, paginación y columnas completas de operación.
-- Incorporar el nombre del director y cantidades de participantes en la consulta principal.
+- Extender la tabla actual con paginación, ordenamiento y filtros más específicos.
+- Completar columnas operativas adicionales si el usuario necesita una vista más analítica.
 
 ### 6.3 Modal de detalle — `src/components/admin/DetalleSalida.tsx`
+**Estado actual:** implementado.
+
 - Todos los datos de la salida
 - Mapa con la ruta (MapaRuta.tsx reutilizado)
 - Tabla de funcionarios completa
 - Botón "Descargar PDF"
-- Botón "Copiar enlace de ruta"
+- Pendiente: botón "Copiar enlace de ruta" cuando exista la ruta pública final
 
-### 6.4 Exportación — `src/app/actions/exportar.ts`
+### 6.4 Exportación — `src/app/api/admin/export-csv/route.ts` y `src/app/api/admin/export-xlsx/route.ts`
+**Estado actual:** implementado.
+
 **CSV:** todas las columnas, funcionarios como JSON string
 **Excel (xlsx):** 
 - Hoja 1: una fila por salida
 - Hoja 2: funcionarios expandidos (una fila por funcionario, con datos de la salida repetidos)
-- Columna extra en ambas: "Enlace Ruta" con la URL pública
+- Pendiente: columna "Enlace Ruta" cuando la URL pública `/ruta/[id]` esté operativa
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 6
 
@@ -862,13 +896,13 @@ y despliegue en Vercel conectado al Supabase de producción.
 - [ ] Login con Google de un admin
 - [ ] Intento de login con email no en whitelist
 - [ ] Formulario completo paso a paso con lugar seleccionado
-- [ ] Guardado completo visible luego en `mis-salidas`
-- [ ] Guardado completo visible luego en el panel admin
+- [ ] Guardado completo visible luego en `mis-salidas` en Vercel
+- [ ] Guardado completo visible luego en el panel admin en Vercel
 - [ ] Intento de submit sin seleccionar lugar del autocomplete (debe fallar)
-- [ ] Generación y descarga del PDF
+- [ ] Generación y descarga del PDF en Vercel
 - [ ] Recepción del correo en el email del director
 - [ ] Acceso a la URL pública `/ruta/[UUID]` sin sesión
-- [ ] Filtros y exportación desde el panel admin
+- [ ] Filtros y exportación CSV/Excel desde el panel admin en Vercel
 
 ## ✅ PREGUNTAS DE VALIDACIÓN — FASE 7
 
