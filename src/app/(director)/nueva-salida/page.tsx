@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
 import NuevaSalidaWizard from "@/components/nueva-salida/NuevaSalidaWizard";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import type { DirectorSchoolProfile, SchoolOption, SchoolRecord, UserRole } from "@/types";
 
 function normalizeEmail(email: string) {
@@ -66,8 +66,9 @@ async function getDirectorSchoolProfile() {
   return { supabase, whitelistUser, whitelistError };
 }
 
-async function getSchoolProfileByRbd(rbd: string, supabase: ReturnType<typeof createClient>) {
-  const { data: schoolRecord, error: schoolError } = await supabase
+async function getSchoolProfileByRbd(rbd: string) {
+  const adminSupabase = createAdminClient();
+  const { data: schoolRecord, error: schoolError } = await adminSupabase
     .from("BASE DE DATOS ESCUELAS SLEP")
     .select('RBD,"NOMBRE ESTABLECIMIENTO",COMUNA,"DIRECTOR/A","CORREO ELECTRÓNICO",LATITUD,LONGITUD,"DIRECCIÓN"')
     .eq("RBD", rbd)
@@ -89,8 +90,9 @@ async function getSchoolProfileByRbd(rbd: string, supabase: ReturnType<typeof cr
   return { profile, reason: null };
 }
 
-async function getAdminSchoolOptions(supabase: ReturnType<typeof createClient>) {
-  const { data: schools } = await supabase
+async function getAdminSchoolOptions() {
+  const adminSupabase = createAdminClient();
+  const { data: schools } = await adminSupabase
     .from("BASE DE DATOS ESCUELAS SLEP")
     .select('RBD,"NOMBRE ESTABLECIMIENTO",COMUNA,LATITUD,LONGITUD')
     .not("RBD", "is", null)
@@ -116,7 +118,7 @@ interface NewTripPageProps {
 }
 
 export default async function NewTripPage({ searchParams }: NewTripPageProps) {
-  const { supabase, whitelistUser, whitelistError } = await getDirectorSchoolProfile();
+  const { whitelistUser, whitelistError } = await getDirectorSchoolProfile();
 
   if (whitelistError || !whitelistUser) {
     return (
@@ -132,7 +134,7 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
   }
 
   const role = whitelistUser.rol as UserRole;
-  const schoolOptions = role === "admin" ? await getAdminSchoolOptions(supabase) : [];
+  const schoolOptions = role === "admin" ? await getAdminSchoolOptions() : [];
   const requestedRbd = searchParams?.rbd?.trim();
   const fallbackAdminRbd = schoolOptions[0]?.rbd ?? null;
   const rbdToLoad = role === "admin" ? requestedRbd || whitelistUser.rbd || fallbackAdminRbd : whitelistUser.rbd;
@@ -163,7 +165,7 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
     );
   }
 
-  const { profile, reason } = await getSchoolProfileByRbd(rbdToLoad, supabase);
+  const { profile, reason } = await getSchoolProfileByRbd(rbdToLoad);
 
   if (!profile) {
     return (
