@@ -2,8 +2,9 @@
 
 import { useMemo } from "react";
 import polyline from "@mapbox/polyline";
-import { GoogleMap, MarkerF, PolylineF, useJsApiLoader } from "@react-google-maps/api";
+import { GoogleMap, MarkerF, PolylineF } from "@react-google-maps/api";
 
+import { usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTripRecord } from "@/types";
 
@@ -40,11 +41,7 @@ function formatDuration(minutes: number) {
 }
 
 export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
-  const { isLoaded } = useJsApiLoader({
-    id: "admin-trip-detail-map",
-    googleMapsApiKey,
-  });
+  const { isLoaded } = usePortalGoogleMapsLoader();
 
   const routePath = useMemo(() => {
     if (!trip?.ruta_polyline) {

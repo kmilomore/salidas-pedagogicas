@@ -4,11 +4,11 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
-import { useJsApiLoader } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
 import { calcularRuta } from "@/app/actions/maps";
 import { guardarSalidaPedagogica } from "@/app/actions/trips";
+import { getPortalGoogleMapsApiKey, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { getPmeDimensionByValue } from "@/lib/pme/eid";
 import { isValidRut } from "@/lib/validations/salida";
 import type {
@@ -46,7 +46,6 @@ const steps = [
   },
 ];
 
-const googleLibraries: ["places"] = ["places"];
 const stepOneFields: Array<keyof TripDraftFormValues> = [
   "fecha",
   "hora_salida",
@@ -98,7 +97,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
   const [saveSuccessId, setSaveSuccessId] = useState<string | null>(null);
   const [isRouteLoading, startRouteTransition] = useTransition();
   const [isSaveLoading, startSaveTransition] = useTransition();
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
+  const googleMapsApiKey = getPortalGoogleMapsApiKey();
 
   const {
     register,
@@ -134,11 +133,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
     name: "funcionarios",
   });
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: "google-maps-script",
-    googleMapsApiKey,
-    libraries: googleLibraries,
-  });
+  const { isLoaded, loadError } = usePortalGoogleMapsLoader();
 
   const values = watch();
   const minDate = format(new Date(), "yyyy-MM-dd");

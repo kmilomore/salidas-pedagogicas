@@ -18,6 +18,18 @@ Vas a construir esta aplicación **fase por fase**.
 2. Hacer las preguntas de validación indicadas al final de cada fase.
 3. NO avanzar a la siguiente fase hasta recibir confirmación explícita del usuario.
 
+## BASE DOCUMENTAL VIVA DEL PROYECTO
+
+Antes de tocar una fase o una pantalla, revisar la base documental viva creada dentro del repositorio para iterar con contexto actualizado y no reconstruir el mapa desde cero.
+
+- Índice principal: `docs/context/README.md`
+- Contexto general: `docs/context/app-general.md`
+- Módulos: `docs/context/modules/`
+- Componentes: `docs/context/components/`
+- Páginas: `docs/context/pages/`
+
+Si una tarea afecta una pantalla concreta, revisar primero su contexto de página. Si afecta flujos compartidos, exportaciones, auth o server routes, revisar además el contexto del módulo correspondiente.
+
 ## ESTADO ACTUAL DEL REPOSITORIO
 
 ### Fase 1

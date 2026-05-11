@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Salidas Pedagógicas · SLEP Colchagua
 
-## Getting Started
+Portal institucional para registrar, revisar y administrar salidas pedagógicas con autenticación Google, control por roles, cálculo de rutas con Google Maps, persistencia en Supabase y exportación documental.
 
-First, run the development server:
+## Estado actual
+- Login institucional con Google y whitelist por rol.
+- Formulario operativo real para directores y administradores.
+- Cálculo de rutas con Google Directions y soporte de uno o múltiples destinos.
+- Persistencia en Supabase con validación, normalización y rate limit nativo.
+- Historial real para directores en `/mis-salidas`.
+- Panel administrativo con filtros básicos, detalle y exportación CSV, Excel y PDF.
+- PDF por salida con logo institucional, QR a Google Maps y mapa estático del trayecto.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+- Next.js 14 App Router
+- TypeScript
+- Tailwind CSS
+- Supabase SSR + Supabase Auth
+- React Hook Form + Zod
+- Google Maps APIs
+- `@react-pdf/renderer`
+- `xlsx`
+
+## Estructura principal
+```text
+src/
+	app/
+		(auth)/
+		(director)/
+		(admin)/
+		actions/
+		api/
+		auth/
+		ruta/
+	components/
+		admin/
+		auth/
+		branding/
+		nueva-salida/
+		pdf/
+	lib/
+		admin/
+		pme/
+		supabase/
+		trips/
+		validations/
+supabase/
+docs/context/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Flujos principales
+### Acceso
+1. `/` redirige a `/login`.
+2. Google OAuth vuelve por `/auth/callback`.
+3. `src/middleware.ts` valida sesión, whitelist y rol.
+4. El usuario entra a `/dashboard` o `/panel`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Operación
+1. `/nueva-salida` resuelve el establecimiento del usuario.
+2. El wizard captura PME, destino, ruta y participantes.
+3. `src/app/actions/maps.ts` calcula la ruta.
+4. `src/app/actions/trips.ts` valida y guarda la salida.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Seguimiento y exportación
+- El director revisa sus registros en `/mis-salidas`.
+- El admin revisa todo en `/panel`.
+- Exportaciones disponibles: CSV, Excel y PDF.
 
-## Learn More
+## Variables de entorno críticas
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+GOOGLE_MAPS_SERVER_KEY=
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Comandos
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Base de datos y SQL
+Archivos principales de referencia:
+- `supabase/phase-1-schema.sql`
+- `supabase/phase-2-eid-schema.sql`
+- `supabase/phase-2-salidas-pme-persistence.sql`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Documentación de contexto
+Para iterar por secciones del portal sin reconstruir todo el mapa cada vez, revisa:
+- `docs/context/README.md`
+- `docs/context/app-general.md`
+- `docs/context/modules/`
+- `docs/context/components/`
+- `docs/context/pages/`
 
-## Deploy on Vercel
+## Pendientes relevantes
+- Implementar la ruta pública `/ruta/[id]`.
+- Completar persistencia en Storage y envío de correo del comprobante.
+- Extender filtros avanzados y paginación del panel admin.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Validación recomendada antes de desplegar
+```bash
+npm run build
+```
