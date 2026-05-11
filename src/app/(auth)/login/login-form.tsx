@@ -8,6 +8,16 @@ interface LoginFormProps {
   statusMessage?: string;
 }
 
+function resolveAppUrl() {
+  const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (configuredAppUrl) {
+    return configuredAppUrl.replace(/\/$/, "");
+  }
+
+  return window.location.origin;
+}
+
 export default function LoginForm({ statusMessage }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -18,7 +28,7 @@ export default function LoginForm({ statusMessage }: LoginFormProps) {
 
     try {
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const redirectTo = `${resolveAppUrl()}/auth/callback`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
