@@ -35,7 +35,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             <div className="rounded-2xl border border-white/15 bg-white/10 p-5">
               <p className="font-display text-2xl font-semibold">Administracion</p>
               <p className="mt-2 text-sm leading-6 text-slate-100/80">
-                Panel inicial listo para trazabilidad y supervision.
+                Acceso administrativo institucional con control por rol.
               </p>
             </div>
           </div>
