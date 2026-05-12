@@ -28,6 +28,8 @@ export async function middleware(request: NextRequest) {
 
   if (
     pathname.startsWith("/_next") ||
+    // API routes are excluded from middleware. Auth for /api/admin/* must be enforced
+    // inside each route handler via assertAdminAccess() or assertRoleAccess([...]).
     pathname.startsWith("/api") ||
     pathname === "/favicon.ico" ||
     pathname.startsWith("/auth/callback")

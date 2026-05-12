@@ -4,6 +4,14 @@ import Image from "next/image";
 import PortalLogo from "@/components/branding/PortalLogo";
 import LoginForm from "./login-form";
 
+const ALLOWED_MESSAGES = new Set([
+  "No se pudo completar el ingreso",
+  "Sesion cerrada correctamente.",
+  "No fue posible cerrar la sesion correctamente.",
+  "Configuracion de servidor incompleta",
+  "No se pudo verificar la sesion",
+]);
+
 interface LoginPageProps {
   searchParams?: {
     message?: string;
@@ -11,6 +19,9 @@ interface LoginPageProps {
 }
 
 export default function LoginPage({ searchParams }: LoginPageProps) {
+  const statusMessage = searchParams?.message && ALLOWED_MESSAGES.has(searchParams.message)
+    ? searchParams.message
+    : undefined;
 
   return (
     <main className="login-auth-shell flex min-h-screen items-center justify-center px-3 py-4 sm:px-5 sm:py-6 xl:px-8">
@@ -82,7 +93,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
             <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
               <div className="portal-outline rounded-[28px] bg-white p-6 shadow-sm sm:p-7">
-                <LoginForm statusMessage={searchParams?.message} />
+                <LoginForm statusMessage={statusMessage} />
               </div>
 
               <div className="portal-outline rounded-[28px] bg-white p-6 text-sm leading-6 text-slate-600 shadow-sm sm:p-7">

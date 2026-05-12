@@ -26,7 +26,12 @@ Ser el punto de ingreso institucional del portal y preparar al usuario para aute
 - [Autenticación y control de acceso](../modules/auth.md)
 - [Contexto general](../app-general.md)
 
-## Riesgos frecuentes
-- `NEXT_PUBLIC_APP_URL` incorrecta.
-- Usuario autenticado pero no autorizado en whitelist.
-- Mensajes de error poco claros si el callback falla.
+## Seguridad aplicada
+- `?message=` en query string se valida contra whitelist de 5 valores predefinidos en `page.tsx`; cualquier valor externo se descarta silenciosamente.
+- El parámetro `next` del callback se restringe a paths relativos (`/...`); URLs absolutas o protocol-relative (`//`) se ignoran y caen a `/`.
+- OAuth no solicita `access_type: offline` ni `prompt: consent`; Google no emite refresh tokens.
+
+## Riesgos residuales
+- `NEXT_PUBLIC_APP_URL` incorrecta rompe el `redirectTo` OAuth.
+- Usuario autenticado pero no autorizado en whitelist resulta en acceso denegado.
+- `/ruta/[id]` es pública por hardcode en middleware — cualquier implementación futura nace desprotegida por defecto.

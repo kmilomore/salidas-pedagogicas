@@ -26,8 +26,16 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - [Infraestructura, datos y seguridad](../modules/infra-y-datos.md)
 - [Autenticación y control de acceso](../modules/auth.md)
 
+## Seguridad aplicada
+- Todos los endpoints de exportación y PDF están protegidos en la capa de datos: `getAdminTrips()` y `getAuthorizedTripById()` llaman a `assertRoleAccess(["admin"])` antes de cualquier query.
+- El middleware excluye `/api` explícitamente — cualquier nueva ruta en `/api/admin/` **debe** llamar a `assertAdminAccess()` o `assertRoleAccess([...])` al inicio del handler o a través de la función de datos que invoque.
+- Formula injection prevenida: campos de texto libre (actividad, objetivo, destino, funcionarios) se sanitizan con prefijo `'` antes de escribir CSV y XLSX.
+- `estado` validado explícitamente en las rutas de export (`"borrador" | "enviada"`, cualquier otro valor cae a `"all"`).
+- IDOR en PDF prevenido: directores filtrados por `director_id`; admins con acceso transversal.
+- `Cache-Control: no-store` en todas las exportaciones.
+
 ## Limitaciones actuales
-- Sin paginación.
+- Sin paginación (página cap en 100 filas; exports sin límite).
 - Sin ordenamiento por columna.
 - Sin filtros avanzados por fecha o territorio.
 - Sin gestión de whitelist u otras herramientas administrativas.

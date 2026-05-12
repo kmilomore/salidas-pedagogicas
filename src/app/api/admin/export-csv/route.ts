@@ -3,10 +3,11 @@ import type { TripQueryFilters } from "@/types";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const rawEstado = searchParams.get("estado");
   const filters: TripQueryFilters = {
     search: searchParams.get("search") ?? undefined,
     rbd: searchParams.get("rbd") ?? undefined,
-    estado: (searchParams.get("estado") as TripQueryFilters["estado"]) ?? "all",
+    estado: rawEstado === "borrador" || rawEstado === "enviada" ? rawEstado : "all",
   };
 
   const trips = filterTrips(await getAdminTrips(), filters);

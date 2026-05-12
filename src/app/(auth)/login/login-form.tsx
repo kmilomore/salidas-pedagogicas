@@ -33,10 +33,6 @@ export default function LoginForm({ statusMessage }: LoginFormProps) {
         provider: "google",
         options: {
           redirectTo,
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
         },
       });
 

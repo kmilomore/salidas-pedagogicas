@@ -285,8 +285,11 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     "created_at",
   ];
 
+  const sanitizeFormula = (text: string) =>
+    /^[=+\-@|]/.test(text) ? `'${text}` : text;
+
   const escapeCsv = (value: string | number | null) => {
-    const text = String(value ?? "").replace(/"/g, '""');
+    const text = sanitizeFormula(String(value ?? "")).replace(/"/g, '""');
     return `"${text}"`;
   };
 

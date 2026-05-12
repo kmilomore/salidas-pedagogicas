@@ -3,12 +3,18 @@ import * as XLSX from "xlsx";
 import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import type { TripQueryFilters } from "@/types";
 
+const sanitizeFormula = (value: string | null | undefined) => {
+  const text = String(value ?? "");
+  return /^[=+\-@|]/.test(text) ? `'${text}` : text;
+};
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const rawEstado = searchParams.get("estado");
   const filters: TripQueryFilters = {
     search: searchParams.get("search") ?? undefined,
     rbd: searchParams.get("rbd") ?? undefined,
-    estado: (searchParams.get("estado") as TripQueryFilters["estado"]) ?? "all",
+    estado: rawEstado === "borrador" || rawEstado === "enviada" ? rawEstado : "all",
   };
 
   const trips = filterTrips(await getAdminTrips(), filters);
@@ -21,17 +27,17 @@ export async function GET(request: Request) {
     HoraRegreso: trip.hora_regreso ?? "",
     Estado: trip.estado,
     RBD: trip.rbd,
-    Establecimiento: trip.school_name,
-    ComunaEstablecimiento: trip.school_comuna,
+    Establecimiento: sanitizeFormula(trip.school_name),
+    ComunaEstablecimiento: sanitizeFormula(trip.school_comuna),
     Director: trip.director_email ?? "",
-    PmeDimension: trip.pme_dimension,
-    PmeSubdimension: trip.pme_subdimension,
-    Actividad: trip.actividad,
-    Objetivo: trip.objetivo,
-    Destino: trip.lugar_nombre,
-    DireccionDestino: trip.lugar_direccion,
-    ComunaDestino: trip.lugar_comuna,
-    RegionDestino: trip.lugar_region,
+    PmeDimension: sanitizeFormula(trip.pme_dimension),
+    PmeSubdimension: sanitizeFormula(trip.pme_subdimension),
+    Actividad: sanitizeFormula(trip.actividad),
+    Objetivo: sanitizeFormula(trip.objetivo),
+    Destino: sanitizeFormula(trip.lugar_nombre),
+    DireccionDestino: sanitizeFormula(trip.lugar_direccion),
+    ComunaDestino: sanitizeFormula(trip.lugar_comuna),
+    RegionDestino: sanitizeFormula(trip.lugar_region),
     DistanciaKm: trip.distancia_km,
     DistanciaIdaKm: trip.distancia_ida_km,
     DistanciaVueltaKm: trip.distancia_vuelta_km,
@@ -40,7 +46,7 @@ export async function GET(request: Request) {
     DuracionVueltaMinutos: trip.duracion_vuelta_minutos,
     Estudiantes: trip.cantidad_estudiantes,
     Apoderados: trip.cantidad_apoderados,
-    ResumenRuta: trip.ruta_resumen,
+    ResumenRuta: sanitizeFormula(trip.ruta_resumen),
     CreadoEn: trip.created_at,
   }));
 
@@ -48,13 +54,13 @@ export async function GET(request: Request) {
     trip.funcionarios.map((staff) => ({
       SalidaID: trip.id,
       Fecha: trip.fecha,
-      Establecimiento: trip.school_name,
+      Establecimiento: sanitizeFormula(trip.school_name),
       RBD: trip.rbd,
-      Actividad: trip.actividad,
-      Destino: trip.lugar_nombre,
-      Funcionario: staff.nombre_completo,
+      Actividad: sanitizeFormula(trip.actividad),
+      Destino: sanitizeFormula(trip.lugar_nombre),
+      Funcionario: sanitizeFormula(staff.nombre_completo),
       Rut: staff.rut,
-      Cargo: staff.cargo,
+      Cargo: sanitizeFormula(staff.cargo),
     })),
   );
 
