@@ -24,6 +24,8 @@ Gestión interactiva de la whitelist de acceso al portal. Recibe datos del serve
 - `isPending / pendingId`: estado de transición para deshabilitar la fila en operación.
 - `filterRol`: filtro por rol (`"all" | "director" | "admin"`), aplicado en memoria sobre `users`.
 - `filterEscuela`: texto libre para buscar por nombre de escuela o RBD, aplicado en memoria.
+- `sortKey`: columna activa de ordenamiento (`"email" | "rol" | "school_name" | "activo" | "created_at"`). Defecto: `"created_at"`.
+- `sortDir`: dirección del orden (`"asc" | "desc"`). Defecto: `"desc"`. Clicar la misma columna togglea la dirección; clicar otra columna resetea a `"asc"`.
 
 ## Interacciones
 - **Alta**: valida email + rol + RBD (condicional), llama `addWhitelistUser(formData)`.

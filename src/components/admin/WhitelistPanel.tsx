@@ -26,15 +26,50 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
   const [filterRol, setFilterRol] = useState<UserRole | "all">("all");
   const [filterEscuela, setFilterEscuela] = useState("");
 
+  type SortKey = "email" | "rol" | "school_name" | "activo" | "created_at";
+  const [sortKey, setSortKey] = useState<SortKey>("created_at");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  function handleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
   const normalizedSearch = filterEscuela.trim().toLowerCase();
-  const filtered = users.filter((u) => {
-    const matchRol = filterRol === "all" || u.rol === filterRol;
-    const matchEscuela = normalizedSearch
-      ? (u.school_name ?? "").toLowerCase().includes(normalizedSearch) ||
-        (u.rbd ?? "").toLowerCase().includes(normalizedSearch)
-      : true;
-    return matchRol && matchEscuela;
-  });
+  const filtered = users
+    .filter((u) => {
+      const matchRol = filterRol === "all" || u.rol === filterRol;
+      const matchEscuela = normalizedSearch
+        ? (u.school_name ?? "").toLowerCase().includes(normalizedSearch) ||
+          (u.rbd ?? "").toLowerCase().includes(normalizedSearch)
+        : true;
+      return matchRol && matchEscuela;
+    })
+    .sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "email":
+          cmp = a.email.localeCompare(b.email, "es");
+          break;
+        case "rol":
+          cmp = a.rol.localeCompare(b.rol, "es");
+          break;
+        case "school_name":
+          cmp = (a.school_name ?? "").localeCompare(b.school_name ?? "", "es");
+          break;
+        case "activo":
+          cmp = Number(b.activo) - Number(a.activo);
+          break;
+        case "created_at":
+          cmp = a.created_at.localeCompare(b.created_at);
+          break;
+      }
+      return sortDir === "asc" ? cmp : -cmp;
+    });
 
   function openForm() {
     setShowForm(true);
@@ -230,11 +265,27 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
       <div className="overflow-x-auto rounded-[24px] border border-slate-200">
         <div className="min-w-[780px]">
           <div className="grid grid-cols-[1.6fr_0.6fr_1.5fr_0.6fr_0.8fr_1fr] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
-            <span>Correo</span>
-            <span>Rol</span>
-            <span>Establecimiento</span>
-            <span>Estado</span>
-            <span>Creación</span>
+            {(
+              [
+                { key: "email", label: "Correo" },
+                { key: "rol", label: "Rol" },
+                { key: "school_name", label: "Establecimiento" },
+                { key: "activo", label: "Estado" },
+                { key: "created_at", label: "Creación" },
+              ] as { key: SortKey; label: string }[]
+            ).map(({ key, label }) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handleSort(key)}
+                className="flex items-center gap-1 text-left hover:text-slep transition-colors"
+              >
+                {label}
+                <span className="text-[10px] leading-none">
+                  {sortKey === key ? (sortDir === "asc" ? "↑" : "↓") : "↕"}
+                </span>
+              </button>
+            ))}
             <span>Acciones</span>
           </div>
 
