@@ -1,10 +1,80 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText } from "@/lib/input-normalization";
 import { limitTripCreation } from "@/lib/rate-limit";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
 import type { SaveTripResponse, UserRole } from "@/types";
+
+async function assertAdminForTripAction() {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user?.email) {
+    return null;
+  }
+
+  const { data: whitelistUser } = await supabase
+    .from("whitelist_usuarios")
+    .select("rol")
+    .eq("email", user.email.trim().toLowerCase())
+    .eq("activo", true)
+    .maybeSingle<{ rol: UserRole }>();
+
+  if (!whitelistUser || whitelistUser.rol !== "admin") {
+    return null;
+  }
+
+  return createAdminClient();
+}
+
+export async function updateMontoReferencialSalida(
+  tripId: string,
+  rawAmount: string,
+): Promise<{ error: string | null; amount: number | null }> {
+  const adminClient = await assertAdminForTripAction();
+
+  if (!adminClient) {
+    return {
+      error: "No tienes permisos para editar el monto referencial.",
+      amount: null,
+    };
+  }
+
+  const normalizedAmount = rawAmount.trim();
+  const amount = normalizedAmount ? Number(normalizedAmount) : null;
+
+  if (normalizedAmount && (!Number.isFinite(amount) || amount === null || amount < 0)) {
+    return {
+      error: "Ingresa un monto referencial valido igual o mayor a 0.",
+      amount: null,
+    };
+  }
+
+  const persistedAmount = amount === null ? null : Number(amount.toFixed(2));
+  const { error } = await adminClient
+    .from("salidas_pedagogicas")
+    .update({ monto_referencial: persistedAmount })
+    .eq("id", tripId);
+
+  if (error) {
+    return {
+      error: `No fue posible guardar el monto referencial. (${error.message})`,
+      amount: null,
+    };
+  }
+
+  revalidatePath("/panel");
+
+  return {
+    error: null,
+    amount: persistedAmount,
+  };
+}
 
 export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise<SaveTripResponse> {
   try {

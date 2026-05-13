@@ -28,6 +28,7 @@ interface AdminTripQueryRow {
   ruta_polyline: string;
   ruta_resumen: string;
   ruta_segmentos: RouteSegment[] | null;
+  monto_referencial?: number | null;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
@@ -141,6 +142,7 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
       distancia_vuelta_km: Number(trip.distancia_vuelta_km ?? 0),
       duracion_ida_minutos: Number(trip.duracion_ida_minutos ?? 0),
       duracion_vuelta_minutos: Number(trip.duracion_vuelta_minutos ?? 0),
+      monto_referencial: trip.monto_referencial === null || trip.monto_referencial === undefined ? null : Number(trip.monto_referencial),
       ruta_segmentos: Array.isArray(trip.ruta_segmentos) ? trip.ruta_segmentos : [],
       funcionarios: Array.isArray(trip.funcionarios) ? trip.funcionarios : [],
       school_name: school?.["NOMBRE ESTABLECIMIENTO"]?.trim() || `RBD ${trip.rbd}`,
@@ -158,7 +160,7 @@ export async function getAdminTrips(limit?: number) {
   let query = supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, monto_referencial, estado, cantidad_estudiantes, cantidad_apoderados, funcionarios, created_at",
     )
     .order("created_at", { ascending: false });
 

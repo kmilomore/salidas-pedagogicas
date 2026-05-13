@@ -14,6 +14,19 @@ interface AdminTripsTableProps {
 export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
   const [selectedTrip, setSelectedTrip] = useState<AdminTripRecord | null>(null);
 
+  function handleTripUpdated(montoReferencial: number | null) {
+    setSelectedTrip((currentTrip) => {
+      if (!currentTrip) {
+        return currentTrip;
+      }
+
+      return {
+        ...currentTrip,
+        monto_referencial: montoReferencial,
+      };
+    });
+  }
+
   return (
     <>
       <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200">
@@ -66,7 +79,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
         )}
       </div>
 
-      <DetalleSalida trip={selectedTrip} onClose={() => setSelectedTrip(null)} />
+      <DetalleSalida trip={selectedTrip} onClose={() => setSelectedTrip(null)} onTripUpdated={handleTripUpdated} />
     </>
   );
 }

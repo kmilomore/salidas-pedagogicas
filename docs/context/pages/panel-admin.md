@@ -18,6 +18,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Aplica filtros básicos por búsqueda, RBD y estado.
 - Muestra métricas y tabla principal.
 - Abre modal con detalle completo.
+- En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
 - Exporta CSV y Excel.
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza a `/panel/whitelist` para gestión de acceso (ver navegación del layout admin).
@@ -28,7 +29,8 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - [Autenticación y control de acceso](../modules/auth.md)
 
 ## Seguridad aplicada
-- Todos los endpoints de exportación y PDF están protegidos en la capa de datos: `getAdminTrips()` y `getAuthorizedTripById()` llaman a `assertRoleAccess(["admin"])` antes de cualquier query.
+- Las exportaciones administrativas están protegidas en la capa de datos: `getAdminTrips()` llama a `assertRoleAccess(["admin"])` antes de cualquier query y el acceso a detalle/PDF usa `getAuthorizedTripById()` con control por rol (`admin` transversal, `director` solo sobre sus propias salidas).
+- La edición del `monto_referencial` usa una server action con verificación explícita de whitelist admin antes de escribir en `salidas_pedagogicas`.
 - El middleware excluye `/api` explícitamente — cualquier nueva ruta en `/api/admin/` **debe** llamar a `assertAdminAccess()` o `assertRoleAccess([...])` al inicio del handler o a través de la función de datos que invoque.
 - Formula injection prevenida: campos de texto libre (actividad, objetivo, destino, funcionarios) se sanitizan con prefijo `'` antes de escribir CSV y XLSX.
 - `estado` validado explícitamente en las rutas de export (`"borrador" | "enviada"`, cualquier otro valor cae a `"all"`).
@@ -39,3 +41,4 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Sin paginación (página cap en 100 filas; exports sin límite).
 - Sin ordenamiento por columna.
 - Sin filtros avanzados por fecha o territorio.
+- El `monto_referencial` solo se administra desde el modal de detalle del panel admin; no se expone en vistas de directores.

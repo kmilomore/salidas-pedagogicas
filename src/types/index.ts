@@ -152,6 +152,7 @@ export interface AdminTripRecord {
   ruta_polyline: string;
   ruta_resumen: string;
   ruta_segmentos: RouteSegment[];
+  monto_referencial: number | null;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;

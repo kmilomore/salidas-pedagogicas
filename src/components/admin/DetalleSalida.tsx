@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import polyline from "@mapbox/polyline";
 import { GoogleMap, MarkerF, PolylineF } from "@react-google-maps/api";
+import { useRouter } from "next/navigation";
 
+import { updateMontoReferencialSalida } from "@/app/actions/trips";
 import { usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTripRecord } from "@/types";
@@ -11,6 +13,7 @@ import type { AdminTripRecord } from "@/types";
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
   onClose: () => void;
+  onTripUpdated: (montoReferencial: number | null) => void;
 }
 
 function formatDateTime(value: string | null) {
@@ -40,8 +43,24 @@ function formatDuration(minutes: number) {
   return `${hours} h ${remainingMinutes} min`;
 }
 
-export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
+function formatCurrency(value: number | null) {
+  if (value === null) {
+    return "Sin definir";
+  }
+
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleSalidaProps) {
   const { isLoaded } = usePortalGoogleMapsLoader();
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [amountInput, setAmountInput] = useState("");
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const routePath = useMemo(() => {
     if (!trip?.ruta_polyline) {
@@ -51,13 +70,41 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
     return polyline.decode(trip.ruta_polyline).map(([lat, lng]) => ({ lat, lng }));
   }, [trip?.ruta_polyline]);
 
+  useEffect(() => {
+    setAmountInput(trip?.monto_referencial === null || trip?.monto_referencial === undefined ? "" : String(trip.monto_referencial));
+    setFeedback(null);
+  }, [trip]);
+
   if (!trip) {
     return null;
   }
 
+  function handleAmountSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFeedback(null);
+
+    startTransition(async () => {
+      try {
+        const result = await updateMontoReferencialSalida(trip.id, amountInput);
+
+        if (result.error) {
+          setFeedback(result.error);
+          return;
+        }
+
+        onTripUpdated(result.amount);
+        setAmountInput(result.amount === null ? "" : String(result.amount));
+        setFeedback("Monto referencial actualizado correctamente.");
+        router.refresh();
+      } catch {
+        setFeedback("No fue posible actualizar el monto referencial.");
+      }
+    });
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
-      <div className="max-h-[92vh] w-full max-w-6xl overflow-hidden rounded-[32px] bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:px-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Detalle de salida</p>
@@ -84,7 +131,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
           </div>
         </div>
 
-        <div className="grid max-h-[calc(92vh-88px)] gap-6 overflow-y-auto p-6 sm:p-8 xl:grid-cols-[minmax(0,1.05fr)_minmax(380px,0.95fr)]">
+        <div className="max-h-[calc(92vh-88px)] overflow-y-auto p-6 sm:p-8">
           <div className="space-y-6">
             <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Resumen operacional</p>
@@ -116,6 +163,44 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                   <p className="mt-2 text-sm font-medium text-slate-950">{formatDistance(trip.distancia_vuelta_km)} · {formatDuration(trip.duracion_vuelta_minutos)}</p>
                 </div>
               </div>
+            </section>
+
+            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion administrativa</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700">Este monto referencial queda persistido para la salida y solo puede ser consultado o editado desde la vista administrativa.</p>
+                </div>
+                <div className="rounded-2xl border border-slep/20 bg-slep/5 px-4 py-3 text-sm font-semibold text-slep">
+                  {formatCurrency(trip.monto_referencial)}
+                </div>
+              </div>
+
+              <form onSubmit={handleAmountSubmit} className="mt-5 grid gap-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="block">
+                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Monto referencial</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min="0"
+                    step="1"
+                    value={amountInput}
+                    onChange={(event) => setAmountInput(event.target.value)}
+                    placeholder="Ej. 250000"
+                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="inline-flex items-center justify-center self-end rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:opacity-50"
+                >
+                  {isPending ? "Guardando..." : "Guardar monto"}
+                </button>
+              </form>
+
+              {feedback ? <p className={`mt-3 text-sm ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
             </section>
 
             <section className="rounded-[24px] border border-slate-200 bg-white p-5">
@@ -180,9 +265,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                 )}
               </div>
             </section>
-          </div>
 
-          <div className="space-y-6">
             <section className="rounded-[24px] border border-slate-200 bg-white p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Ruta y destino</p>
               <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
