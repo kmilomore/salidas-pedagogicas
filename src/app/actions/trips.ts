@@ -35,18 +35,6 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
       };
     }
 
-    // Para directores el RBD se impone desde la whitelist, no desde el payload.
-    // Esto previene que un director registre salidas bajo el RBD de otra escuela
-    // aunque conozca el endpoint y manipule el cuerpo de la petición.
-    const rbdToSave = whitelistUser.rol === "director" ? whitelistUser.rbd : payload.rbd;
-
-    if (!rbdToSave) {
-      return {
-        tripId: null,
-        error: "No tienes un establecimiento asignado para registrar salidas.",
-      };
-    }
-
     const rateLimit = await limitTripCreation(supabase, user.id);
 
     if (!rateLimit.success) {
@@ -73,6 +61,18 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
         cargo: normalizeSingleLineText(funcionario.cargo),
       })),
     });
+
+    // Para directores el RBD se impone desde la whitelist, no desde el payload.
+    // Esto previene que un director registre salidas bajo el RBD de otra escuela
+    // aunque conozca el endpoint y manipule el cuerpo de la petición.
+    const rbdToSave = whitelistUser.rol === "director" ? whitelistUser.rbd : payload.rbd;
+
+    if (!rbdToSave) {
+      return {
+        tripId: null,
+        error: "No tienes un establecimiento asignado para registrar salidas.",
+      };
+    }
 
     const { data, error } = await supabase
       .from("salidas_pedagogicas")

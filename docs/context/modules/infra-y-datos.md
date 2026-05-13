@@ -40,6 +40,7 @@ created_at timestamptz DEFAULT now()
 - Google OAuth vía Supabase.
 - Google Directions API.
 - Google Static Maps API.
+- Google Apps Script (webhook de notificación por correo al director tras registrar una salida). Código en `apps-script/code.gs`. Se comunica mediante `POST` con payload JSON + PDF en base64. Protegido con `WEBHOOK_SECRET` compartido.
 
 ## Reglas técnicas importantes
 - La lectura de la tabla maestra de escuelas y todas las escrituras sobre `whitelist_usuarios` se hacen con service role (`createAdminClient()`) desde servidor.
@@ -47,6 +48,7 @@ created_at timestamptz DEFAULT now()
 - El middleware debe fallar de forma segura en Edge.
 - La normalización de entrada evita depender de sanitizadores DOM en servidor.
 - El rate limit cuenta formularios en la última hora directamente en Supabase.
+- La notificación por correo es fire-and-forget: si falla, la salida ya quedó guardada y el error no impacta al usuario.
 
 ## Variables de entorno críticas
 - `NEXT_PUBLIC_SUPABASE_URL`
@@ -55,6 +57,8 @@ created_at timestamptz DEFAULT now()
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
 - `GOOGLE_MAPS_SERVER_KEY`
+- `APPS_SCRIPT_WEBHOOK_URL` — URL de despliegue del Apps Script (Ejecutar como: Yo · Acceso: Cualquier persona)
+- `APPS_SCRIPT_WEBHOOK_SECRET` — string secreto compartido con `WEBHOOK_SECRET` en `code.gs`; si no está configurado en producción la notificación retorna 503 silenciosamente
 
 ## Dependencias con otros módulos
 - [Autenticación y control de acceso](./auth.md)

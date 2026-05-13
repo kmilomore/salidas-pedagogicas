@@ -59,7 +59,7 @@ apps-script/code.gs  doPost(e)
 ### Despliegue del Apps Script
 1. Abrir [script.google.com](https://script.google.com) con el correo remitente.
 2. Crear proyecto nuevo → pegar contenido de `apps-script/code.gs`.
-3. Asignar `WEBHOOK_SECRET` en el script (línea 10) y en `.env.local`.
+3. Asignar `WEBHOOK_SECRET` en el script (línea 11) y en `.env.local`.
 4. **Desplegar → Nueva implementación → Aplicación web**.
    - Ejecutar como: **Yo**
    - Acceso: **Cualquier persona**
