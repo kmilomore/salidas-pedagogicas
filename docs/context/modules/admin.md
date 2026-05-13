@@ -1,14 +1,18 @@
 # Módulo: Administración y Exportaciones
 
 ## Objetivo
-Entregar visibilidad transversal para administradores: métricas, filtros, detalle de salidas y exportación de datos.
+Entregar visibilidad transversal para administradores: métricas, filtros, detalle de salidas, exportación de datos y gestión de la whitelist de acceso.
 
 ## Archivos clave
 - `src/app/(admin)/panel/page.tsx`
+- `src/app/(admin)/panel/whitelist/page.tsx`
 - `src/components/admin/AdminTripsTable.tsx`
 - `src/components/admin/DetalleSalida.tsx`
+- `src/components/admin/WhitelistPanel.tsx`
 - `src/lib/admin/trips.ts`
 - `src/lib/admin/trip-formatting.ts`
+- `src/lib/admin/whitelist.ts`
+- `src/app/actions/whitelist.ts`
 - `src/app/api/admin/export-csv/route.ts`
 - `src/app/api/admin/export-xlsx/route.ts`
 - `src/app/api/trips/[id]/pdf/route.ts`
@@ -21,6 +25,8 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 3. Renderiza métricas, tabla y modal de detalle.
 4. Las exportaciones CSV y Excel respetan los filtros actuales.
 5. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+6. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+7. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
@@ -30,12 +36,12 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
 - PDF por salida con QR, logo institucional y mapa estático.
 - Persistencia de métricas separadas de ida/vuelta y segmentos de ruta para reutilización documental.
+- Gestión CRUD de la whitelist de acceso: altas con validación de RBD, activación/desactivación y eliminación.
 
 ## Pendientes dentro del módulo
 - Paginación.
 - Ordenamiento por columna.
 - Filtros avanzados por fecha, comuna o región.
-- Acciones administrativas adicionales más allá de visualización y exportación.
 
 ## Dependencias con otros módulos
 - [Operación de salidas pedagógicas](./operacion-salidas.md): provee el dato fuente.
@@ -44,5 +50,6 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 
 ## Páginas relacionadas
 - [Panel administrativo](../pages/panel-admin.md)
+- [Gestión de acceso (whitelist)](../pages/whitelist.md)
 - [Mis salidas](../pages/mis-salidas.md)
 - [Ruta pública](../pages/ruta-publica.md)

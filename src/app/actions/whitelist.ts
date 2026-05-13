@@ -46,7 +46,8 @@ export async function addWhitelistUser(formData: FormData): Promise<{ error: str
 
   if (error) {
     if (error.code === "23505") return { error: "Este correo ya está en la lista de acceso." };
-    return { error: "No se pudo agregar el usuario. Verifica que el RBD sea válido." };
+    if (error.code === "23503") return { error: "El establecimiento seleccionado no es válido." };
+    return { error: `No se pudo agregar el usuario. (${error.message})` };
   }
 
   revalidatePath("/panel/whitelist");

@@ -23,7 +23,7 @@ Controlar el ingreso institucional con Google, verificar whitelist y resolver ac
 
 ## Reglas de acceso actuales
 - `/dashboard`, `/nueva-salida` y `/mis-salidas`: accesibles por `director` y `admin`.
-- `/panel`: accesible solo por `admin`.
+- `/panel` y todo lo que empieza por `/panel/` (incluye `/panel/whitelist`): accesible solo por `admin`.
 - `/ruta/[id]`: pública a nivel de routing, pero hoy no implementada.
 
 ## Dependencias con otros módulos
@@ -39,4 +39,5 @@ Controlar el ingreso institucional con Google, verificar whitelist y resolver ac
 ## Páginas relacionadas
 - [Login](../pages/login.md)
 - [Panel administrativo](../pages/panel-admin.md)
+- [Gestión de acceso (whitelist)](../pages/whitelist.md)
 - [Nueva salida](../pages/nueva-salida.md)

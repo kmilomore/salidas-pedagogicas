@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { addWhitelistUser, deleteWhitelistUser, toggleWhitelistUser } from "@/app/actions/whitelist";
 import type { SchoolForWhitelist, WhitelistUserEnriched } from "@/lib/admin/whitelist";
@@ -12,6 +13,7 @@ interface WhitelistPanelProps {
 }
 
 export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -30,17 +32,23 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
+    setFormError(null);
     const fd = new FormData();
     fd.set("email", formEmail);
     fd.set("rol", formRol);
     if (formRol === "director") fd.set("rbd", formRbd);
 
     startTransition(async () => {
-      const result = await addWhitelistUser(fd);
-      if (result.error) {
-        setFormError(result.error);
-      } else {
-        setShowForm(false);
+      try {
+        const result = await addWhitelistUser(fd);
+        if (result.error) {
+          setFormError(result.error);
+        } else {
+          setShowForm(false);
+          router.refresh();
+        }
+      } catch {
+        setFormError("Ocurrió un error inesperado. Intenta nuevamente.");
       }
     });
   }
@@ -48,8 +56,14 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
   function handleToggle(id: string, currentActivo: boolean) {
     setPendingId(id);
     startTransition(async () => {
-      await toggleWhitelistUser(id, !currentActivo);
-      setPendingId(null);
+      try {
+        await toggleWhitelistUser(id, !currentActivo);
+      } catch {
+        // silently ignore — the list will reflect actual state on next render
+      } finally {
+        setPendingId(null);
+        router.refresh();
+      }
     });
   }
 
@@ -57,8 +71,14 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
     if (!confirm("¿Eliminar este usuario de la lista de acceso? Esta acción es irreversible.")) return;
     setPendingId(id);
     startTransition(async () => {
-      await deleteWhitelistUser(id);
-      setPendingId(null);
+      try {
+        await deleteWhitelistUser(id);
+      } catch {
+        // silently ignore
+      } finally {
+        setPendingId(null);
+        router.refresh();
+      }
     });
   }
 

@@ -20,6 +20,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Abre modal con detalle completo.
 - Exporta CSV y Excel.
 - Desde el modal o la tabla permite descargar PDF.
+- Enlaza a `/panel/whitelist` para gestión de acceso (ver navegación del layout admin).
 
 ## Dependencias
 - [Administración y exportaciones](../modules/admin.md)
@@ -38,4 +39,3 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Sin paginación (página cap en 100 filas; exports sin límite).
 - Sin ordenamiento por columna.
 - Sin filtros avanzados por fecha o territorio.
-- Sin gestión de whitelist u otras herramientas administrativas.
