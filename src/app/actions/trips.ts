@@ -23,15 +23,27 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
 
     const { data: whitelistUser, error: whitelistError } = await supabase
       .from("whitelist_usuarios")
-      .select("rol")
+      .select("rol, rbd")
       .eq("email", user.email?.trim().toLowerCase() ?? "")
       .eq("activo", true)
-      .maybeSingle<{ rol: UserRole }>();
+      .maybeSingle<{ rol: UserRole; rbd: string | null }>();
 
     if (whitelistError || !whitelistUser) {
       return {
         tripId: null,
         error: "No se pudo validar el rol del usuario antes de guardar la salida.",
+      };
+    }
+
+    // Para directores el RBD se impone desde la whitelist, no desde el payload.
+    // Esto previene que un director registre salidas bajo el RBD de otra escuela
+    // aunque conozca el endpoint y manipule el cuerpo de la petición.
+    const rbdToSave = whitelistUser.rol === "director" ? whitelistUser.rbd : payload.rbd;
+
+    if (!rbdToSave) {
+      return {
+        tripId: null,
+        error: "No tienes un establecimiento asignado para registrar salidas.",
       };
     }
 
@@ -66,7 +78,7 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
       .from("salidas_pedagogicas")
       .insert({
         director_id: user.id,
-        rbd: payload.rbd,
+        rbd: rbdToSave,
         fecha: payload.fecha,
         hora_salida: payload.hora_salida,
         hora_regreso: payload.hora_regreso || null,
