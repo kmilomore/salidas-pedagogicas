@@ -69,11 +69,16 @@ function buildTripStaticMapUrl(trip: AdminTripRecord, apiKey: string) {
   return url.toString();
 }
 
-function encodeSvgDataUrl(svg: string) {
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+async function svgToPngDataUrl(svg: string) {
+  try {
+    const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+    return `data:image/png;base64,${pngBuffer.toString("base64")}`;
+  } catch {
+    return null;
+  }
 }
 
-function buildStaticRouteSvgDataUrl(trip: AdminTripRecord) {
+async function buildStaticRouteSvgDataUrl(trip: AdminTripRecord) {
   if (!trip.ruta_polyline || trip.school_lat === null || trip.school_lng === null) {
     return null;
   }
@@ -153,7 +158,7 @@ function buildStaticRouteSvgDataUrl(trip: AdminTripRecord) {
       </svg>
     `;
 
-    return encodeSvgDataUrl(svg);
+    return await svgToPngDataUrl(svg);
   } catch {
     return null;
   }
@@ -161,16 +166,15 @@ function buildStaticRouteSvgDataUrl(trip: AdminTripRecord) {
 
 async function buildStaticMapDataUrl(trip: AdminTripRecord) {
   const apiKey = process.env.GOOGLE_MAPS_SERVER_KEY?.trim();
-  const svgFallback = buildStaticRouteSvgDataUrl(trip);
 
   if (!apiKey) {
-    return svgFallback;
+    return buildStaticRouteSvgDataUrl(trip);
   }
 
   const staticMapUrl = buildTripStaticMapUrl(trip, apiKey);
 
   if (!staticMapUrl) {
-    return svgFallback;
+    return buildStaticRouteSvgDataUrl(trip);
   }
 
   const response = await fetch(staticMapUrl, {
@@ -178,7 +182,7 @@ async function buildStaticMapDataUrl(trip: AdminTripRecord) {
   }).catch(() => null);
 
   if (!response?.ok) {
-    return svgFallback;
+    return buildStaticRouteSvgDataUrl(trip);
   }
 
   const mimeType = response.headers.get("content-type") || "image/png";
