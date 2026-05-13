@@ -79,13 +79,15 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
     return null;
   }
 
+  const tripId = trip.id;
+
   function handleAmountSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
 
     startTransition(async () => {
       try {
-        const result = await updateMontoReferencialSalida(trip.id, amountInput);
+        const result = await updateMontoReferencialSalida(tripId, amountInput);
 
         if (result.error) {
           setFeedback(result.error);
