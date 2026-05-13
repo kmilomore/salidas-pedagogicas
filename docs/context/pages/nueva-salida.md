@@ -11,6 +11,7 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - `src/app/(director)/nueva-salida/page.tsx`
 - `src/app/(director)/nueva-salida/exito/page.tsx`
 - `src/components/nueva-salida/NuevaSalidaWizard.tsx`
+- `src/components/nueva-salida/ConfirmacionModal.tsx`
 - `src/components/nueva-salida/TripNotifier.tsx`
 - `src/app/actions/maps.ts`
 - `src/app/actions/trips.ts`
@@ -23,8 +24,11 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Para `admin`: muestra un selector de establecimiento con todos los RBDs del catálogo SLEP; admite `?rbd=` como parámetro de query.
 - Carga el catálogo PME desde `public.eid`.
 - Calcula rutas reales con Google Maps.
-- Guarda salidas reales en Supabase vía `guardarSalidaPedagogica`.
+- En el paso 3 (participantes), al presionar **"Revisar y confirmar"** abre `ConfirmacionModal` con el resumen completo de la salida antes de persistirla. El usuario puede cerrar el modal para modificar o confirmar para guardar.
+- Guarda salidas reales en Supabase vía `guardarSalidaPedagogica` (solo al confirmar desde el modal).
 - Al llegar a `/nueva-salida/exito`, monta `TripNotifier` que dispara `POST /api/trips/[id]/notify` (fire-and-forget desde el cliente).
+- Muestra el **total de pasajeros** (estudiantes + apoderados + funcionarios) en el modal de confirmación.
+- El PDF y el detalle admin también muestran el total de pasajeros como indicador destacado.
 
 ## Flujo de notificación por correo
 

@@ -23,6 +23,7 @@ import type {
 } from "@/types";
 
 import type { SelectedPlace } from "./LugarAutocomplete";
+import ConfirmacionModal from "./ConfirmacionModal";
 import StepDestino from "./StepDestino";
 import StepDatosViaje from "./StepDatosViaje";
 import StepParticipantes from "./StepParticipantes";
@@ -95,6 +96,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
   const [routeError, setRouteError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccessId, setSaveSuccessId] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [isRouteLoading, startRouteTransition] = useTransition();
   const [isSaveLoading, startSaveTransition] = useTransition();
   const googleMapsApiKey = getPortalGoogleMapsApiKey();
@@ -343,55 +345,71 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
 
       setSaveError(null);
       setSaveSuccessId(null);
-
-      startSaveTransition(() => {
-        void (async () => {
-          const result = await guardarSalidaPedagogica({
-            rbd: schoolProfile.rbd,
-            fecha: getValues("fecha"),
-            hora_salida: getValues("hora_salida"),
-            hora_regreso: getValues("hora_regreso"),
-            pme_dimension: getValues("pme_dimension_source") || getValues("pme_dimension_label"),
-            pme_subdimension: getValues("pme_subdimension_label"),
-            objetivo: getValues("objetivo"),
-            actividad: getValues("actividad"),
-            lugar_nombre: getValues("lugar_nombre"),
-            lugar_direccion: getValues("lugar_direccion"),
-            lugar_lat: getValues("lugar_lat"),
-            lugar_lng: getValues("lugar_lng"),
-            lugar_place_id: getValues("lugar_place_id"),
-            lugar_comuna: getValues("lugar_comuna"),
-            lugar_region: getValues("lugar_region"),
-            distancia_km: getValues("distancia_km"),
-            distancia_ida_km: getValues("distancia_ida_km"),
-            distancia_vuelta_km: getValues("distancia_vuelta_km"),
-            duracion_minutos: getValues("duracion_minutos"),
-            duracion_ida_minutos: getValues("duracion_ida_minutos"),
-            duracion_vuelta_minutos: getValues("duracion_vuelta_minutos"),
-            ruta_polyline: getValues("ruta_polyline"),
-            ruta_resumen: getValues("ruta_resumen"),
-            ruta_segmentos: routeResult?.segmentos ?? [],
-            cantidad_estudiantes: getValues("cantidad_estudiantes"),
-            cantidad_apoderados: getValues("cantidad_apoderados"),
-            funcionarios: getValues("funcionarios"),
-          });
-
-          if (result.error || !result.tripId) {
-            setSaveError(result.error ?? "No fue posible guardar la salida pedagogica.");
-            return;
-          }
-
-          setSaveSuccessId(result.tripId);
-          router.push(`/nueva-salida/exito?id=${encodeURIComponent(result.tripId)}`);
-        })();
-      });
+      setShowConfirmModal(true);
     }
+  };
+
+  const handleConfirmSave = () => {
+    setSaveError(null);
+    setSaveSuccessId(null);
+
+    startSaveTransition(() => {
+      void (async () => {
+        const result = await guardarSalidaPedagogica({
+          rbd: schoolProfile.rbd,
+          fecha: getValues("fecha"),
+          hora_salida: getValues("hora_salida"),
+          hora_regreso: getValues("hora_regreso"),
+          pme_dimension: getValues("pme_dimension_source") || getValues("pme_dimension_label"),
+          pme_subdimension: getValues("pme_subdimension_label"),
+          objetivo: getValues("objetivo"),
+          actividad: getValues("actividad"),
+          lugar_nombre: getValues("lugar_nombre"),
+          lugar_direccion: getValues("lugar_direccion"),
+          lugar_lat: getValues("lugar_lat"),
+          lugar_lng: getValues("lugar_lng"),
+          lugar_place_id: getValues("lugar_place_id"),
+          lugar_comuna: getValues("lugar_comuna"),
+          lugar_region: getValues("lugar_region"),
+          distancia_km: getValues("distancia_km"),
+          distancia_ida_km: getValues("distancia_ida_km"),
+          distancia_vuelta_km: getValues("distancia_vuelta_km"),
+          duracion_minutos: getValues("duracion_minutos"),
+          duracion_ida_minutos: getValues("duracion_ida_minutos"),
+          duracion_vuelta_minutos: getValues("duracion_vuelta_minutos"),
+          ruta_polyline: getValues("ruta_polyline"),
+          ruta_resumen: getValues("ruta_resumen"),
+          ruta_segmentos: routeResult?.segmentos ?? [],
+          cantidad_estudiantes: getValues("cantidad_estudiantes"),
+          cantidad_apoderados: getValues("cantidad_apoderados"),
+          funcionarios: getValues("funcionarios"),
+        });
+
+        if (result.error || !result.tripId) {
+          setSaveError(result.error ?? "No fue posible guardar la salida pedagogica.");
+          return;
+        }
+
+        setSaveSuccessId(result.tripId);
+        router.push(`/nueva-salida/exito?id=${encodeURIComponent(result.tripId)}`);
+      })();
+    });
   };
 
   const isAdminView = viewerRole === "admin";
 
   return (
     <section className="space-y-6">
+      {showConfirmModal ? (
+        <ConfirmacionModal
+          values={values}
+          schoolProfile={schoolProfile}
+          isBusy={isSaveLoading}
+          saveError={saveError}
+          onConfirm={handleConfirmSave}
+          onClose={() => setShowConfirmModal(false)}
+        />
+      ) : null}
       <div className="rounded-[28px] bg-white p-8 shadow-soft">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -543,7 +561,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           isBusy={(currentStep === 1 && isRouteLoading) || (currentStep === 2 && isSaveLoading)}
           busyLabel={currentStep === 2 ? "Guardando la salida pedagogica en Supabase..." : "Consultando Google Maps y preparando el resumen del trayecto..."}
           helperText={currentStep === 2 ? "Guarda la salida para persistir fecha, PME, accion, objetivo y datos de ruta en la base de datos." : undefined}
-          nextLabel={currentStep === 2 ? (saveSuccessId ? "Guardada" : "Guardar salida") : undefined}
+          nextLabel={currentStep === 2 ? (saveSuccessId ? "Guardada" : "Revisar y confirmar") : undefined}
           onPrevious={() => setCurrentStep((previousStep) => Math.max(0, previousStep - 1))}
           onNext={() => void handleNext()}
         />

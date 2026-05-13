@@ -138,7 +138,7 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
 
             <section className="rounded-[24px] border border-slate-200 bg-white p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Participantes</p>
-              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+              <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Estudiantes</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{trip.cantidad_estudiantes}</p>
@@ -150,6 +150,12 @@ export default function DetalleSalida({ trip, onClose }: DetalleSalidaProps) {
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Funcionarios</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{trip.funcionarios.length}</p>
+                </div>
+                <div className="rounded-2xl border border-slep/20 bg-slep/5 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slep">Total pasajeros</p>
+                  <p className="mt-2 text-2xl font-semibold text-slep">
+                    {trip.cantidad_estudiantes + trip.cantidad_apoderados + trip.funcionarios.length}
+                  </p>
                 </div>
               </div>
 
