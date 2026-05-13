@@ -5,6 +5,7 @@ import PortalLogo from "@/components/branding/PortalLogo";
 
 const adminLinks = [
   { href: "/panel", label: "Panel" },
+  { href: "/panel/whitelist", label: "Gestión de acceso" },
   { href: "/nueva-salida", label: "Ver formulario" },
 ];
 
