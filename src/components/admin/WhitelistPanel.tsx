@@ -16,11 +16,25 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
+
   const [showForm, setShowForm] = useState(false);
   const [formEmail, setFormEmail] = useState("");
   const [formRol, setFormRol] = useState<UserRole>("director");
   const [formRbd, setFormRbd] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+
+  const [filterRol, setFilterRol] = useState<UserRole | "all">("all");
+  const [filterEscuela, setFilterEscuela] = useState("");
+
+  const normalizedSearch = filterEscuela.trim().toLowerCase();
+  const filtered = users.filter((u) => {
+    const matchRol = filterRol === "all" || u.rol === filterRol;
+    const matchEscuela = normalizedSearch
+      ? (u.school_name ?? "").toLowerCase().includes(normalizedSearch) ||
+        (u.rbd ?? "").toLowerCase().includes(normalizedSearch)
+      : true;
+    return matchRol && matchEscuela;
+  });
 
   function openForm() {
     setShowForm(true);
@@ -84,6 +98,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Control de acceso</p>
@@ -103,11 +118,9 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
         )}
       </div>
 
+      {/* Add form */}
       {showForm && (
-        <form
-          onSubmit={handleAdd}
-          className="rounded-[24px] border border-slate-200 bg-slate-50 p-5"
-        >
+        <form onSubmit={handleAdd} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
           <p className="mb-4 text-sm font-semibold text-slate-800">Nuevo usuario</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="block">
@@ -178,6 +191,42 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
         </form>
       )}
 
+      {/* Filters */}
+      <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 sm:grid-cols-[minmax(0,1.5fr)_minmax(180px,0.8fr)_auto]">
+        <label className="block">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Buscar por escuela</span>
+          <input
+            type="text"
+            value={filterEscuela}
+            onChange={(e) => setFilterEscuela(e.target.value)}
+            placeholder="Nombre o RBD"
+            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+          />
+        </label>
+
+        <label className="block">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Rol</span>
+          <select
+            value={filterRol}
+            onChange={(e) => setFilterRol(e.target.value as UserRole | "all")}
+            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+          >
+            <option value="all">Todos los roles</option>
+            <option value="director">Director</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </label>
+
+        <button
+          type="button"
+          onClick={() => { setFilterRol("all"); setFilterEscuela(""); }}
+          className="inline-flex items-center justify-center self-end rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      {/* Table */}
       <div className="overflow-x-auto rounded-[24px] border border-slate-200">
         <div className="min-w-[780px]">
           <div className="grid grid-cols-[1.6fr_0.6fr_1.5fr_0.6fr_0.8fr_1fr] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
@@ -189,9 +238,9 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
             <span>Acciones</span>
           </div>
 
-          {users.length ? (
+          {filtered.length ? (
             <div className="divide-y divide-slate-200 bg-white">
-              {users.map((user) => {
+              {filtered.map((user) => {
                 const isRowPending = isPending && pendingId === user.id;
                 return (
                   <div
@@ -267,7 +316,9 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
             </div>
           ) : (
             <div className="bg-white px-5 py-12 text-center text-sm text-slate-500">
-              No hay usuarios en la lista de acceso aún.
+              {users.length
+                ? "Ningún usuario coincide con los filtros aplicados."
+                : "No hay usuarios en la lista de acceso aún."}
             </div>
           )}
         </div>

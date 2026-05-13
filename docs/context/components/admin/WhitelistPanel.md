@@ -22,6 +22,8 @@ Gestión interactiva de la whitelist de acceso al portal. Recibe datos del serve
 - `formEmail / formRol / formRbd`: campos controlados del formulario.
 - `formError`: error de validación o servidor en el formulario.
 - `isPending / pendingId`: estado de transición para deshabilitar la fila en operación.
+- `filterRol`: filtro por rol (`"all" | "director" | "admin"`), aplicado en memoria sobre `users`.
+- `filterEscuela`: texto libre para buscar por nombre de escuela o RBD, aplicado en memoria.
 
 ## Interacciones
 - **Alta**: valida email + rol + RBD (condicional), llama `addWhitelistUser(formData)`.
