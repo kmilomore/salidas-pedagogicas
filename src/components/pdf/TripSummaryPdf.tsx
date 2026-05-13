@@ -29,7 +29,6 @@ interface TripSummaryPdfProps {
   directionsUrl: string;
   portalLogoDataUrl: string | null;
   qrCodeDataUrl: string | null;
-  staticMapDataUrl: string | null;
 }
 
 const styles = StyleSheet.create({
@@ -192,35 +191,10 @@ const styles = StyleSheet.create({
     lineHeight: 1.5,
     color: "#475569",
   },
-  routeVisual: {
-    marginTop: 12,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 10,
-  },
-  mapImage: {
-    width: "100%",
-    height: 250,
-    borderRadius: 10,
-  },
-  mapFallback: {
-    minHeight: 130,
-    borderRadius: 10,
-    backgroundColor: "#E2E8F0",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 18,
-  },
-  mapFallbackText: {
-    fontSize: 9,
-    lineHeight: 1.5,
-    color: "#475569",
-    textAlign: "center",
-  },
   routeLegGrid: {
     flexDirection: "row",
     gap: 10,
-    marginTop: 10,
+    marginTop: 12,
   },
   routeLegCard: {
     flex: 1,
@@ -301,7 +275,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl, qrCodeDataUrl, staticMapDataUrl }: TripSummaryPdfProps) {
+export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl, qrCodeDataUrl }: TripSummaryPdfProps) {
   const outboundRoute = `${trip.school_name} -> ${trip.lugar_nombre}`;
   const returnRoute = `${trip.lugar_nombre} -> ${trip.school_name}`;
 
@@ -441,21 +415,8 @@ export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl,
       <Page size="A4" style={styles.page}>
         <Text style={styles.routePageTitle}>Ruta operacional y acceso en terreno</Text>
         <Text style={styles.routePageSubtitle}>
-          Este comprobante incorpora la referencia visual del trayecto y un QR para abrir la ruta en Google Maps desde un telefono.
+          Este comprobante incorpora el desglose operativo del trayecto y un QR para abrir la ruta en Google Maps desde un telefono.
         </Text>
-
-        <View style={styles.routeVisual}>
-          <Text style={styles.sectionTitle}>Imagen de la ruta</Text>
-          {staticMapDataUrl ? (
-            <Image style={styles.mapImage} src={staticMapDataUrl} />
-          ) : (
-            <View style={styles.mapFallback}>
-              <Text style={styles.mapFallbackText}>
-                No fue posible incrustar la imagen estatica de la ruta con los datos disponibles o con la configuracion actual de Google Maps.
-              </Text>
-            </View>
-          )}
-        </View>
 
         <View style={styles.routeLegGrid}>
           <View style={styles.routeLegCard}>
@@ -493,7 +454,7 @@ export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl,
           </View>
         </View>
 
-        <Text style={styles.footer}>Comprobante PDF con QR de navegacion y mapa estatico del trayecto · Registro {trip.id}</Text>
+        <Text style={styles.footer}>Comprobante PDF con QR de navegacion y detalle operacional del trayecto · Registro {trip.id}</Text>
       </Page>
     </Document>
   );

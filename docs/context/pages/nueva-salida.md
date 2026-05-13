@@ -85,7 +85,7 @@ La route `/api/trips/[id]/notify` incluye `console.error`/`console.log` en cada 
 - **CC**: `emma.diaz@slepcolchagua.cl`
 - **Asunto**: `[SLEP Colchagua] Postulación de salida pedagógica registrada – <Escuela> – <Fecha>`
 - **Cuerpo HTML**: datos de la postulación en tabla + aviso destacado de que es una postulación, no una confirmación
-- **Adjunto**: PDF del comprobante (mismo que genera `/api/trips/[id]/pdf`)
+- **Adjunto**: PDF del comprobante (mismo que genera `/api/trips/[id]/pdf`) con resumen, desglose de ruta y QR a Google Maps, sin imagen embebida del trayecto
 
 ### Aviso obligatorio en el correo y en la pantalla de éxito
 > "El registro de esta solicitud **no autoriza ni confirma** la realización de la salida pedagógica. La postulación será evaluada en términos de factibilidad presupuestaria. Una vez que se cuente con claridad operativa, nos comunicaremos con usted."
