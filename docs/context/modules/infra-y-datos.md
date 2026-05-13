@@ -56,9 +56,9 @@ created_at timestamptz DEFAULT now()
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
-- `GOOGLE_MAPS_SERVER_KEY`
-- `APPS_SCRIPT_WEBHOOK_URL` — URL de despliegue del Apps Script (Ejecutar como: Yo · Acceso: Cualquier persona)
-- `APPS_SCRIPT_WEBHOOK_SECRET` — string secreto compartido con `WEBHOOK_SECRET` en `code.gs`; si no está configurado en producción la notificación retorna 503 silenciosamente
+- `GOOGLE_MAPS_SERVER_KEY` — clave server-side para Google Directions y Static Maps API. Debe estar en Vercel además de `.env.local`; si falta en producción la imagen del mapa en el PDF cae a un SVG fallback de trazado simple.
+- `APPS_SCRIPT_WEBHOOK_URL` — URL de despliegue del Apps Script (Ejecutar como: Yo · Acceso: Cualquier persona). Configurada en `.env.local` y en Vercel.
+- `APPS_SCRIPT_WEBHOOK_SECRET` — string secreto compartido con `WEBHOOK_SECRET` en `code.gs`; debe estar en `.env.local` **y** en Vercel. Si falta en Vercel, el script rechaza la petición con "Unauthorized" (403) y no envía el correo. Si `WEBHOOK_SECRET` en `code.gs` es vacío, el check se omite y cualquier petición pasa.
 
 ## Dependencias con otros módulos
 - [Autenticación y control de acceso](./auth.md)

@@ -138,23 +138,32 @@ async function buildStaticRouteSvgDataUrl(trip: AdminTripRecord) {
       })
       .join("");
 
+    // Build grid lines for a subtle map-like background
+    const gridLines: string[] = [];
+    const gridStep = 80;
+    for (let x = 0; x <= width; x += gridStep) {
+      gridLines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${height}" stroke="#D1DCE8" stroke-width="1" />`);
+    }
+    for (let y = 0; y <= height; y += gridStep) {
+      gridLines.push(`<line x1="0" y1="${y}" x2="${width}" y2="${y}" stroke="#D1DCE8" stroke-width="1" />`);
+    }
+
     const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}">
         <defs>
           <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#F8FBFF" />
-            <stop offset="100%" stop-color="#EAF1F8" />
+            <stop offset="0%" stop-color="#EEF4FB" />
+            <stop offset="100%" stop-color="#E2EDF6" />
           </linearGradient>
         </defs>
-        <rect width="${width}" height="${height}" rx="28" fill="url(#bg)" />
-        <rect x="20" y="20" width="${width - 40}" height="${height - 40}" rx="24" fill="#FFFFFF" stroke="#D8E2EE" stroke-width="2" />
+        <rect width="${width}" height="${height}" fill="url(#bg)" />
+        ${gridLines.join("")}
+        <rect x="0" y="0" width="${width}" height="${height}" fill="none" stroke="#CBD5DF" stroke-width="3" />
         ${segmentPolylines}
-        <circle cx="${originX}" cy="${originY}" r="15" fill="#1B4F8A" />
-        <circle cx="${destinationX}" cy="${destinationY}" r="15" fill="#B42318" />
-        <text x="${originX}" y="${Number(originY) + 4}" text-anchor="middle" font-size="14" font-family="Helvetica, Arial, sans-serif" font-weight="700" fill="#FFFFFF">E</text>
-        <text x="${destinationX}" y="${Number(destinationY) + 4}" text-anchor="middle" font-size="14" font-family="Helvetica, Arial, sans-serif" font-weight="700" fill="#FFFFFF">D</text>
-        <text x="60" y="70" font-size="28" font-family="Helvetica, Arial, sans-serif" font-weight="700" fill="#0F172A">Ruta operativa</text>
-        <text x="60" y="110" font-size="18" font-family="Helvetica, Arial, sans-serif" fill="#475569">${trip.school_name} a ${trip.lugar_nombre}</text>
+        <circle cx="${originX}" cy="${originY}" r="18" fill="#1B4F8A" stroke="#FFFFFF" stroke-width="3" />
+        <circle cx="${originX}" cy="${originY}" r="7" fill="#FFFFFF" />
+        <circle cx="${destinationX}" cy="${destinationY}" r="18" fill="#B42318" stroke="#FFFFFF" stroke-width="3" />
+        <circle cx="${destinationX}" cy="${destinationY}" r="7" fill="#FFFFFF" />
       </svg>
     `;
 

@@ -54,17 +54,27 @@ apps-script/code.gs  doPost(e)
 | Variable | Descripción |
 |---|---|
 | `APPS_SCRIPT_WEBHOOK_URL` | URL de despliegue del script (Ejecutar como: Yo · Acceso: Cualquier persona) |
-| `APPS_SCRIPT_WEBHOOK_SECRET` | String secreto; debe coincidir con `WEBHOOK_SECRET` en `code.gs` |
+| `APPS_SCRIPT_WEBHOOK_SECRET` | String secreto; debe coincidir con `WEBHOOK_SECRET` en `code.gs`. Configurar en `.env.local` **y** en Vercel. |
+
+> Ambas variables están configuradas en `.env.local` y en Vercel. El sistema está operativo.
 
 ### Despliegue del Apps Script
 1. Abrir [script.google.com](https://script.google.com) con el correo remitente.
 2. Crear proyecto nuevo → pegar contenido de `apps-script/code.gs`.
-3. Asignar `WEBHOOK_SECRET` en el script (línea 11) y en `.env.local`.
+3. Verificar que `WEBHOOK_SECRET` en línea 11 coincida con `APPS_SCRIPT_WEBHOOK_SECRET` en `.env.local`.
 4. **Desplegar → Nueva implementación → Aplicación web**.
    - Ejecutar como: **Yo**
    - Acceso: **Cualquier persona**
-5. Copiar la URL generada → guardar como `APPS_SCRIPT_WEBHOOK_URL` en `.env.local`.
+5. Copiar la URL generada → guardar como `APPS_SCRIPT_WEBHOOK_URL` en `.env.local` y en Vercel.
 6. Autorizar los permisos de Gmail cuando se solicite.
+
+> **Importante**: si se modifica `WEBHOOK_SECRET` en el código, siempre crear una **nueva implementación** en Apps Script. Editar el código sin crear nueva versión no actualiza el script en producción.
+
+### Diagnóstico
+La route `/api/trips/[id]/notify` incluye `console.error`/`console.log` en cada punto de fallo. Los logs son visibles en Vercel → Functions → `api/trips/[id]/notify`. Mensajes esperados:
+- `[notify] Sin correo de director para RBD: …` → el director no tiene email en `whitelist_usuarios` o el RBD no coincide.
+- `[notify] Apps Script error: 403` → secret incorrecto o Apps Script sin permiso de Gmail.
+- `[notify] Apps Script respondió OK` → correo enviado correctamente.
 
 ### Contenido del correo
 - **Para**: correo del director (campo `email` en `whitelist_usuarios`, resuelto a través de `director_email` en `AdminTripRecord`)

@@ -45,6 +45,9 @@ Resolver el núcleo operacional del sistema: selección de establecimiento, capt
 - El rate limit es nativo sobre Supabase, sin servicios externos.
 - La notificación es desacoplada: si `APPS_SCRIPT_WEBHOOK_URL` no está configurada o el webhook falla, la salida ya está guardada y el error no bloquea al usuario.
 - `getAuthorizedTripById` en la route de notify garantiza que un director solo puede disparar notificaciones de sus propias salidas.
+- `rbdToSave` en `guardarSalidaPedagogica` se calcula **después** de `payload = salidaSchema.parse(...)` porque el path de admin requiere `payload.rbd`; no mover ese bloque antes del parse.
+- La route `/api/trips/[id]/notify` declara `maxDuration = 60` para tolerar la generación de PDF en Vercel. Incluye `console.error`/`console.log` en cada punto de fallo; los logs son visibles en Vercel → Functions.
+- Si se cambia `WEBHOOK_SECRET` en `code.gs`, se debe crear una nueva implementación en Apps Script (no basta con editar el código de la versión existente).
 
 ## Dependencias con otros módulos
 - [Autenticación y control de acceso](./auth.md): define quién entra al formulario.
