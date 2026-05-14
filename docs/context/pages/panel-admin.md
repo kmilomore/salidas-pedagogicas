@@ -22,6 +22,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Muestra métricas y tabla principal.
 - Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen operacional.
 - Reutiliza el contrato visual global para filtros, CTAs, tablas, chips de estado y tarjetas métricas.
+- Mientras reúne salidas, filtros y resumen transversal, la ruta usa `src/app/(admin)/panel/loading.tsx` con métricas, filtros y tabla skeleton alineados a la composición real del panel.
 - Abre modal con detalle completo.
 - En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
 - Exporta CSV y Excel.
@@ -51,6 +52,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Contrato visual relevante
 - `AdminTripsTable` y `DetalleSalida` usan primitivas compartidas como `portal-table`, `portal-button`, `portal-chip` y `portal-card-subtle` para mantener consistencia con el resto del portal.
+- El loader de esta ruta también reutiliza el contrato compartido: usa barra institucional, tipografía Museo Sans y skeletons definidos sobre tokens del design system en `src/app/globals.css`.
 
 ## Conexiones
 - La supervisión operativa y la bitácora administrativa ya no viven en esta pantalla: se consultan desde `/panel/auditoria`.

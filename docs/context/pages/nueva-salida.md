@@ -26,6 +26,7 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Para `director`: carga el RBD desde `whitelist_usuarios` — el director no puede cambiar su establecimiento ni a través de la URL (`?rbd=` es ignorado para este rol).
 - Para `admin`: muestra un selector de establecimiento con todos los RBDs del catálogo SLEP; admite `?rbd=` como parámetro de query.
 - Carga el catálogo PME desde `public.eid`.
+- Mientras se resuelven rol, establecimiento y catálogo PME, la ruta usa `src/app/(director)/nueva-salida/loading.tsx` con un skeleton contextual de wizard, mapa y panel lateral para evitar una espera vacía.
 - Calcula rutas reales con Google Maps.
 - Los mapas operativos ya usan `AdvancedMarkerElement` a través de un wrapper propio, evitando la API deprecada de markers tradicionales.
 - El wizard completo usa primitivas visuales compartidas: cards, fields, botones, tablas, badges y alertas definidas en `src/app/globals.css`.
@@ -38,6 +39,7 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 
 ## Contrato visual relevante
 - `NuevaSalidaWizard`, `StepDatosViaje`, `StepDestino`, `StepParticipantes`, `FuncionariosList`, `Stepper`, `MapaRuta`, `DistanciaResumen` y `ConfirmacionModal` ya no dependen de estilos aislados por componente: convergen sobre el mismo sistema de superficies, campos y estados del portal.
+- El estado de carga previo al wizard reutiliza `PortalSectionLoader` para mantener continuidad visual con el loader global y con la jerarquía institucional del formulario.
 
 ## Flujo de notificación por correo
 
