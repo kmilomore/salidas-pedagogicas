@@ -1,8 +1,18 @@
+import { logAuditEvent } from "@/lib/admin/audit";
 import WhitelistPanel from "@/components/admin/WhitelistPanel";
 import { getSchoolsForWhitelist, getWhitelistUsers } from "@/lib/admin/whitelist";
 
 export default async function WhitelistPage() {
   const [users, schools] = await Promise.all([getWhitelistUsers(), getSchoolsForWhitelist()]);
+  await logAuditEvent({
+    eventType: "page_view",
+    route: "/panel/whitelist",
+    targetType: "page",
+    targetLabel: "Gestion de acceso",
+    metadata: {
+      userCount: users.length,
+    },
+  });
 
   return (
     <section className="grid gap-6 xl:grid-cols-12">

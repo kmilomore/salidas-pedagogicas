@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import NuevaSalidaWizard from "@/components/nueva-salida/NuevaSalidaWizard";
+import { logAuditEvent } from "@/lib/admin/audit";
 import { buildPmeDimensions } from "@/lib/pme/eid";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import type { DirectorSchoolProfile, PmeDimensionOption, SchoolOption, SchoolRecord, UserRole } from "@/types";
@@ -265,6 +266,18 @@ export default async function NewTripPage({ searchParams }: NewTripPageProps) {
       </section>
     );
   }
+
+  await logAuditEvent({
+    eventType: "page_view",
+    route: "/nueva-salida",
+    targetType: "page",
+    targetLabel: "Formulario nueva salida",
+    metadata: {
+      role,
+      rbd: profile.rbd,
+      adminSelectedRbd: role === "admin" ? rbdToLoad : null,
+    },
+  });
 
   return <NuevaSalidaWizard schoolProfile={profile} viewerRole={role} schoolOptions={schoolOptions} pmeDimensions={pmeDimensions} />;
 }

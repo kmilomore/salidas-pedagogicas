@@ -32,8 +32,8 @@ export default function AccessibilityPage() {
               <p className="mt-3">
                 Si detectas una barrera de acceso, un problema de contraste, navegacion con teclado o lectura en tecnologias de
                 asistencia, escríbenos a{" "}
-                <a className="font-semibold text-slep" href="mailto:soporte@slepcolchagua.cl">
-                  soporte@slepcolchagua.cl
+                <a className="font-semibold text-slep" href="mailto:camilo.serra@slepcolchagua.cl">
+                  camilo.serra@slepcolchagua.cl
                 </a>
                 .
               </p>

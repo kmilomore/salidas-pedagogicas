@@ -1,3 +1,4 @@
+import { logAuditEvent } from "@/lib/admin/audit";
 import { formatDistance, formatTripDate, getStatusClasses, getStatusLabel } from "@/lib/admin/trip-formatting";
 import { getDirectorTrips } from "@/lib/admin/trips";
 
@@ -5,6 +6,15 @@ export default async function MyTripsPage() {
   const trips = await getDirectorTrips();
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
+  await logAuditEvent({
+    eventType: "page_view",
+    route: "/mis-salidas",
+    targetType: "page",
+    targetLabel: "Mis salidas",
+    metadata: {
+      visibleTrips: trips.length,
+    },
+  });
 
   return (
     <section className="grid gap-6 xl:grid-cols-12">

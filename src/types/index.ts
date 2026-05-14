@@ -1,5 +1,32 @@
 export type UserRole = "director" | "admin";
 
+export type AuditSeverity = "info" | "warning" | "error";
+
+export interface PortalAuditEvent {
+  id: string;
+  created_at: string;
+  actor_user_id: string | null;
+  actor_email: string | null;
+  actor_role: UserRole | "system" | null;
+  event_type: string;
+  severity: AuditSeverity;
+  route: string | null;
+  target_type: string | null;
+  target_id: string | null;
+  target_label: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  metadata: Record<string, unknown>;
+}
+
+export interface OperationalSecurityCheck {
+  id: string;
+  label: string;
+  status: "ok" | "warning" | "critical";
+  description: string;
+  isSensitive: boolean;
+}
+
 export interface WhitelistUser {
   id: string;
   email: string;

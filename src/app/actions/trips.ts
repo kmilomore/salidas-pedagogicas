@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { logAuditEvent } from "@/lib/admin/audit";
 import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText } from "@/lib/input-normalization";
 import { limitTripCreation } from "@/lib/rate-limit";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
@@ -69,6 +70,16 @@ export async function updateMontoReferencialSalida(
   }
 
   revalidatePath("/panel");
+
+  await logAuditEvent({
+    eventType: "trip_amount_updated",
+    route: "/panel",
+    targetType: "salida",
+    targetId: tripId,
+    metadata: {
+      amount: persistedAmount,
+    },
+  });
 
   return {
     error: null,
@@ -186,6 +197,20 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
         error: error?.message ?? "No fue posible guardar la salida pedagogica.",
       };
     }
+
+    await logAuditEvent({
+      eventType: "trip_created",
+      route: "/nueva-salida",
+      targetType: "salida",
+      targetId: data.id,
+      targetLabel: payload.lugar_nombre,
+      metadata: {
+        rbd: rbdToSave,
+        role: whitelistUser.rol,
+        fecha: payload.fecha,
+        totalPassengers: payload.cantidad_estudiantes + payload.cantidad_apoderados + payload.funcionarios.length,
+      },
+    });
 
     return {
       tripId: data.id,

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { logAuditEvent } from "@/lib/admin/audit";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/types";
 
@@ -50,6 +51,18 @@ export async function addWhitelistUser(formData: FormData): Promise<{ error: str
     return { error: `No se pudo agregar el usuario. (${error.message})` };
   }
 
+  await logAuditEvent({
+    eventType: "whitelist_user_added",
+    route: "/panel/whitelist",
+    targetType: "whitelist_user",
+    targetId: email,
+    targetLabel: email,
+    metadata: {
+      rol,
+      rbd: rol === "director" ? rbd : null,
+    },
+  });
+
   revalidatePath("/panel/whitelist");
   return { error: null };
 }
@@ -61,16 +74,35 @@ export async function toggleWhitelistUser(id: string, activo: boolean): Promise<
 
   if (error) return { error: "No se pudo actualizar el estado." };
 
+  await logAuditEvent({
+    eventType: activo ? "whitelist_user_activated" : "whitelist_user_deactivated",
+    route: "/panel/whitelist",
+    targetType: "whitelist_user",
+    targetId: id,
+    metadata: {
+      activo,
+    },
+  });
+
   revalidatePath("/panel/whitelist");
   return { error: null };
 }
 
 export async function deleteWhitelistUser(id: string): Promise<{ error: string | null }> {
   const adminClient = await assertAdminForAction();
+  const { data: existingUser } = await adminClient.from("whitelist_usuarios").select("email").eq("id", id).maybeSingle<{ email: string }>();
 
   const { error } = await adminClient.from("whitelist_usuarios").delete().eq("id", id);
 
   if (error) return { error: "No se pudo eliminar el usuario." };
+
+  await logAuditEvent({
+    eventType: "whitelist_user_deleted",
+    route: "/panel/whitelist",
+    targetType: "whitelist_user",
+    targetId: id,
+    targetLabel: existingUser?.email ?? id,
+  });
 
   revalidatePath("/panel/whitelist");
   return { error: null };

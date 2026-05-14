@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx";
 
+import { logAuditEvent } from "@/lib/admin/audit";
 import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import type { TripQueryFilters } from "@/types";
 
@@ -69,6 +70,17 @@ export async function GET(request: Request) {
 
   const buffer = XLSX.write(workbook, { bookType: "xlsx", type: "buffer" });
   const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+
+  await logAuditEvent({
+    eventType: "export_xlsx",
+    route: "/api/admin/export-xlsx",
+    targetType: "export",
+    targetLabel: "Excel de salidas",
+    metadata: {
+      count: trips.length,
+      filters,
+    },
+  });
 
   return new Response(buffer, {
     status: 200,

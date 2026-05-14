@@ -19,7 +19,7 @@ export default function AccessDeniedPage() {
             Volver al login
           </Link>
           <Link
-            href="mailto:soporte@slepcolchagua.cl"
+            href="mailto:camilo.serra@slepcolchagua.cl"
             className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3.5 font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
           >
             Contactar soporte

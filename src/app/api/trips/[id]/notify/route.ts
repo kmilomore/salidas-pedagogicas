@@ -4,6 +4,7 @@ import type { DocumentProps } from "@react-pdf/renderer";
 import type { JSXElementConstructor, ReactElement } from "react";
 
 import TripSummaryPdf from "@/components/pdf/TripSummaryPdf";
+import { logAuditEvent } from "@/lib/admin/audit";
 import { getAuthorizedTripById } from "@/lib/admin/trips";
 import { loadTripPdfAssets } from "@/lib/trips/pdf-assets";
 
@@ -18,17 +19,49 @@ export async function POST(_request: Request, { params }: RouteContext) {
   const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
     console.error("[notify] APPS_SCRIPT_WEBHOOK_URL no configurada");
+    await logAuditEvent({
+      eventType: "trip_notify_skipped",
+      severity: "warning",
+      route: "/api/trips/[id]/notify",
+      targetType: "salida",
+      targetId: params.id,
+      metadata: {
+        reason: "missing_webhook_url",
+      },
+    });
     return new Response("Webhook no configurado", { status: 503 });
   }
 
   const trip = await getAuthorizedTripById(params.id);
   if (!trip) {
     console.error("[notify] Salida no encontrada o no autorizada:", params.id);
+    await logAuditEvent({
+      eventType: "trip_notify_rejected",
+      severity: "warning",
+      route: "/api/trips/[id]/notify",
+      targetType: "salida",
+      targetId: params.id,
+      metadata: {
+        reason: "trip_not_found_or_unauthorized",
+      },
+    });
     return new Response("Salida no encontrada", { status: 404 });
   }
 
   if (!trip.director_email) {
     console.error("[notify] Sin correo de director para RBD:", trip.rbd, "tripId:", trip.id);
+    await logAuditEvent({
+      eventType: "trip_notify_skipped",
+      severity: "warning",
+      route: "/api/trips/[id]/notify",
+      targetType: "salida",
+      targetId: trip.id,
+      targetLabel: trip.school_name,
+      metadata: {
+        reason: "missing_director_email",
+        rbd: trip.rbd,
+      },
+    });
     return new Response("Sin correo de director asociado", { status: 422 });
   }
 
@@ -70,11 +103,35 @@ export async function POST(_request: Request, { params }: RouteContext) {
   if (!gsResponse.ok) {
     const text = await gsResponse.text().catch(() => "");
     console.error("[notify] Apps Script error:", gsResponse.status, text);
+    await logAuditEvent({
+      eventType: "trip_notify_failed",
+      severity: "error",
+      route: "/api/trips/[id]/notify",
+      targetType: "salida",
+      targetId: trip.id,
+      targetLabel: trip.school_name,
+      metadata: {
+        status: gsResponse.status,
+        rbd: trip.rbd,
+      },
+    });
     return new Response("Error al llamar al webhook", { status: 502 });
   }
 
   const responseText = await gsResponse.text().catch(() => "");
   console.log("[notify] Apps Script respondió OK:", responseText);
+
+  await logAuditEvent({
+    eventType: "trip_notify_sent",
+    route: "/api/trips/[id]/notify",
+    targetType: "salida",
+    targetId: trip.id,
+    targetLabel: trip.school_name,
+    metadata: {
+      rbd: trip.rbd,
+      directorEmail: trip.director_email,
+    },
+  });
 
   return new Response(null, { status: 204 });
 }

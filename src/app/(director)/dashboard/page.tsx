@@ -1,4 +1,13 @@
-export default function DashboardPage() {
+import { logAuditEvent } from "@/lib/admin/audit";
+
+export default async function DashboardPage() {
+  await logAuditEvent({
+    eventType: "page_view",
+    route: "/dashboard",
+    targetType: "page",
+    targetLabel: "Dashboard director",
+  });
+
   return (
     <section className="grid gap-6 xl:grid-cols-12">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-8">

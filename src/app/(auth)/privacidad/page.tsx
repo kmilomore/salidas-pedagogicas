@@ -38,8 +38,8 @@ export default function PrivacyPage() {
               <h2 className="font-display text-2xl font-semibold text-slate-950">Contacto</h2>
               <p className="mt-3">
                 Para consultas sobre tratamiento de datos o correccion de informacion, contacta al equipo institucional en{" "}
-                <a className="font-semibold text-slep" href="mailto:soporte@slepcolchagua.cl">
-                  soporte@slepcolchagua.cl
+                <a className="font-semibold text-slep" href="mailto:camilo.serra@slepcolchagua.cl">
+                  camilo.serra@slepcolchagua.cl
                 </a>
                 .
               </p>
