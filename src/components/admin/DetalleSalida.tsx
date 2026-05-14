@@ -106,7 +106,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 py-6 backdrop-blur-sm" onClick={onClose}>
-      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[32px] bg-white shadow-2xl" onClick={(event) => event.stopPropagation()}>
+      <div className="max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[20px] border border-[var(--border-1)] bg-white shadow-[var(--shadow-xl)]" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-6 py-5 sm:px-8">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Detalle de salida</p>
@@ -118,7 +118,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               href={`/api/trips/${trip.id}/pdf`}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+              className="portal-button portal-button--secondary portal-button--sm"
             >
               Exportar PDF
             </a>
@@ -135,7 +135,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
         <div className="max-h-[calc(92vh-88px)] overflow-y-auto p-6 sm:p-8">
           <div className="space-y-6">
-            <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <section className="portal-card-subtle p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Resumen operacional</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <div>
@@ -167,20 +167,20 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion administrativa</p>
                   <p className="mt-3 text-sm leading-6 text-slate-700">Este monto referencial queda persistido para la salida y solo puede ser consultado o editado desde la vista administrativa.</p>
                 </div>
-                <div className="rounded-2xl border border-slep/20 bg-slep/5 px-4 py-3 text-sm font-semibold text-slep">
+                <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
                   {formatCurrency(trip.monto_referencial)}
                 </div>
               </div>
 
-              <form onSubmit={handleAmountSubmit} className="mt-5 grid gap-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
-                <label className="block">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Monto referencial</span>
+              <form onSubmit={handleAmountSubmit} className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+                <label className="portal-field">
+                  <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Monto referencial</span>
                   <input
                     type="number"
                     inputMode="decimal"
@@ -189,14 +189,14 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                     value={amountInput}
                     onChange={(event) => setAmountInput(event.target.value)}
                     placeholder="Ej. 250000"
-                    className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                    className="portal-input"
                   />
                 </label>
 
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="inline-flex items-center justify-center self-end rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:opacity-50"
+                  className="portal-button portal-button--primary self-end"
                 >
                   {isPending ? "Guardando..." : "Guardar monto"}
                 </button>
@@ -205,7 +205,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               {feedback ? <p className={`mt-3 text-sm ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
             </section>
 
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">PME y justificacion</p>
               <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
                 <div>
@@ -223,22 +223,22 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Participantes</p>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Estudiantes</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{trip.cantidad_estudiantes}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Apoderados</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{trip.cantidad_apoderados}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Funcionarios</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{trip.funcionarios.length}</p>
                 </div>
-                <div className="rounded-2xl border border-slep/20 bg-slep/5 p-4">
+                <div className="portal-card-subtle border-slep/20 bg-slep/5">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slep">Total pasajeros</p>
                   <p className="mt-2 text-2xl font-semibold text-slep">
                     {trip.cantidad_estudiantes + trip.cantidad_apoderados + trip.funcionarios.length}
@@ -246,14 +246,14 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
               </div>
 
-              <div className="mt-5 overflow-hidden rounded-[20px] border border-slate-200">
-                <div className="grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+              <div className="portal-table mt-5">
+                <div className="portal-table__head grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 px-4 py-3 text-[12px] tracking-[0.16em]">
                   <span>Funcionario</span>
                   <span>RUT</span>
                   <span>Cargo</span>
                 </div>
                 {trip.funcionarios.length ? (
-                  <div className="divide-y divide-slate-200 bg-white">
+                  <div className="portal-table__body">
                     {trip.funcionarios.map((staff, index) => (
                       <div key={`${staff.rut}-${index}`} className="grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 px-4 py-3 text-sm text-slate-700">
                         <span className="font-medium text-slate-950">{staff.nombre_completo}</span>
@@ -263,12 +263,12 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                     ))}
                   </div>
                 ) : (
-                  <div className="px-4 py-5 text-sm text-slate-600">No hay funcionarios registrados para esta salida.</div>
+                  <div className="portal-table__empty px-4 py-5">No hay funcionarios registrados para esta salida.</div>
                 )}
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Ruta y destino</p>
               <div className="mt-4 space-y-4 text-sm leading-6 text-slate-700">
                 <div>
@@ -298,7 +298,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+            <section className="portal-table">
               <div className="border-b border-slate-200 px-5 py-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Mapa de la salida</p>
               </div>
@@ -338,7 +338,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-[24px] border border-slate-200 bg-white">
+            <section className="portal-table">
               <div className="border-b border-slate-200 px-5 py-4">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Visor previo del PDF</p>
               </div>
@@ -346,7 +346,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 <iframe
                   title={`Vista previa PDF salida ${trip.id}`}
                   src={`/api/trips/${trip.id}/pdf?preview=1`}
-                  className="h-[520px] w-full rounded-[20px] border border-slate-200 bg-white"
+                  className="h-[520px] w-full rounded-[12px] border border-slate-200 bg-white"
                 />
               </div>
             </section>

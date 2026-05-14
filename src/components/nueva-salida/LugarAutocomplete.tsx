@@ -119,7 +119,7 @@ export default function LugarAutocomplete({
       <div ref={serviceHostRef} id={serviceHostId} className="hidden" />
 
       {selectedPlace ? (
-        <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+        <div className="portal-card-subtle border-emerald-200 bg-emerald-50 p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">Destino confirmado</p>
@@ -132,7 +132,7 @@ export default function LugarAutocomplete({
             <button
               type="button"
               onClick={onReset}
-              className="inline-flex items-center justify-center rounded-2xl border border-emerald-300 px-4 py-2 text-sm font-semibold text-emerald-900 transition hover:border-emerald-500"
+              className="portal-button portal-button--secondary portal-button--sm border-emerald-300 text-emerald-900 hover:border-emerald-500"
             >
               Cambiar lugar
             </button>
@@ -146,17 +146,17 @@ export default function LugarAutocomplete({
             onChange={(event) => handleInputChange(event.target.value)}
             disabled={disabled || !ready}
             placeholder="Buscar museo, parque, universidad o centro cultural"
-            className="w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="portal-input mt-0"
           />
 
           {suggestions.status === "OK" && suggestions.data.length > 0 ? (
-            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 rounded-[24px] border border-slate-200 bg-white p-2 shadow-xl">
+            <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 rounded-[12px] border border-[var(--border-1)] bg-white p-2 shadow-[var(--shadow-lg)]">
               {suggestions.data.map((suggestion) => (
                 <button
                   key={suggestion.place_id}
                   type="button"
                   onClick={() => void handleSelectSuggestion(suggestion.place_id, suggestion.description)}
-                  className="flex w-full flex-col rounded-2xl px-4 py-3 text-left transition hover:bg-slate-50"
+                  className="flex w-full flex-col rounded-[8px] px-4 py-3 text-left transition hover:bg-slate-50"
                 >
                   <span className="text-sm font-semibold text-slate-900">{suggestion.structured_formatting.main_text}</span>
                   <span className="mt-1 text-sm text-slate-600">{suggestion.description}</span>
@@ -167,7 +167,7 @@ export default function LugarAutocomplete({
         </div>
       )}
 
-      {selectionError ? <p className="mt-3 text-sm text-rose-600">{selectionError}</p> : null}
+      {selectionError ? <p className="portal-field-error mt-3">{selectionError}</p> : null}
     </div>
   );
 }

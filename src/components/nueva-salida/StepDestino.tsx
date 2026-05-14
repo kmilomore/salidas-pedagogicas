@@ -115,7 +115,7 @@ export default function StepDestino({
       : `Estamos consultando Google Maps para obtener la ruta de ida y vuelta hacia ${destinations[0]?.name ?? "el destino seleccionado"}.`;
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section className="portal-section-card">
       <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 2</p>
       <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Destino y ruta</h3>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
@@ -143,7 +143,7 @@ export default function StepDestino({
               type="button"
               onClick={() => onDestinationFlowChange(option.value)}
               className={[
-                "rounded-[24px] border px-5 py-5 text-left transition",
+                "portal-subsection-card px-5 py-5 text-left transition",
                 isActive ? "border-slep bg-slep/5 shadow-sm" : "border-slate-200 bg-slate-50 hover:border-slate-300",
               ].join(" ")}
             >
@@ -166,21 +166,21 @@ export default function StepDestino({
         })}
       </div>
 
-      <div className="mt-8 rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-5 shadow-sm sm:p-6">
+      <div className="portal-section-card mt-8 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] p-5 sm:p-6">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+          <div className="portal-subsection-card">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Origen detectado</p>
             <h4 className="mt-3 text-xl font-semibold text-slate-950">{schoolProfile.nombre}</h4>
             <p className="mt-2 text-sm leading-6 text-slate-600">{schoolProfile.direccion}</p>
             <p className="mt-1 text-sm text-slate-600">{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <label className="text-sm font-semibold text-slate-800">
+          <div className="portal-subsection-card">
+            <label className="portal-field-label">
               {destinationFlow === "multiple" ? "Agregar parada al recorrido" : "Buscar destino"}
             </label>
             {googleMapsError ? (
-              <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <div className="portal-status-card status-card-danger mt-3">
                 {googleMapsError}
               </div>
             ) : (
@@ -197,12 +197,12 @@ export default function StepDestino({
             )}
 
             {destinationFlow === "multiple" ? (
-              <div className="mt-4 rounded-[20px] border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
+              <div className="portal-card-subtle mt-4 text-sm leading-6 text-slate-600">
                 <p className="font-semibold text-slate-950">Paradas agregadas</p>
                 {destinations.length ? (
                   <div className="mt-3 grid gap-3 lg:grid-cols-2">
                     {destinations.map((destination, index) => (
-                      <div key={destination.placeId} className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                      <div key={destination.placeId} className="portal-subsection-card flex items-start justify-between gap-3 px-4 py-3">
                         <div>
                           <p className="font-semibold text-slate-900">
                             {index + 1}. {destination.name}
@@ -212,7 +212,7 @@ export default function StepDestino({
                         <button
                           type="button"
                           onClick={() => onRemoveDestination(destination.placeId)}
-                          className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700"
+                          className="portal-button portal-button--secondary portal-button--sm px-3 py-2 text-xs hover:border-[var(--border-danger)] hover:text-[var(--fg-danger)]"
                         >
                           Quitar
                         </button>
@@ -226,7 +226,7 @@ export default function StepDestino({
             ) : null}
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-600">
+          <div className="portal-subsection-card text-sm leading-6 text-slate-600">
             <p className="font-semibold text-slate-950">Requisitos del paso</p>
             <p className="mt-2">
               {destinationFlow === "multiple"
@@ -241,7 +241,7 @@ export default function StepDestino({
           {isRouteLoading ? <RouteLoader label={routeLoaderLabel} /> : null}
 
           {!isRouteLoading && routeError ? (
-            <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-6 text-sm leading-6 text-rose-700">
+            <div className="portal-status-card status-card-danger p-6 text-sm leading-6">
               {routeError}
             </div>
           ) : null}

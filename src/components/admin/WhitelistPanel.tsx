@@ -146,7 +146,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
           <button
             type="button"
             onClick={openForm}
-            className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
+            className="portal-button portal-button--primary"
           >
             + Agregar usuario
           </button>
@@ -155,30 +155,30 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
       {/* Add form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+        <form onSubmit={handleAdd} className="portal-card-subtle p-5">
           <p className="mb-4 text-sm font-semibold text-slate-800">Nuevo usuario</p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Correo electrónico</span>
+            <label className="portal-field">
+              <span className="portal-field-label text-xs uppercase tracking-wide text-slate-600">Correo electrónico</span>
               <input
                 type="email"
                 value={formEmail}
                 onChange={(e) => setFormEmail(e.target.value)}
                 required
                 placeholder="director@slep.cl"
-                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                className="portal-input"
               />
             </label>
 
-            <label className="block">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Rol</span>
+            <label className="portal-field">
+              <span className="portal-field-label text-xs uppercase tracking-wide text-slate-600">Rol</span>
               <select
                 value={formRol}
                 onChange={(e) => {
                   setFormRol(e.target.value as UserRole);
                   setFormRbd("");
                 }}
-                className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                className="portal-select"
               >
                 <option value="director">Director</option>
                 <option value="admin">Administrador</option>
@@ -186,13 +186,13 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
             </label>
 
             {formRol === "director" && (
-              <label className="block sm:col-span-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Establecimiento (RBD)</span>
+              <label className="portal-field sm:col-span-2">
+                <span className="portal-field-label text-xs uppercase tracking-wide text-slate-600">Establecimiento (RBD)</span>
                 <select
                   value={formRbd}
                   onChange={(e) => setFormRbd(e.target.value)}
                   required
-                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  className="portal-select"
                 >
                   <option value="">Seleccionar establecimiento</option>
                   {schools.map((s) => (
@@ -205,20 +205,20 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
             )}
           </div>
 
-          {formError && <p className="mt-3 text-sm text-red-600">{formError}</p>}
+          {formError && <p className="portal-field-error mt-3">{formError}</p>}
 
           <div className="mt-4 flex gap-3">
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:opacity-50"
+              className="portal-button portal-button--primary"
             >
               {isPending ? "Guardando..." : "Agregar"}
             </button>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+              className="portal-button portal-button--secondary"
             >
               Cancelar
             </button>
@@ -227,24 +227,24 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
       )}
 
       {/* Filters */}
-      <div className="grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 sm:grid-cols-[minmax(0,1.5fr)_minmax(180px,0.8fr)_auto]">
-        <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Buscar por escuela</span>
+      <div className="portal-card-subtle grid gap-4 p-5 sm:grid-cols-[minmax(0,1.5fr)_minmax(180px,0.8fr)_auto]">
+        <label className="portal-field">
+          <span className="portal-field-label text-xs uppercase tracking-wide text-slate-600">Buscar por escuela</span>
           <input
             type="text"
             value={filterEscuela}
             onChange={(e) => setFilterEscuela(e.target.value)}
             placeholder="Nombre o RBD"
-            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-input"
           />
         </label>
 
-        <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-600">Rol</span>
+        <label className="portal-field">
+          <span className="portal-field-label text-xs uppercase tracking-wide text-slate-600">Rol</span>
           <select
             value={filterRol}
             onChange={(e) => setFilterRol(e.target.value as UserRole | "all")}
-            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-select"
           >
             <option value="all">Todos los roles</option>
             <option value="director">Director</option>
@@ -255,16 +255,16 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
         <button
           type="button"
           onClick={() => { setFilterRol("all"); setFilterEscuela(""); }}
-          className="inline-flex items-center justify-center self-end rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+          className="portal-button portal-button--secondary self-end"
         >
           Limpiar
         </button>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-[24px] border border-slate-200">
+      <div className="portal-table overflow-x-auto">
         <div className="min-w-[780px]">
-          <div className="grid grid-cols-[1.6fr_0.6fr_1.5fr_0.6fr_0.8fr_1fr] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+          <div className="portal-table__head grid grid-cols-[1.6fr_0.6fr_1.5fr_0.6fr_0.8fr_1fr] gap-4 px-5 py-4">
             {(
               [
                 { key: "email", label: "Correo" },
@@ -290,7 +290,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
           </div>
 
           {filtered.length ? (
-            <div className="divide-y divide-slate-200 bg-white">
+            <div className="portal-table__body">
               {filtered.map((user) => {
                 const isRowPending = isPending && pendingId === user.id;
                 return (
@@ -304,9 +304,9 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
                     <div>
                       <span
-                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                        className={`portal-chip ${
                           user.rol === "admin"
-                            ? "border-violet-200 bg-violet-50 text-violet-700"
+                            ? "portal-chip--info"
                             : "border-sky-200 bg-sky-50 text-sky-700"
                         }`}
                       >
@@ -327,9 +327,9 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
                     <div>
                       <span
-                        className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                        className={`portal-chip ${
                           user.activo
-                            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                            ? "portal-chip--success"
                             : "border-slate-200 bg-slate-50 text-slate-500"
                         }`}
                       >
@@ -348,7 +348,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
                         type="button"
                         disabled={isRowPending}
                         onClick={() => handleToggle(user.id, user.activo)}
-                        className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:opacity-50"
+                        className="portal-button portal-button--secondary portal-button--sm px-3 py-1.5 text-xs"
                       >
                         {user.activo ? "Desactivar" : "Activar"}
                       </button>
@@ -356,7 +356,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
                         type="button"
                         disabled={isRowPending}
                         onClick={() => handleDelete(user.id)}
-                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:border-red-400 hover:bg-red-100 disabled:opacity-50"
+                        className="portal-button portal-button--secondary portal-button--sm border-red-200 bg-red-50 px-3 py-1.5 text-xs text-red-600 hover:border-red-400 hover:bg-red-100"
                       >
                         Eliminar
                       </button>
@@ -366,7 +366,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
               })}
             </div>
           ) : (
-            <div className="bg-white px-5 py-12 text-center text-sm text-slate-500">
+            <div className="portal-table__empty bg-white text-center text-slate-500">
               {users.length
                 ? "Ningún usuario coincide con los filtros aplicados."
                 : "No hay usuarios en la lista de acceso aún."}
