@@ -18,7 +18,7 @@ function FieldError({ message }: { message?: string }) {
     return null;
   }
 
-  return <p className="mt-2 text-sm text-rose-600">{message}</p>;
+  return <p className="portal-field-error">{message}</p>;
 }
 
 export default function FuncionariosList({ register, setValue, errors, fields, append, remove }: FuncionariosListProps) {
@@ -32,7 +32,7 @@ export default function FuncionariosList({ register, setValue, errors, fields, a
         <button
           type="button"
           onClick={() => append({ nombre_completo: "", rut: "", cargo: "" })}
-          className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+          className="portal-button portal-button--secondary portal-button--sm"
         >
           Agregar funcionario
         </button>
@@ -40,13 +40,13 @@ export default function FuncionariosList({ register, setValue, errors, fields, a
 
       <div className="space-y-4">
         {fields.map((field, index) => (
-          <div key={field.id} className="rounded-[24px] border border-slate-200 bg-slate-50 p-4 sm:p-5">
+          <div key={field.id} className="portal-card-subtle sm:p-5">
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(180px,0.8fr)_minmax(0,1fr)_auto]">
-              <label className="block">
-                <span className="text-sm font-semibold text-slate-800">Nombre completo</span>
+              <label className="portal-field">
+                <span className="portal-field-label">Nombre completo</span>
                 <input
                   type="text"
-                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  className="portal-input"
                   {...register(`funcionarios.${index}.nombre_completo` as const, {
                     setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
                     required: "Ingresa el nombre del funcionario.",
@@ -64,12 +64,12 @@ export default function FuncionariosList({ register, setValue, errors, fields, a
                 <FieldError message={errors.funcionarios?.[index]?.nombre_completo?.message} />
               </label>
 
-              <label className="block">
-                <span className="text-sm font-semibold text-slate-800">RUT</span>
+              <label className="portal-field">
+                <span className="portal-field-label">RUT</span>
                 <input
                   type="text"
                   placeholder="12345678-9"
-                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  className="portal-input"
                   {...register(`funcionarios.${index}.rut` as const, {
                     setValueAs: (value) => formatRut(String(value ?? "")),
                     required: "Ingresa el RUT del funcionario.",
@@ -84,11 +84,11 @@ export default function FuncionariosList({ register, setValue, errors, fields, a
                 <FieldError message={errors.funcionarios?.[index]?.rut?.message} />
               </label>
 
-              <label className="block">
-                <span className="text-sm font-semibold text-slate-800">Cargo</span>
+              <label className="portal-field">
+                <span className="portal-field-label">Cargo</span>
                 <input
                   type="text"
-                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  className="portal-input"
                   {...register(`funcionarios.${index}.cargo` as const, {
                     setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
                     required: "Ingresa el cargo del funcionario.",
@@ -111,7 +111,7 @@ export default function FuncionariosList({ register, setValue, errors, fields, a
                   type="button"
                   onClick={() => remove(index)}
                   disabled={fields.length === 1}
-                  className="inline-flex h-[50px] items-center justify-center rounded-2xl border border-slate-300 px-4 text-sm font-semibold text-slate-700 transition hover:border-rose-300 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="portal-button portal-button--secondary h-[44px] px-4 text-sm hover:border-[var(--border-danger)] hover:text-[var(--fg-danger)]"
                 >
                   Eliminar
                 </button>

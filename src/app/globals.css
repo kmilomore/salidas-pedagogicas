@@ -181,8 +181,23 @@ a {
   background: var(--navy-50);
 }
 
+.portal-button--danger {
+  background: var(--coral-500);
+  color: var(--fg-on-dark-1);
+  box-shadow: var(--shadow-inset);
+}
+
+.portal-button--danger:hover {
+  background: var(--coral-600);
+}
+
 .portal-button--block {
   width: 100%;
+}
+
+.portal-button--sm {
+  min-height: 40px;
+  padding: 10px 16px;
 }
 
 .portal-panel {
@@ -270,6 +285,158 @@ a {
   padding: 12px 14px;
   font-size: 13px;
   line-height: 1.4;
+}
+
+.portal-section-card {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  padding: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.portal-subsection-card {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  padding: 20px;
+}
+
+.portal-card-subtle {
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-card);
+  background: var(--bg-sunken);
+  padding: 16px;
+}
+
+.portal-field {
+  display: block;
+}
+
+.portal-field-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--fg-1);
+}
+
+.portal-field-error {
+  margin-top: 8px;
+  font-size: var(--text-sm);
+  color: var(--fg-danger);
+}
+
+.portal-input,
+.portal-select,
+.portal-textarea {
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  color: var(--fg-1);
+  padding: 10px 12px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  box-shadow: var(--shadow-xs);
+  outline: none;
+  transition:
+    border-color var(--dur-fast) var(--ease-standard),
+    box-shadow var(--dur-fast) var(--ease-standard),
+    background-color var(--dur-fast) var(--ease-standard);
+}
+
+.portal-textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+.portal-input::placeholder,
+.portal-select::placeholder,
+.portal-textarea::placeholder {
+  color: var(--fg-muted);
+}
+
+.portal-input:focus,
+.portal-select:focus,
+.portal-textarea:focus {
+  border-color: var(--border-accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.portal-input:disabled,
+.portal-select:disabled,
+.portal-textarea:disabled {
+  background: var(--bg-sunken);
+  color: var(--fg-muted);
+  cursor: not-allowed;
+}
+
+.portal-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+}
+
+.portal-chip--success {
+  border-color: color-mix(in srgb, var(--status-success) 20%, white);
+  background: var(--status-success-bg);
+  color: var(--status-success);
+}
+
+.portal-chip--warning {
+  border-color: color-mix(in srgb, var(--status-warning) 20%, white);
+  background: var(--status-warning-bg);
+  color: #8A5400;
+}
+
+.portal-chip--info {
+  border-color: color-mix(in srgb, var(--status-info) 20%, white);
+  background: var(--status-info-bg);
+  color: var(--royal-700);
+}
+
+.portal-chip--danger {
+  border-color: color-mix(in srgb, var(--status-danger) 20%, white);
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
+}
+
+.portal-table {
+  overflow: hidden;
+  border: 1px solid var(--border-1);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+}
+
+.portal-table__head {
+  background: var(--bg-sunken);
+  color: var(--fg-3);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.portal-table__body {
+  background: var(--bg-surface);
+}
+
+.portal-table__body > * + * {
+  border-top: 1px solid var(--border-1);
+}
+
+.portal-table__empty {
+  padding: 40px 20px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--fg-2);
 }
 
 .portal-auth-frame {
@@ -379,5 +546,9 @@ a {
   .portal-auth-hero-inner,
   .portal-auth-panel {
     padding: 56px 48px;
+  }
+
+  .portal-section-card {
+    padding: 32px;
   }
 }

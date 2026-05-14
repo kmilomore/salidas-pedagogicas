@@ -18,6 +18,6 @@ export function getStatusLabel(status: AdminTripRecord["estado"]) {
 
 export function getStatusClasses(status: AdminTripRecord["estado"]) {
   return status === "enviada"
-    ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-    : "border-amber-200 bg-amber-50 text-amber-900";
+    ? "portal-chip portal-chip--success"
+    : "portal-chip portal-chip--warning";
 }

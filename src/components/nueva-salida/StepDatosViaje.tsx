@@ -19,7 +19,7 @@ function FieldError({ message }: { message?: string }) {
     return null;
   }
 
-  return <p className="mt-2 text-sm text-rose-600">{message}</p>;
+  return <p className="portal-field-error">{message}</p>;
 }
 
 export default function StepDatosViaje({
@@ -34,7 +34,7 @@ export default function StepDatosViaje({
   const availableSubdimensions = getPmeDimensionByValue(pmeDimensions, selectedDimension)?.subdimensions ?? [];
 
   return (
-    <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <section className="portal-section-card">
       <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Paso 1</p>
       <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Datos del viaje</h3>
       <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
@@ -42,12 +42,12 @@ export default function StepDatosViaje({
       </p>
 
       <div className="mt-8 grid gap-6 md:grid-cols-2">
-        <label className="block">
-          <span className="text-sm font-semibold text-slate-800">Fecha</span>
+        <label className="portal-field">
+          <span className="portal-field-label">Fecha</span>
           <input
             type="date"
             min={minDate}
-            className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-input"
             {...register("fecha", {
               required: "Selecciona la fecha de la salida.",
               validate: (value) => value >= minDate || "La fecha no puede ser anterior a hoy.",
@@ -56,11 +56,11 @@ export default function StepDatosViaje({
           <FieldError message={errors.fecha?.message} />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-semibold text-slate-800">Hora de salida</span>
+        <label className="portal-field">
+          <span className="portal-field-label">Hora de salida</span>
           <input
             type="time"
-            className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-input"
             {...register("hora_salida", {
               setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               required: "Ingresa la hora de salida.",
@@ -69,11 +69,11 @@ export default function StepDatosViaje({
           <FieldError message={errors.hora_salida?.message} />
         </label>
 
-        <label className="block md:col-span-2">
-          <span className="text-sm font-semibold text-slate-800">Hora de regreso</span>
+        <label className="portal-field md:col-span-2">
+          <span className="portal-field-label">Hora de regreso</span>
           <input
             type="time"
-            className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-input"
             {...register("hora_regreso", {
               setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               validate: (value, formValues) => {
@@ -88,10 +88,10 @@ export default function StepDatosViaje({
           <FieldError message={errors.hora_regreso?.message} />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-semibold text-slate-800">Dimension del PME</span>
+        <label className="portal-field">
+          <span className="portal-field-label">Dimension del PME</span>
           <select
-            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-select"
             {...register("pme_dimension", {
               required: "Selecciona la dimension del PME.",
               onChange: (event) => onDimensionChange(event.target.value),
@@ -107,10 +107,10 @@ export default function StepDatosViaje({
           <FieldError message={errors.pme_dimension?.message} />
         </label>
 
-        <label className="block">
-          <span className="text-sm font-semibold text-slate-800">Subdimension correspondiente</span>
+        <label className="portal-field">
+          <span className="portal-field-label">Subdimension correspondiente</span>
           <select
-            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20 disabled:cursor-not-allowed disabled:bg-slate-100"
+            className="portal-select"
             disabled={!selectedDimension}
             {...register("pme_subdimension", {
               required: "Selecciona la subdimension del PME.",
@@ -127,11 +127,11 @@ export default function StepDatosViaje({
           <FieldError message={errors.pme_subdimension?.message} />
         </label>
 
-        <label className="block md:col-span-2">
-          <span className="text-sm font-semibold text-slate-800">Nombre de la accion</span>
+        <label className="portal-field md:col-span-2">
+          <span className="portal-field-label">Nombre de la accion</span>
           <input
             type="text"
-            className="mt-2 w-full rounded-2xl border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-input"
             placeholder="Ejemplo: visita guiada al museo"
             {...register("actividad", {
               setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
@@ -145,11 +145,11 @@ export default function StepDatosViaje({
           <FieldError message={errors.actividad?.message} />
         </label>
 
-        <label className="block md:col-span-2">
-          <span className="text-sm font-semibold text-slate-800">Objetivo pedagogico</span>
+        <label className="portal-field md:col-span-2">
+          <span className="portal-field-label">Objetivo pedagogico</span>
           <textarea
             rows={5}
-            className="mt-2 w-full rounded-[24px] border border-slate-300 px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            className="portal-textarea"
             placeholder="Describe el objetivo de aprendizaje de la salida."
             {...register("objetivo", {
               setValueAs: (value) => normalizeMultilineText(String(value ?? "")),

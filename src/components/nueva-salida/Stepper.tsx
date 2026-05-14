@@ -30,7 +30,7 @@ export default function Stepper({
   onNext,
 }: StepperProps) {
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-6">
+    <div className="portal-card-subtle p-6">
       <div className="grid gap-4 lg:grid-cols-3">
         {steps.map((step, index) => {
           const isActive = currentStep === index;
@@ -40,7 +40,7 @@ export default function Stepper({
             <div
               key={step.id}
               className={[
-                "rounded-[24px] border p-4 transition",
+                "portal-subsection-card p-4 transition",
                 isActive ? "border-slep bg-white shadow-sm" : "border-slate-200 bg-white/70",
               ].join(" ")}
             >
@@ -83,7 +83,7 @@ export default function Stepper({
             type="button"
             onClick={onPrevious}
             disabled={!canGoBack || isBusy}
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-50"
+            className="portal-button portal-button--secondary"
           >
             Anterior
           </button>
@@ -91,7 +91,7 @@ export default function Stepper({
             type="button"
             onClick={onNext}
             disabled={!canGoForward || isBusy}
-            className="inline-flex items-center justify-center rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:cursor-not-allowed disabled:opacity-50"
+            className="portal-button portal-button--primary"
           >
             {isBusy ? "Procesando..." : nextLabel ?? (isFinalStep ? "Finalizar" : "Siguiente")}
           </button>

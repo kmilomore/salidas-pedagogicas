@@ -29,8 +29,8 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
 
   return (
     <>
-      <div className="mt-6 overflow-hidden rounded-[24px] border border-slate-200">
-        <div className="grid grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.7fr_0.7fr] gap-4 bg-slate-50 px-5 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+      <div className="portal-table mt-6">
+        <div className="portal-table__head grid grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.7fr_0.7fr] gap-4 px-5 py-4">
           <span>Establecimiento</span>
           <span>Fecha</span>
           <span>Actividad / destino</span>
@@ -40,7 +40,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
         </div>
 
         {trips.length ? (
-          <div className="divide-y divide-slate-200 bg-white">
+          <div className="portal-table__body">
             {trips.map((trip) => (
               <div key={trip.id} className="grid grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                 <div>
@@ -58,7 +58,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                   <p className="font-medium text-slate-950">{formatDistance(Number(trip.distancia_km ?? 0))}</p>
                 </div>
                 <div>
-                  <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${getStatusClasses(trip.estado)}`}>
+                  <span className={getStatusClasses(trip.estado)}>
                     {getStatusLabel(trip.estado)}
                   </span>
                 </div>
@@ -66,7 +66,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                   <button
                     type="button"
                     onClick={() => setSelectedTrip(trip)}
-                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+                    className="portal-button portal-button--secondary portal-button--sm"
                   >
                     Ver detalle
                   </button>
@@ -75,7 +75,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
             ))}
           </div>
         ) : (
-          <div className="px-5 py-10 text-sm leading-6 text-slate-600">Aun no existen salidas registradas visibles para administracion.</div>
+          <div className="portal-table__empty">Aun no existen salidas registradas visibles para administracion.</div>
         )}
       </div>
 
