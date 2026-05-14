@@ -49,13 +49,13 @@ export default function LoginForm({ statusMessage }: LoginFormProps) {
   return (
     <>
       {statusMessage ? (
-        <div className="status-card-warning mt-6 rounded-2xl px-4 py-3 text-sm">
+        <div className="portal-status-card status-card-warning mt-6">
           {statusMessage}
         </div>
       ) : null}
 
       {errorMessage ? (
-        <div className="status-card-danger mt-4 rounded-2xl px-4 py-3 text-sm">
+        <div className="portal-status-card status-card-danger mt-4">
           {errorMessage}
         </div>
       ) : null}
@@ -64,7 +64,7 @@ export default function LoginForm({ statusMessage }: LoginFormProps) {
         type="button"
         onClick={handleGoogleLogin}
         disabled={isLoading}
-        className="mt-8 inline-flex w-full items-center justify-center rounded-2xl bg-slep px-5 py-4 text-base font-semibold text-white transition hover:bg-slep-dark disabled:cursor-not-allowed disabled:opacity-70"
+        className="portal-button portal-button--primary portal-button--block mt-8"
       >
         {isLoading ? "Conectando con Google..." : "Ingresar con Google"}
       </button>

@@ -32,7 +32,7 @@ export default function SignOutButton({ className }: SignOutButtonProps) {
       type="button"
       onClick={handleSignOut}
       disabled={isLoading}
-      className={className ?? "portal-nav-link disabled:cursor-not-allowed disabled:opacity-70"}
+      className={className ?? "portal-nav-link"}
     >
       {isLoading ? "Cerrando sesion..." : "Cerrar sesion"}
     </button>
