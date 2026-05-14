@@ -14,6 +14,7 @@ Modal administrativo con la ficha completa de una salida registrada. Consolida r
 
 ## Dependencias directas
 - `usePortalGoogleMapsLoader()`
+- `PortalAdvancedMarker`
 - `@mapbox/polyline`
 - `/api/trips/[id]/pdf`
 - `formatRut()`
@@ -23,9 +24,9 @@ Modal administrativo con la ficha completa de una salida registrada. Consolida r
 - `isLoaded`: determina si el mapa interactivo puede dibujarse.
 
 ## Puntos delicados
-- El visor previo depende de que la route handler responda con `Content-Disposition: inline` cuando recibe `?preview=1`.
+- El visor previo depende de que la route handler responda con `Content-Disposition: inline` cuando recibe `?preview=1` y de que el sitio permita `iframe` en mismo origen (`X-Frame-Options: SAMEORIGIN`).
 - Si la salida solo tiene `ruta_polyline` y no `ruta_segmentos`, el detalle sigue funcionando, pero el PDF pierde diferenciación de colores por tramo.
-- El mapa de detalle es de solo lectura y no debe divergir visualmente de la información persistida.
+- El mapa de detalle es de solo lectura, usa markers avanzados y no debe divergir visualmente de la información persistida.
 
 ## Contrato visual relevante
 - El modal usa el mismo contrato de superficies, formularios, tablas y botones compartido con el panel admin y el wizard para evitar divergencias entre revisión y operación.

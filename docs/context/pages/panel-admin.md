@@ -14,6 +14,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - `src/app/globals.css`
 - `src/app/api/admin/export-csv/route.ts`
 - `src/app/api/admin/export-xlsx/route.ts`
+- `src/app/(admin)/panel/auditoria/page.tsx`
 
 ## Qué hace hoy
 - Carga salidas reales con enriquecimiento institucional.
@@ -25,7 +26,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
 - Exporta CSV y Excel.
 - Desde el modal o la tabla permite descargar PDF.
-- Enlaza a `/panel/whitelist` para gestión de acceso (ver navegación del layout admin).
+- Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
 
 ## Dependencias
 - [Administración y exportaciones](../modules/admin.md)
@@ -40,6 +41,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - `estado` validado explícitamente en las rutas de export (`"borrador" | "enviada"`, cualquier otro valor cae a `"all"`).
 - IDOR en PDF prevenido: directores filtrados por `director_id`; admins con acceso transversal.
 - `Cache-Control: no-store` en todas las exportaciones.
+- El visor previo del PDF administrativo depende de `Content-Disposition: inline` y de una política `X-Frame-Options: SAMEORIGIN`, ya que el documento se incrusta dentro del mismo dominio del portal.
 
 ## Limitaciones actuales
 - Sin paginación (página cap en 100 filas; exports sin límite).
@@ -49,3 +51,6 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Contrato visual relevante
 - `AdminTripsTable` y `DetalleSalida` usan primitivas compartidas como `portal-table`, `portal-button`, `portal-chip` y `portal-card-subtle` para mantener consistencia con el resto del portal.
+
+## Conexiones
+- La supervisión operativa y la bitácora administrativa ya no viven en esta pantalla: se consultan desde `/panel/auditoria`.

@@ -47,8 +47,8 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
   const warningCount = checks.filter((check) => check.status === "warning").length;
 
   return (
-    <div className="grid gap-6">
-      <section className="portal-section-card">
+    <div className="grid min-w-0 gap-6">
+      <section className="portal-section-card min-w-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Controles</p>
@@ -63,8 +63,8 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
           </p>
         </div>
 
-          <div className="portal-table mt-6 overflow-x-auto">
-            <div className="min-w-[720px]">
+          <div className="mt-6 min-w-0 overflow-x-auto">
+            <div className="portal-table min-w-[720px]">
               <div className="portal-table__head grid grid-cols-[1fr_0.7fr_2.2fr_0.8fr] gap-4 px-5 py-4">
                 <span>Control</span>
                 <span>Estado</span>
@@ -104,7 +104,7 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
         </div>
       </section>
 
-      <section className="portal-section-card">
+        <section className="portal-section-card min-w-0">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Auditoria</p>
@@ -113,19 +113,19 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
           <p className="text-sm leading-6 text-slate-500">Accesos, exportaciones, cambios administrativos y acciones operativas recientes.</p>
         </div>
 
-        <div className="portal-table mt-6 overflow-hidden">
-          <div className="min-w-[760px]">
-            <div className="portal-table__head grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 px-5 py-4 sticky top-0 z-10 border-b border-slate-200">
-              <span>Fecha</span>
-              <span>Evento</span>
-              <span>Actor</span>
-              <span>Severidad</span>
-              <span>Ruta</span>
-              <span>Objetivo</span>
-            </div>
+        <div className="mt-6 min-w-0 overflow-x-auto">
+          <div className="portal-table min-w-[760px] overflow-hidden">
+            <div className="max-h-[560px] overflow-auto">
+              <div className="portal-table__head sticky top-0 z-10 grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 border-b border-slate-200 px-5 py-4">
+                <span>Fecha</span>
+                <span>Evento</span>
+                <span>Actor</span>
+                <span>Severidad</span>
+                <span>Ruta</span>
+                <span>Objetivo</span>
+              </div>
 
-            {auditEvents.length ? (
-              <div className="max-h-[560px] overflow-auto">
+              {auditEvents.length ? (
                 <div className="portal-table__body">
                 {auditEvents.map((event) => (
                   <div key={event.id} className="grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
@@ -155,12 +155,12 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
                   </div>
                 ))}
                 </div>
-              </div>
-            ) : (
-              <div className="portal-table__empty">
-                Aun no hay eventos de auditoria persistidos o la migracion no ha sido aplicada en la base de datos.
-              </div>
-            )}
+              ) : (
+                <div className="portal-table__empty">
+                  Aun no hay eventos de auditoria persistidos o la migracion no ha sido aplicada en la base de datos.
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>

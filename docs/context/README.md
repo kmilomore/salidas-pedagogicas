@@ -25,6 +25,11 @@ Este directorio organiza el contexto funcional y técnico del portal para iterar
 - [Panel administrativo](./pages/panel-admin.md)
 - [Ruta pública](./pages/ruta-publica.md)
 
+## Rutas administrativas relevantes
+- La operación principal vive en [Panel administrativo](./pages/panel-admin.md).
+- La gestión de acceso vive en [Gestión de acceso (whitelist)](./pages/whitelist.md).
+- La auditoría y los controles operativos ahora existen como ruta dedicada `/panel/auditoria` y se describen desde [Contexto general](./app-general.md) y los contextos administrativos relacionados.
+
 ## Cómo usar estos archivos
 - Empieza por [Contexto general](./app-general.md) para ubicar roles, flujos y dependencias.
 - Entra luego al módulo correspondiente para entender reglas compartidas, acciones server-side y componentes.

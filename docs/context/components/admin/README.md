@@ -6,7 +6,7 @@
 - [WhitelistPanel](./WhitelistPanel.md)
 
 ## Alcance
-Estos componentes cubren la exploración administrativa de salidas guardadas (tabla, selección, modal de detalle, mapa, visor PDF) y la gestión de la whitelist de acceso al portal.
+Estos componentes cubren la exploración administrativa de salidas guardadas (tabla, selección, modal de detalle, mapa, visor PDF) y la gestión de la whitelist de acceso al portal. La auditoría operativa se consume desde una página administrativa dedicada (`/panel/auditoria`) apoyada en `src/lib/admin/audit.ts`.
 
 ## Contrato visual compartido
 - La tabla principal, el modal de detalle y el panel de whitelist ya usan las mismas primitivas de `src/app/globals.css`: `portal-table`, `portal-button`, `portal-chip`, `portal-card-subtle`, `portal-section-card` y `portal-status-card`.
@@ -15,6 +15,7 @@ Estos componentes cubren la exploración administrativa de salidas guardadas (ta
 ## Dependencias compartidas
 - `src/lib/admin/trips.ts`
 - `src/lib/admin/trip-formatting.ts`
+- `src/lib/admin/audit.ts`
 - `src/lib/admin/whitelist.ts`
 - `src/app/actions/whitelist.ts`
 - `src/app/api/trips/[id]/pdf/route.ts`

@@ -33,6 +33,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 6. Los registros guardados aparecen en `/mis-salidas` y `/panel`.
 7. Desde ambos contextos se puede exportar PDF; desde admin además CSV y Excel.
 8. El admin gestiona la whitelist de acceso desde `/panel/whitelist`.
+9. El admin revisa controles operativos y bitácora reciente desde `/panel/auditoria`.
 
 ## Puntos de entrada importantes
 - `src/app/layout.tsx`: metadata global, favicon y shell base.
@@ -44,6 +45,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 - `src/app/(director)/nueva-salida/page.tsx`: controlador server-side del formulario.
 - `src/app/(director)/mis-salidas/page.tsx`: historial real del director.
 - `src/app/(admin)/panel/page.tsx`: panel administrativo con filtros y exportaciones.
+- `src/app/(admin)/panel/auditoria/page.tsx`: auditoría operativa y controles de configuración.
 - `src/app/(admin)/panel/whitelist/page.tsx`: gestión de la whitelist de acceso.
 - `src/components/branding/PlatformFooter.tsx`: footer reutilizable del portal interno.
 
@@ -71,9 +73,13 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 - El sistema ya opera con datos reales y sin mocks visibles.
 - El formulario guarda salidas reales en Supabase.
 - El panel admin ya tiene filtros básicos, detalle y exportación.
+- La administración ya separa el panel operativo (`/panel`) de la vista de auditoría y controles (`/panel/auditoria`).
 - El PDF ya incluye logo institucional, QR y mapa estático de la ruta.
 - El admin puede gestionar la whitelist de acceso desde `/panel/whitelist`: altas, activación/desactivación y eliminación de usuarios.
 - La interfaz ya quedó normalizada sobre el design system oficial SLEP: shells, tablas, campos, botones, modal administrativo y wizard operativo usan primitivas visuales compartidas en `globals.css`.
+- Las fechas y horas visibles de auditoría y administración ya se formatean pensando en `America/Santiago`.
+- Los mapas del portal ya migraron desde `google.maps.Marker`/`MarkerF` hacia `AdvancedMarkerElement` para evitar la API deprecada.
+- El visor previo del PDF administrativo usa `iframe` en mismo origen; `X-Frame-Options` quedó en `SAMEORIGIN` para permitir esa revisión sin abrir el documento fuera del portal.
 - La ruta pública `/ruta/[id]` sigue pendiente de implementación funcional.
 
 ## Regla de iteración recomendada

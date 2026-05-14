@@ -27,6 +27,7 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Para `admin`: muestra un selector de establecimiento con todos los RBDs del catálogo SLEP; admite `?rbd=` como parámetro de query.
 - Carga el catálogo PME desde `public.eid`.
 - Calcula rutas reales con Google Maps.
+- Los mapas operativos ya usan `AdvancedMarkerElement` a través de un wrapper propio, evitando la API deprecada de markers tradicionales.
 - El wizard completo usa primitivas visuales compartidas: cards, fields, botones, tablas, badges y alertas definidas en `src/app/globals.css`.
 - En el paso 3 (participantes), al presionar **"Revisar y confirmar"** abre `ConfirmacionModal` con el resumen completo de la salida antes de persistirla. El usuario puede cerrar el modal para modificar o confirmar para guardar.
 - Guarda salidas reales en Supabase vía `guardarSalidaPedagogica` (solo al confirmar desde el modal).
@@ -99,6 +100,7 @@ La route `/api/trips/[id]/notify` incluye `console.error`/`console.log` en cada 
 - La primera página consolida encabezado institucional, datos del establecimiento, destino, PME, objetivo y participantes.
 - La segunda página muestra el desglose operativo de ida y vuelta junto con el QR y el enlace directo a Google Maps.
 - `loadTripPdfAssets()` genera solo logo institucional, URL de navegación y QR; ya no construye mapa estático ni SVG de ruta.
+- La vista administrativa puede previsualizar este PDF en `iframe` dentro del mismo origen antes de descargarlo.
 
 ### Aviso obligatorio en el correo y en la pantalla de éxito
 > "El registro de esta solicitud **no autoriza ni confirma** la realización de la salida pedagógica. La postulación será evaluada en términos de factibilidad presupuestaria. Una vez que se cuente con claridad operativa, nos comunicaremos con usted."

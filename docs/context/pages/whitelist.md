@@ -19,6 +19,7 @@ Permitir al administrador gestionar en tiempo real qué correos tienen acceso al
 - Muestra métricas de resumen (usuarios activos, directores habilitados).
 - Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen.
 - Tabla con columnas: correo, rol, establecimiento (nombre + RBD), estado (activo/inactivo), fecha de creación y acciones. Las cinco primeras columnas tienen cabecera clicable para ordenar ascendente/descendente; el indicador ↕/↑/↓ muestra la dirección activa. Por defecto ordena por fecha de creación descendente.
+- La fecha visible de creación se normaliza con formato `es-CL` considerando `America/Santiago`.
 - Barra de filtros client-side sobre los datos ya cargados: buscador por nombre de escuela o RBD (texto libre) y selector de rol (todos / director / administrador). Botón "Limpiar" resetea ambos filtros. Los filtros no generan nueva petición a Supabase.
 - Formulario de alta inline: email, rol y — si el rol es `director` — selector de establecimiento poblado desde la tabla maestra. Para rol `admin` el campo RBD no aparece y se guarda como `null`.
 - Botón de activar/desactivar por fila (toggle sobre el campo `activo`).
