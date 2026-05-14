@@ -1,7 +1,6 @@
 import Link from "next/link";
 
-import AdminOperationalPanel from "@/components/admin/AdminOperationalPanel";
-import { getOperationalSecurityChecks, getRecentAuditEvents, logAuditEvent } from "@/lib/admin/audit";
+import { logAuditEvent } from "@/lib/admin/audit";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
 import { filterTrips, getAdminTrips, serializeTripFilters } from "@/lib/admin/trips";
@@ -42,8 +41,6 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
       estado: filters.estado ?? "all",
     },
   });
-  const auditEvents = await getRecentAuditEvents(18);
-  const operationalChecks = getOperationalSecurityChecks();
 
   return (
     <section className="grid gap-6 xl:grid-cols-12">
@@ -109,10 +106,6 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
           <p className="mt-4 text-3xl font-semibold text-slate-950">{formatDistance(totalDistance)}</p>
           <p className="mt-3 text-sm leading-6 text-slate-600">Kilometraje acumulado visible en las ultimas salidas registradas.</p>
         </article>
-      </div>
-
-      <div className="xl:col-span-12">
-        <AdminOperationalPanel checks={operationalChecks} auditEvents={auditEvents} />
       </div>
 
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
