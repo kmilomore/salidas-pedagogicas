@@ -17,8 +17,8 @@ export default function PlatformFooter() {
         </div>
         <div className="portal-footer-minimal__copy">© {currentYear} SLEP Colchagua</div>
         <nav className="portal-footer-minimal__links" aria-label="Enlaces institucionales">
-          <Link href="/login">Accesibilidad</Link>
-          <Link href="/login">Privacidad</Link>
+          <Link href="/accesibilidad">Accesibilidad</Link>
+          <Link href="/privacidad">Privacidad</Link>
         </nav>
       </div>
     </footer>

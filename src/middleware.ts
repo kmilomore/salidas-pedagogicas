@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/middleware";
 import type { UserRole } from "@/types";
 
-const PUBLIC_PATHS = ["/login", "/acceso-denegado"];
+const PUBLIC_PATHS = ["/login", "/acceso-denegado", "/accesibilidad", "/privacidad"];
 const DIRECTOR_PATHS = ["/dashboard", "/nueva-salida", "/mis-salidas"];
 const ADMIN_PATHS = ["/panel"];
 
