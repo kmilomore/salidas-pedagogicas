@@ -13,9 +13,12 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - `src/components/nueva-salida/NuevaSalidaWizard.tsx`
 - `src/components/nueva-salida/ConfirmacionModal.tsx`
 - `src/components/nueva-salida/TripNotifier.tsx`
+- `src/components/pdf/TripSummaryPdf.tsx`
 - `src/app/actions/maps.ts`
 - `src/app/actions/trips.ts`
 - `src/app/api/trips/[id]/notify/route.ts`
+- `src/app/api/trips/[id]/pdf/route.ts`
+- `src/lib/trips/pdf-assets.ts`
 - `apps-script/code.gs`
 
 ## Qué hace hoy
@@ -29,6 +32,7 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Al llegar a `/nueva-salida/exito`, monta `TripNotifier` que dispara `POST /api/trips/[id]/notify` (fire-and-forget desde el cliente).
 - Muestra el **total de pasajeros** (estudiantes + apoderados + funcionarios) en el modal de confirmación.
 - El PDF y el detalle admin también muestran el total de pasajeros como indicador destacado.
+- El PDF adjunto conserva resumen, desglose de ruta y QR de navegación, pero ya no incluye una imagen embebida del trayecto.
 
 ## Flujo de notificación por correo
 
@@ -86,6 +90,11 @@ La route `/api/trips/[id]/notify` incluye `console.error`/`console.log` en cada 
 - **Asunto**: `[SLEP Colchagua] Postulación de salida pedagógica registrada – <Escuela> – <Fecha>`
 - **Cuerpo HTML**: datos de la postulación en tabla + aviso destacado de que es una postulación, no una confirmación
 - **Adjunto**: PDF del comprobante (mismo que genera `/api/trips/[id]/pdf`) con resumen, desglose de ruta y QR a Google Maps, sin imagen embebida del trayecto
+
+### PDF actual
+- La primera página consolida encabezado institucional, datos del establecimiento, destino, PME, objetivo y participantes.
+- La segunda página muestra el desglose operativo de ida y vuelta junto con el QR y el enlace directo a Google Maps.
+- `loadTripPdfAssets()` genera solo logo institucional, URL de navegación y QR; ya no construye mapa estático ni SVG de ruta.
 
 ### Aviso obligatorio en el correo y en la pantalla de éxito
 > "El registro de esta solicitud **no autoriza ni confirma** la realización de la salida pedagógica. La postulación será evaluada en términos de factibilidad presupuestaria. Una vez que se cuente con claridad operativa, nos comunicaremos con usted."

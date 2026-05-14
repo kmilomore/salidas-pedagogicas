@@ -13,6 +13,7 @@
     "@mapbox/polyline": "^1.2.1",
     "@react-google-maps/api": "^2.20.8",
     "@react-pdf/renderer": "^4.5.1",
+    "@slep-colchagua/design-system": "^1.0.1",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "@types/mapbox__polyline": "^1.0.5",

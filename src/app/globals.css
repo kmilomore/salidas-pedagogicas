@@ -3,24 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --background: #f4f7fb;
-  --foreground: #10243d;
-  --slep-blue: #1b4f8a;
-  --slep-blue-dark: #143b66;
-  --slep-blue-soft: #d9e8f7;
-  --surface-solid: rgba(255, 255, 255, 0.94);
-  --surface-soft: #f8fbff;
-  --surface-line: #dbe6f2;
-  --status-success: #0f766e;
-  --status-warning: #b45309;
-  --status-danger: #be123c;
-  --route-blue: #1b4f8a;
-  --route-teal: #0f766e;
-  --route-cyan: #0369a1;
-  --route-gold: #c98908;
-  --route-berry: #be123c;
-  --route-return: #ea580c;
-  --surface: rgba(255, 255, 255, 0.88);
+  --background: var(--bg-page);
+  --foreground: var(--fg-1);
+  --slep-blue: var(--royal-500);
+  --slep-blue-dark: var(--navy-600);
+  --slep-blue-soft: var(--royal-50);
+  --surface-solid: var(--bg-surface);
+  --surface-soft: var(--bg-sunken);
+  --surface-line: var(--border-1);
+  --surface: var(--bg-surface);
+  --status-success: var(--status-success);
+  --status-warning: var(--status-warning);
+  --status-danger: var(--status-danger);
+  --route-blue: var(--royal-500);
+  --route-teal: var(--status-success);
+  --route-cyan: var(--royal-400);
+  --route-gold: var(--status-warning);
+  --route-berry: var(--coral-600);
+  --route-return: var(--coral-500);
 }
 
 * {
@@ -34,17 +34,14 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(27, 79, 138, 0.18), transparent 28%),
-    linear-gradient(180deg, #f8fbff 0%, #eef4fb 100%);
+  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-dm-sans), sans-serif;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
 }
 
 .login-auth-shell {
-  background:
-    linear-gradient(180deg, rgba(248, 251, 255, 0.82) 0%, rgba(238, 244, 251, 0.92) 100%),
-    radial-gradient(circle at top left, rgba(27, 79, 138, 0.14), transparent 26%);
+  background: var(--bg-page);
 }
 
 a {
@@ -52,23 +49,27 @@ a {
   text-decoration: none;
 }
 
+:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
+
 .font-display {
-  font-family: var(--font-plus-jakarta), sans-serif;
+  font-family: var(--font-display);
 }
 
 .surface-card {
-  background: var(--surface);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 24px 60px rgba(16, 36, 61, 0.12);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-lg);
 }
 
 .portal-panel {
   background: var(--surface-solid);
-  box-shadow: 0 20px 50px rgba(16, 36, 61, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .portal-tint {
-  background: linear-gradient(180deg, #ffffff 0%, var(--surface-soft) 100%);
+  background: var(--surface-soft);
 }
 
 .portal-outline {
@@ -79,13 +80,13 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--surface-line);
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--bg-surface);
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #334155;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--fg-2);
   transition:
     border-color 160ms ease,
     color 160ms ease,
@@ -93,43 +94,43 @@ a {
 }
 
 .portal-nav-link:hover {
-  border-color: var(--slep-blue);
-  color: var(--slep-blue);
-  background: rgba(217, 232, 247, 0.36);
+  border-color: var(--border-accent);
+  color: var(--fg-link);
+  background: var(--royal-50);
 }
 
 .portal-role-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   padding: 0.45rem 0.9rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
 }
 
 .portal-role-badge--director {
-  border: 1px solid color-mix(in srgb, var(--slep-blue) 24%, white);
-  background: color-mix(in srgb, var(--slep-blue) 10%, white);
-  color: var(--slep-blue-dark);
+  border: 1px solid var(--royal-100);
+  background: var(--royal-50);
+  color: var(--royal-700);
 }
 
 .portal-role-badge--admin {
-  border: 1px solid color-mix(in srgb, var(--status-success) 24%, white);
-  background: color-mix(in srgb, var(--status-success) 10%, white);
-  color: #115e59;
+  border: 1px solid color-mix(in srgb, var(--status-success) 22%, white);
+  background: var(--status-success-bg);
+  color: var(--status-success);
 }
 
 .status-card-warning {
-  border: 1px solid color-mix(in srgb, var(--status-warning) 24%, white);
-  background: color-mix(in srgb, var(--status-warning) 10%, white);
-  color: #7c2d12;
+  border: 1px solid color-mix(in srgb, var(--status-warning) 22%, white);
+  background: var(--status-warning-bg);
+  color: var(--status-warning);
 }
 
 .status-card-danger {
   border: 1px solid color-mix(in srgb, var(--status-danger) 22%, white);
-  background: color-mix(in srgb, var(--status-danger) 8%, white);
-  color: #881337;
+  background: var(--status-danger-bg);
+  color: var(--status-danger);
 }
