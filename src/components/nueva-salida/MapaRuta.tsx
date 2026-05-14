@@ -1,7 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { GoogleMap, MarkerF, PolylineF } from "@react-google-maps/api";
+import { GoogleMap, PolylineF } from "@react-google-maps/api";
+
+import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
+import { getPortalGoogleMapsMapId } from "@/lib/google-maps";
 
 import type { DirectorSchoolProfile, RouteCalculationResult } from "@/types";
 
@@ -96,19 +99,22 @@ export default function MapaRuta({ schoolProfile, destinations, route }: MapaRut
               mapTypeControl: false,
               fullscreenControl: false,
               gestureHandling: "greedy",
+              mapId: getPortalGoogleMapsMapId(),
             }}
           >
-            <MarkerF
+            <PortalAdvancedMarker
               position={{ lat: schoolProfile.latitud, lng: schoolProfile.longitud }}
               title={schoolProfile.nombre}
-              label={{ text: "E", color: "#ffffff", fontWeight: "700" }}
+              label="E"
+              variant="school"
             />
             {destinations.map((destination, index) => (
-              <MarkerF
+              <PortalAdvancedMarker
                 key={destination.placeId}
                 position={{ lat: destination.lat, lng: destination.lng }}
                 title={destination.name}
-                label={{ text: String(index + 1), color: "#ffffff", fontWeight: "700" }}
+                label={String(index + 1)}
+                variant="destination"
               />
             ))}
             {legendItems.map((segment) => (

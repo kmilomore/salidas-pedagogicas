@@ -1,3 +1,4 @@
+import { formatChileDateTime } from "@/lib/date-time";
 import type { OperationalSecurityCheck, PortalAuditEvent } from "@/types";
 
 interface AdminOperationalPanelProps {
@@ -28,16 +29,10 @@ function getCheckLabel(status: OperationalSecurityCheck["status"]) {
 }
 
 function formatAuditTimestamp(value: string) {
-  const parsed = new Date(value);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("es-CL", {
+  return formatChileDateTime(value, {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(parsed);
+  });
 }
 
 function formatEventLabel(eventType: string) {

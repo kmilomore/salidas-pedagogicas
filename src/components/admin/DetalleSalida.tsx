@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import polyline from "@mapbox/polyline";
-import { GoogleMap, MarkerF, PolylineF } from "@react-google-maps/api";
+import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
 import { updateMontoReferencialSalida } from "@/app/actions/trips";
-import { usePortalGoogleMapsLoader } from "@/lib/google-maps";
+import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
+import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTripRecord } from "@/types";
 
@@ -317,10 +318,11 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                       streetViewControl: false,
                       mapTypeControl: false,
                       fullscreenControl: false,
+                      mapId: getPortalGoogleMapsMapId(),
                     }}
                   >
-                    <MarkerF position={{ lat: trip.school_lat, lng: trip.school_lng }} label={{ text: "E", color: "#ffffff", fontWeight: "700" }} />
-                    <MarkerF position={{ lat: trip.lugar_lat, lng: trip.lugar_lng }} label={{ text: "D", color: "#ffffff", fontWeight: "700" }} />
+                    <PortalAdvancedMarker position={{ lat: trip.school_lat, lng: trip.school_lng }} label="E" variant="school" />
+                    <PortalAdvancedMarker position={{ lat: trip.lugar_lat, lng: trip.lugar_lng }} label="D" variant="destination" />
                     <PolylineF
                       path={routePath}
                       options={{

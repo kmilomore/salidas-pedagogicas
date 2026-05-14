@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { addWhitelistUser, deleteWhitelistUser, toggleWhitelistUser } from "@/app/actions/whitelist";
+import { formatChileDate } from "@/lib/date-time";
 import type { SchoolForWhitelist, WhitelistUserEnriched } from "@/lib/admin/whitelist";
 import type { UserRole } from "@/types";
 
@@ -339,7 +340,7 @@ export default function WhitelistPanel({ users, schools }: WhitelistPanelProps) 
 
                     <div>
                       <p className="text-slate-500">
-                        {new Date(user.created_at).toLocaleDateString("es-CL")}
+                        {formatChileDate(user.created_at, { day: "2-digit", month: "2-digit", year: "numeric" })}
                       </p>
                     </div>
 
