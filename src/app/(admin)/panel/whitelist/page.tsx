@@ -16,8 +16,8 @@ export default async function WhitelistPage() {
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold">Resumen</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-100/85">
+        <h3 className="font-display text-2xl font-semibold text-white">Resumen</h3>
+        <p className="mt-5 text-sm leading-6 text-slate-50">
           {users.length
             ? `${users.filter((u) => u.activo).length} usuario${users.filter((u) => u.activo).length !== 1 ? "s" : ""} activo${users.filter((u) => u.activo).length !== 1 ? "s" : ""} de ${users.length} registrado${users.length !== 1 ? "s" : ""}. ${users.filter((u) => u.rol === "director" && u.activo).length} director${users.filter((u) => u.rol === "director" && u.activo).length !== 1 ? "es" : ""} habilitado${users.filter((u) => u.rol === "director" && u.activo).length !== 1 ? "s" : ""}.`
             : "No hay usuarios registrados en la lista de acceso."}

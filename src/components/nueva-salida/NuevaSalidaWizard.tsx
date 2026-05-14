@@ -410,7 +410,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           onClose={() => setShowConfirmModal(false)}
         />
       ) : null}
-      <div className="rounded-[28px] bg-white p-8 shadow-soft">
+      <div className="portal-section-card p-8 shadow-soft">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Formulario de salida</p>
@@ -422,11 +422,11 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
             </p>
             {isAdminView && schoolOptions.length > 0 ? (
               <div className="mt-6 max-w-md">
-                <label className="block text-sm font-semibold text-slate-800">Establecimiento a visualizar</label>
+                <label className="portal-field-label">Establecimiento a visualizar</label>
                 <select
                   value={schoolProfile.rbd}
                   onChange={(event) => router.push(`/nueva-salida?rbd=${encodeURIComponent(event.target.value)}`)}
-                  className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+                  className="portal-select"
                 >
                   {schoolOptions.map((schoolOption) => (
                     <option key={schoolOption.rbd} value={schoolOption.rbd}>
@@ -441,12 +441,12 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
             {isAdminView ? (
               <Link
                 href="/panel"
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+                className="portal-button portal-button--secondary portal-button--sm rounded-full"
               >
                 Volver a panel admin
               </Link>
             ) : null}
-            <div className="rounded-[24px] border border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
+            <div className="portal-card-subtle border-slep/20 bg-slep/5 px-5 py-4 text-sm leading-6 text-slate-700">
               <p className="font-semibold text-slate-950">{isAdminView ? "Establecimiento seleccionado" : "Establecimiento asignado"}</p>
               <p className="mt-1">{schoolProfile.nombre}</p>
               <p>{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
@@ -514,13 +514,13 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           <div className="space-y-6">
             <StepParticipantes register={register} setValue={setValue} errors={errors} fields={fields} append={append} remove={remove} />
 
-            <section className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <section className="portal-section-card">
               <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen final</p>
               <h3 className="font-display mt-3 text-2xl font-semibold text-slate-950">Informacion consolidada</h3>
               <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
                 Verifica los datos del PME, la accion, la ruta y los participantes antes de guardar la salida definitiva.
               </p>
-              <div className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 text-sm leading-6 text-slate-700">
+              <div className="portal-card-subtle mt-6 p-6 text-sm leading-6 text-slate-700">
                 <p className="font-semibold text-slate-950">Resumen preparado</p>
                 <p className="mt-2">Fecha: {getValues("fecha") || "-"}</p>
                 <p>Hora salida: {getValues("hora_salida") || "-"}</p>
@@ -538,13 +538,13 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
               </div>
 
               {saveError ? (
-                <div className="status-card-danger mt-6 rounded-2xl px-4 py-3 text-sm">
+                <div className="portal-status-card status-card-danger mt-6 text-sm">
                   {saveError}
                 </div>
               ) : null}
 
               {saveSuccessId ? (
-                <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                <div className="portal-status-card mt-6 border border-emerald-200 bg-emerald-50 text-sm text-emerald-900">
                   La salida fue guardada correctamente con ID {saveSuccessId}.
                 </div>
               ) : null}

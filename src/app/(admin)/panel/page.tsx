@@ -65,8 +65,8 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold">Estado operacional</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-100/85">
+        <h3 className="font-display text-2xl font-semibold text-white">Estado operacional</h3>
+        <p className="mt-5 text-sm leading-6 text-slate-50">
           {trips.length
             ? `Existen ${trips.length} salidas visibles en esta vista administrativa, con ${sentCount} enviadas y ${draftCount} en borrador.`
             : "Aun no existen salidas visibles en el panel administrativo. Cuando se registren solicitudes reales, apareceran aqui automaticamente."}

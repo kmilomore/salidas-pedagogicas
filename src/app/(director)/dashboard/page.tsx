@@ -28,8 +28,8 @@ export default function DashboardPage() {
       </article>
 
       <aside className="rounded-[28px] bg-slate-950 p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold">Actividad reciente</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-300">
+        <h3 className="font-display text-2xl font-semibold text-white">Actividad reciente</h3>
+        <p className="mt-5 text-sm leading-6 text-slate-50">
           Las proximas solicitudes registradas por este director apareceran aqui con su estado, trazabilidad y puntos criticos de aprobacion.
         </p>
       </aside>

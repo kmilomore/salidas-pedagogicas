@@ -33,7 +33,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
       onClick={onClose}
     >
       <div
-        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-[32px] bg-white shadow-2xl"
+        className="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px] border border-[var(--border-1)] bg-white shadow-[var(--shadow-xl)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -63,14 +63,14 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
           <div className="space-y-4 p-6 sm:p-8">
 
             {/* Establecimiento */}
-            <section className="rounded-[20px] border border-slate-200 bg-slate-50 px-5 py-4">
+            <section className="portal-card-subtle px-5 py-4">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Establecimiento</p>
               <p className="mt-2 text-sm font-semibold text-slate-950">{schoolProfile.nombre}</p>
               <p className="text-sm text-slate-500">{schoolProfile.comuna} · RBD {schoolProfile.rbd}</p>
             </section>
 
             {/* Datos del viaje */}
-            <section className="rounded-[20px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Datos del viaje</p>
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field label="Fecha" value={values.fecha} />
@@ -80,7 +80,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             </section>
 
             {/* PME */}
-            <section className="rounded-[20px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">PME y acción pedagógica</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label="Dimensión PME" value={values.pme_dimension_label} />
@@ -95,7 +95,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             </section>
 
             {/* Destino y ruta */}
-            <section className="rounded-[20px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Destino y ruta</p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
@@ -111,35 +111,35 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             </section>
 
             {/* Participantes */}
-            <section className="rounded-[20px] border border-slate-200 bg-white p-5">
+            <section className="portal-subsection-card">
               <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Participantes</p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Estudiantes</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{String(values.cantidad_estudiantes ?? 0)}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Apoderados</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{String(values.cantidad_apoderados ?? 0)}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <div className="portal-card-subtle">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Funcionarios</p>
                   <p className="mt-2 text-2xl font-semibold text-slate-950">{String(values.funcionarios?.length ?? 0)}</p>
                 </div>
-                <div className="rounded-2xl border border-slep/20 bg-slep/5 p-4">
+                <div className="portal-card-subtle border-slep/20 bg-slep/5">
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slep">Total pasajeros</p>
                   <p className="mt-2 text-2xl font-semibold text-slep">{String(totalPasajeros)}</p>
                 </div>
               </div>
 
               {(values.funcionarios?.length ?? 0) > 0 ? (
-                <div className="mt-4 overflow-hidden rounded-[16px] border border-slate-200">
-                  <div className="grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 bg-slate-50 px-4 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                <div className="portal-table mt-4">
+                  <div className="portal-table__head grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 px-4 py-3 text-[12px] tracking-[0.14em]">
                     <span>Funcionario</span>
                     <span>RUT</span>
                     <span>Cargo</span>
                   </div>
-                  <div className="divide-y divide-slate-100 bg-white">
+                  <div className="portal-table__body">
                     {values.funcionarios.map((f, i) => (
                       <div key={i} className="grid grid-cols-[1.1fr_0.8fr_0.9fr] gap-4 px-4 py-3 text-sm text-slate-700">
                         <span className="font-medium text-slate-950">{f.nombre_completo}</span>
@@ -153,7 +153,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             </section>
 
             {/* Aviso */}
-            <div className="rounded-[16px] border border-amber-200 bg-amber-50 px-5 py-4">
+            <div className="portal-status-card border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">Importante</p>
               <p className="mt-2 text-sm leading-6 text-amber-900">
                 Al confirmar, el registro quedará guardado en la base de datos y se enviará un comprobante por correo al director.
@@ -163,7 +163,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             </div>
 
             {saveError ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+              <div className="portal-status-card status-card-danger text-sm text-red-900">
                 {saveError}
               </div>
             ) : null}
@@ -177,7 +177,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             type="button"
             onClick={onClose}
             disabled={isBusy}
-            className="inline-flex items-center justify-center rounded-2xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:opacity-50"
+            className="portal-button portal-button--secondary"
           >
             Modificar datos
           </button>
@@ -185,7 +185,7 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
             type="button"
             onClick={onConfirm}
             disabled={isBusy}
-            className="inline-flex items-center justify-center rounded-2xl bg-slep px-6 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark disabled:opacity-60"
+            className="portal-button portal-button--primary px-6 disabled:opacity-60"
           >
             {isBusy ? "Guardando..." : "Confirmar y guardar"}
           </button>

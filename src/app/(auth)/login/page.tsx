@@ -42,30 +42,30 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
               <div className="mb-10">
                 <PortalLogo size="lg" priority showText={false} />
               </div>
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.24em] text-slate-100/80">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.24em] text-white/90">
                 Acceso institucional
               </p>
               <h1 className="max-w-lg text-white">
                 Portal oficial para la gestion de salidas pedagogicas de SLEP Colchagua.
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-7 text-slate-100/90 sm:text-lg">
+              <p className="mt-6 max-w-xl text-base leading-7 text-slate-50 sm:text-lg">
                 Accede con tu cuenta autorizada para registrar, revisar y administrar solicitudes institucionales dentro del portal.
               </p>
               <div className="mt-10 grid gap-4 lg:grid-cols-3">
                 <div className="rounded-xl border border-white/15 bg-white/10 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200/75">Usuarios</p>
-                  <p className="font-display mt-3 text-2xl font-semibold">Directores</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-100/80">Registro y seguimiento de salidas por establecimiento.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Usuarios</p>
+                  <p className="font-display mt-3 text-2xl font-semibold text-white">Directores</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-50">Registro y seguimiento de salidas por establecimiento.</p>
                 </div>
                 <div className="rounded-xl border border-white/15 bg-white/10 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200/75">Usuarios</p>
-                  <p className="font-display mt-3 text-2xl font-semibold">Administracion</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-100/80">Supervision centralizada y exportacion de registros institucionales.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Usuarios</p>
+                  <p className="font-display mt-3 text-2xl font-semibold text-white">Administracion</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-50">Supervision centralizada y exportacion de registros institucionales.</p>
                 </div>
                 <div className="rounded-xl border border-white/15 bg-white/10 p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-200/75">Operacion</p>
-                  <p className="font-display mt-3 text-2xl font-semibold">Trazabilidad</p>
-                  <p className="mt-2 text-sm leading-6 text-slate-100/80">Control de rutas, destino y antecedentes asociados a cada salida.</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/80">Operacion</p>
+                  <p className="font-display mt-3 text-2xl font-semibold text-white">Trazabilidad</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-50">Control de rutas, destino y antecedentes asociados a cada salida.</p>
                 </div>
               </div>
             </div>

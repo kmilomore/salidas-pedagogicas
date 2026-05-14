@@ -88,8 +88,8 @@ export default async function MyTripsPage() {
       </article>
 
       <aside className="rounded-[28px] bg-slate-950 p-8 text-white shadow-soft xl:col-span-3">
-        <h3 className="font-display text-2xl font-semibold">Vista de seguimiento</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-300">
+        <h3 className="font-display text-2xl font-semibold text-white">Vista de seguimiento</h3>
+        <p className="mt-5 text-sm leading-6 text-slate-50">
           {trips.length
             ? `Tus salidas visibles hoy suman ${trips.length} registro(s), con ${sentCount} enviada(s) y ${draftCount} borrador(es).`
             : "Cuando existan solicitudes, esta columna destacara observaciones, tramos de mayor kilometraje y estados que requieran accion del establecimiento."}

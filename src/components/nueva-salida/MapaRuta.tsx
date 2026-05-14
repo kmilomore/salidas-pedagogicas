@@ -50,7 +50,7 @@ export default function MapaRuta({ schoolProfile, destinations, route }: MapaRut
   );
 
   return (
-    <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+    <div className="portal-table shadow-sm">
       <div className="border-b border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fbff_100%)] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -65,7 +65,7 @@ export default function MapaRuta({ schoolProfile, destinations, route }: MapaRut
 
           <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {legendItems.map((segment) => (
-              <div key={segment.id} className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <div key={segment.id} className="portal-subsection-card px-4 py-3 text-sm text-slate-700">
                 <div className="flex items-center gap-3">
                   <span className="h-3 w-8 rounded-full" style={{ backgroundColor: segment.color }} />
                   <p className="font-semibold text-slate-950">{segment.label}</p>
