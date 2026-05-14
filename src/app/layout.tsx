@@ -6,9 +6,9 @@ export const metadata: Metadata = {
   title: "Salidas Pedagogicas | SLEP Colchagua",
   description: "Gestion institucional de salidas pedagogicas para establecimientos SLEP Colchagua.",
   icons: {
-    icon: "/SLEPCOLCHAGUA.webp",
-    shortcut: "/SLEPCOLCHAGUA.webp",
-    apple: "/SLEPCOLCHAGUA.webp",
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
   },
 };
 

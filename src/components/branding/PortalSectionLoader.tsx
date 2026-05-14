@@ -1,13 +1,11 @@
-import PortalLogo from "@/components/branding/PortalLogo";
-
-type PortalSectionLoaderVariant = "history" | "wizard" | "admin" | "audit" | "whitelist";
+type PortalSectionLoaderVariant = "portal" | "history" | "wizard" | "admin" | "audit" | "whitelist";
 
 interface PortalSectionLoaderProps {
-  sectionLabel: string;
-  title: string;
-  description: string;
-  statusText: string;
   variant: PortalSectionLoaderVariant;
+  sectionLabel?: string;
+  title?: string;
+  description?: string;
+  statusText?: string;
 }
 
 function SkeletonLine({ width, className }: { width: string; className?: string }) {
@@ -49,15 +47,16 @@ function TableSkeleton({ rows = 5 }: { rows?: number }) {
   );
 }
 
-function HistoryLayout({ sectionLabel, title, description, statusText }: Omit<PortalSectionLoaderProps, "variant">) {
+function HistoryLayout() {
   return (
     <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">{sectionLabel}</p>
-            <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h2>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{description}</p>
+            <SkeletonLine width="14%" className="h-3" />
+            <SkeletonLine width="28%" className="mt-4 h-8 rounded-2xl" />
+            <SkeletonLine width="70%" className="mt-4 h-4" />
+            <SkeletonLine width="62%" className="mt-3 h-4" />
           </div>
           <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[420px]">
             <MetricCard />
@@ -74,9 +73,10 @@ function HistoryLayout({ sectionLabel, title, description, statusText }: Omit<Po
       </article>
 
       <aside className="rounded-[28px] bg-slate-950 p-8 text-white shadow-soft xl:col-span-3">
-        <h3 className="font-display text-2xl font-semibold text-white">Vista de seguimiento</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-50">{statusText}</p>
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-3/4 rounded-2xl" />
         <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-4/5 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-2/3 rounded-full" />
@@ -86,15 +86,16 @@ function HistoryLayout({ sectionLabel, title, description, statusText }: Omit<Po
   );
 }
 
-function AdminLayout({ sectionLabel, title, description, statusText }: Omit<PortalSectionLoaderProps, "variant">) {
+function AdminLayout() {
   return (
     <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">{sectionLabel}</p>
-            <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h2>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{description}</p>
+            <SkeletonLine width="18%" className="h-3" />
+            <SkeletonLine width="38%" className="mt-4 h-8 rounded-2xl" />
+            <SkeletonLine width="76%" className="mt-4 h-4" />
+            <SkeletonLine width="64%" className="mt-3 h-4" />
           </div>
           <div className="flex flex-wrap gap-3">
             <div className="portal-skeleton-block h-12 w-32 rounded-2xl" />
@@ -105,9 +106,10 @@ function AdminLayout({ sectionLabel, title, description, statusText }: Omit<Port
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold text-white">Estado operacional</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-50">{statusText}</p>
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-3/4 rounded-2xl" />
         <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-3/4 rounded-full" />
@@ -156,19 +158,21 @@ function AdminLayout({ sectionLabel, title, description, statusText }: Omit<Port
   );
 }
 
-function AuditLayout({ sectionLabel, title, description, statusText }: Omit<PortalSectionLoaderProps, "variant">) {
+function AuditLayout() {
   return (
     <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-8">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">{sectionLabel}</p>
-        <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h2>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{description}</p>
+        <SkeletonLine width="14%" className="h-3" />
+        <SkeletonLine width="34%" className="mt-4 h-8 rounded-2xl" />
+        <SkeletonLine width="78%" className="mt-4 h-4" />
+        <SkeletonLine width="68%" className="mt-3 h-4" />
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold text-white">Resumen de control</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-50">{statusText}</p>
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-3/4 rounded-2xl" />
         <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-2/3 rounded-full" />
@@ -237,19 +241,21 @@ function AuditLayout({ sectionLabel, title, description, statusText }: Omit<Port
   );
 }
 
-function WhitelistLayout({ sectionLabel, title, description, statusText }: Omit<PortalSectionLoaderProps, "variant">) {
+function WhitelistLayout() {
   return (
     <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-8">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">{sectionLabel}</p>
-        <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h2>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{description}</p>
+        <SkeletonLine width="18%" className="h-3" />
+        <SkeletonLine width="32%" className="mt-4 h-8 rounded-2xl" />
+        <SkeletonLine width="74%" className="mt-4 h-4" />
+        <SkeletonLine width="60%" className="mt-3 h-4" />
       </article>
 
       <aside className="rounded-[28px] bg-slep-dark p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold text-white">Resumen</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-50">{statusText}</p>
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-1/2 rounded-2xl" />
         <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-2/3 rounded-full" />
@@ -319,15 +325,16 @@ function WhitelistLayout({ sectionLabel, title, description, statusText }: Omit<
   );
 }
 
-function WizardLayout({ sectionLabel, title, description, statusText }: Omit<PortalSectionLoaderProps, "variant">) {
+function WizardLayout() {
   return (
     <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">{sectionLabel}</p>
-            <h2 className="font-display mt-4 text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h2>
-            <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{description}</p>
+            <SkeletonLine width="16%" className="h-3" />
+            <SkeletonLine width="30%" className="mt-4 h-8 rounded-2xl" />
+            <SkeletonLine width="74%" className="mt-4 h-4" />
+            <SkeletonLine width="62%" className="mt-3 h-4" />
           </div>
           <div className="flex flex-wrap gap-3">
             <div className="portal-skeleton-block h-12 w-40 rounded-2xl" />
@@ -364,9 +371,10 @@ function WizardLayout({ sectionLabel, title, description, statusText }: Omit<Por
       </article>
 
       <aside className="rounded-[28px] bg-slate-950 p-8 text-white shadow-soft xl:col-span-4">
-        <h3 className="font-display text-2xl font-semibold text-white">Preparando formulario</h3>
-        <p className="mt-5 text-sm leading-6 text-slate-50">{statusText}</p>
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-4/5 rounded-2xl" />
         <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
           <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-2/3 rounded-full" />
@@ -376,35 +384,60 @@ function WizardLayout({ sectionLabel, title, description, statusText }: Omit<Por
   );
 }
 
+function PortalLayout() {
+  return (
+    <section className="grid gap-6 xl:grid-cols-12" aria-hidden="true">
+      <article className="portal-panel rounded-[28px] p-8 xl:col-span-8">
+        <SkeletonLine width="18%" className="h-3" />
+        <SkeletonLine width="34%" className="mt-4 h-8 rounded-2xl" />
+        <SkeletonLine width="76%" className="mt-4 h-4" />
+        <SkeletonLine width="62%" className="mt-3 h-4" />
+      </article>
+
+      <aside className="rounded-[28px] bg-slate-950 p-8 text-white shadow-soft xl:col-span-4">
+        <div className="portal-skeleton-block portal-skeleton-block--dark h-8 w-3/4 rounded-2xl" />
+        <div className="mt-6 space-y-3">
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-full rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-5/6 rounded-full" />
+          <div className="portal-skeleton-block portal-skeleton-block--dark h-4 w-2/3 rounded-full" />
+        </div>
+      </aside>
+
+      <div className="grid gap-6 md:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <article key={index} className="portal-panel rounded-[28px] p-8">
+            <SkeletonLine width="36%" className="h-3" />
+            <SkeletonLine width="28%" className="mt-4 h-8" />
+            <SkeletonLine width="82%" className="mt-3 h-3" />
+          </article>
+        ))}
+      </div>
+
+      <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <SkeletonLine width="20%" className="h-3" />
+            <SkeletonLine width="32%" className="mt-4 h-8 rounded-2xl" />
+          </div>
+          <SkeletonLine width="26%" className="h-4" />
+        </div>
+        <TableSkeleton rows={6} />
+      </article>
+    </section>
+  );
+}
+
 export default function PortalSectionLoader(props: PortalSectionLoaderProps) {
-  const { sectionLabel, title, description, statusText, variant } = props;
+  const { variant } = props;
 
   return (
-    <div className="space-y-6" aria-busy="true" aria-live="polite">
-      <section className="portal-loader-card overflow-hidden">
-        <div className="portal-loader-card__brandbar" aria-hidden="true" />
-        <div className="portal-loader-card__content">
-          <PortalLogo size="md" priority />
-          <div className="portal-loader-copy">
-            <p className="portal-kicker">Cargando seccion</p>
-            <h1 className="font-display text-3xl font-semibold text-slate-950 sm:text-4xl">{title}</h1>
-            <p className="max-w-3xl text-base leading-7 text-slate-600">{description}</p>
-          </div>
-          <div className="portal-loader-progress" aria-hidden="true">
-            <div className="portal-loader-progress__bar" />
-          </div>
-          <div className="portal-loader-status">
-            <span className="portal-loader-dot" aria-hidden="true" />
-            <span className="portal-loader-status__text">{statusText}</span>
-          </div>
-        </div>
-      </section>
-
-      {variant === "history" ? <HistoryLayout sectionLabel={sectionLabel} title={title} description={description} statusText={statusText} /> : null}
-      {variant === "admin" ? <AdminLayout sectionLabel={sectionLabel} title={title} description={description} statusText={statusText} /> : null}
-      {variant === "audit" ? <AuditLayout sectionLabel={sectionLabel} title={title} description={description} statusText={statusText} /> : null}
-      {variant === "whitelist" ? <WhitelistLayout sectionLabel={sectionLabel} title={title} description={description} statusText={statusText} /> : null}
-      {variant === "wizard" ? <WizardLayout sectionLabel={sectionLabel} title={title} description={description} statusText={statusText} /> : null}
+    <div className="w-full max-w-[1440px] space-y-6" aria-busy="true" aria-live="polite">
+      {variant === "portal" ? <PortalLayout /> : null}
+      {variant === "history" ? <HistoryLayout /> : null}
+      {variant === "admin" ? <AdminLayout /> : null}
+      {variant === "audit" ? <AuditLayout /> : null}
+      {variant === "whitelist" ? <WhitelistLayout /> : null}
+      {variant === "wizard" ? <WizardLayout /> : null}
     </div>
   );
 }
