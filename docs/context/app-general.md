@@ -7,11 +7,18 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 - Next.js 14 App Router
 - TypeScript
 - Tailwind CSS
+- `@slep-colchagua/design-system` como base oficial de tokens, tipografía Museo Sans y utilidades visuales institucionales
 - Supabase SSR + Supabase Auth
 - Google Maps API para rutas, Places y mapa estático
 - React Hook Form + Zod
 - `@react-pdf/renderer` para comprobantes PDF
 - `xlsx` para exportación Excel
+
+## Contrato visual actual
+- `src/app/layout.tsx` carga el design system oficial y reemplaza la tipografía web previa por Museo Sans institucional.
+- `src/app/globals.css` actúa como capa de compatibilidad y normalización: remapea tokens legacy y concentra primitivas compartidas como `portal-button`, `portal-section-card`, `portal-subsection-card`, `portal-card-subtle`, `portal-input`, `portal-select`, `portal-textarea`, `portal-chip`, `portal-table` y `portal-status-card`.
+- Los shells de login, director y administración ya no dependen de estilos aislados por pantalla: usan clases compartidas para header, navegación, footer, paneles, formularios y estados.
+- Las superficies oscuras institucionales de login, director y administración usan texto blanco reforzado para priorizar legibilidad en titulares y copys secundarios.
 
 ## Roles del sistema
 - `director`: registra salidas de su establecimiento y revisa su historial.
@@ -29,12 +36,16 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 
 ## Puntos de entrada importantes
 - `src/app/layout.tsx`: metadata global, favicon y shell base.
+- `src/app/globals.css`: capa central del contrato visual compartido.
 - `src/middleware.ts`: control de acceso transversal.
 - `src/app/(auth)/login/page.tsx`: acceso institucional.
+- `src/app/(director)/layout.tsx`: shell común del portal director.
+- `src/app/(admin)/layout.tsx`: shell común del portal administrador.
 - `src/app/(director)/nueva-salida/page.tsx`: controlador server-side del formulario.
 - `src/app/(director)/mis-salidas/page.tsx`: historial real del director.
 - `src/app/(admin)/panel/page.tsx`: panel administrativo con filtros y exportaciones.
 - `src/app/(admin)/panel/whitelist/page.tsx`: gestión de la whitelist de acceso.
+- `src/components/branding/PlatformFooter.tsx`: footer reutilizable del portal interno.
 
 ## Módulos principales
 - [Autenticación y control de acceso](./modules/auth.md)
@@ -62,6 +73,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 - El panel admin ya tiene filtros básicos, detalle y exportación.
 - El PDF ya incluye logo institucional, QR y mapa estático de la ruta.
 - El admin puede gestionar la whitelist de acceso desde `/panel/whitelist`: altas, activación/desactivación y eliminación de usuarios.
+- La interfaz ya quedó normalizada sobre el design system oficial SLEP: shells, tablas, campos, botones, modal administrativo y wizard operativo usan primitivas visuales compartidas en `globals.css`.
 - La ruta pública `/ruta/[id]` sigue pendiente de implementación funcional.
 
 ## Regla de iteración recomendada

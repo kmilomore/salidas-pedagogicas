@@ -16,3 +16,7 @@ Este directorio documenta componente por componente el flujo del wizard operacio
 ## Relación con otros contextos
 - [Operación de salidas pedagógicas](../../modules/operacion-salidas.md)
 - [Nueva salida](../../pages/nueva-salida.md)
+
+## Contrato visual compartido
+- El wizard quedó alineado al design system oficial mediante primitivas globales compartidas para cards, formularios, botones, tablas, chips y alertas.
+- Los componentes visuales del flujo deben seguir reutilizando `src/app/globals.css` antes de introducir nuevas combinaciones utilitarias por componente.

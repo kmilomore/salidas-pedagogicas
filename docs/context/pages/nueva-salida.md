@@ -27,12 +27,16 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Para `admin`: muestra un selector de establecimiento con todos los RBDs del catálogo SLEP; admite `?rbd=` como parámetro de query.
 - Carga el catálogo PME desde `public.eid`.
 - Calcula rutas reales con Google Maps.
+- El wizard completo usa primitivas visuales compartidas: cards, fields, botones, tablas, badges y alertas definidas en `src/app/globals.css`.
 - En el paso 3 (participantes), al presionar **"Revisar y confirmar"** abre `ConfirmacionModal` con el resumen completo de la salida antes de persistirla. El usuario puede cerrar el modal para modificar o confirmar para guardar.
 - Guarda salidas reales en Supabase vía `guardarSalidaPedagogica` (solo al confirmar desde el modal).
 - Al llegar a `/nueva-salida/exito`, monta `TripNotifier` que dispara `POST /api/trips/[id]/notify` (fire-and-forget desde el cliente).
 - Muestra el **total de pasajeros** (estudiantes + apoderados + funcionarios) en el modal de confirmación.
 - El PDF y el detalle admin también muestran el total de pasajeros como indicador destacado.
 - El PDF adjunto conserva resumen, desglose de ruta y QR de navegación, pero ya no incluye una imagen embebida del trayecto.
+
+## Contrato visual relevante
+- `NuevaSalidaWizard`, `StepDatosViaje`, `StepDestino`, `StepParticipantes`, `FuncionariosList`, `Stepper`, `MapaRuta`, `DistanciaResumen` y `ConfirmacionModal` ya no dependen de estilos aislados por componente: convergen sobre el mismo sistema de superficies, campos y estados del portal.
 
 ## Flujo de notificación por correo
 

@@ -1,5 +1,9 @@
 # Componentes
 
+## Sistema visual compartido
+- La normalización gráfica institucional vive en `src/app/globals.css` y se apoya en `@slep-colchagua/design-system` cargado desde `src/app/layout.tsx`.
+- Los componentes de app router reutilizan primitivas como `portal-button`, `portal-section-card`, `portal-card-subtle`, `portal-input`, `portal-chip`, `portal-table` y `portal-status-card` en vez de redefinir estilos por pantalla.
+
 ## Wizard de nueva salida
 - [Índice del wizard](./nueva-salida/README.md)
 - [NuevaSalidaWizard](./nueva-salida/NuevaSalidaWizard.md)
@@ -16,6 +20,7 @@
 - [Índice de administración](./admin/README.md)
 - [AdminTripsTable](./admin/AdminTripsTable.md)
 - [DetalleSalida](./admin/DetalleSalida.md)
+- [WhitelistPanel](./admin/WhitelistPanel.md)
 
 ## PDF
 - [Índice de PDF](./pdf/README.md)

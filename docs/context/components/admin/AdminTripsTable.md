@@ -24,3 +24,7 @@ Tabla cliente del panel administrativo. Presenta el conjunto de salidas ya enriq
 ## Puntos delicados
 - Este componente no consulta datos ni aplica filtros; consume el resultado final del server component `/panel`.
 - Si cambian columnas visibles o badges de estado, el helper `trip-formatting.ts` debe seguir siendo la única fuente de formato reutilizable.
+
+## Contrato visual relevante
+- La tabla se apoya en `portal-table` y los estados en `getStatusClasses()`, que ahora devuelven combinaciones de `portal-chip` en lugar de colores hardcodeados por vista.
+- Las acciones secundarias reutilizan `portal-button portal-button--secondary portal-button--sm` para mantener consistencia con el resto del portal administrativo.

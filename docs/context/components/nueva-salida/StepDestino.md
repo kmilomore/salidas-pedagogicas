@@ -21,3 +21,6 @@ Gestionar el segundo paso: tipo de flujo, selección de destinos, cálculo de ru
 - Google Maps no cargado.
 - Lugares incompletos sin comuna o región.
 - Ruta vacía al cambiar flujo o destinos.
+
+## Contrato visual relevante
+- Este paso reutiliza el sistema compartido de cards, mensajes de estado y acciones del portal; `MapaRuta` y `DistanciaResumen` ya están documentados como superficies alineadas al mismo contrato visual.

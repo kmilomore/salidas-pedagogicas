@@ -8,8 +8,10 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Archivos relacionados
 - `src/app/(admin)/panel/page.tsx`
+- `src/app/(admin)/layout.tsx`
 - `src/components/admin/AdminTripsTable.tsx`
 - `src/components/admin/DetalleSalida.tsx`
+- `src/app/globals.css`
 - `src/app/api/admin/export-csv/route.ts`
 - `src/app/api/admin/export-xlsx/route.ts`
 
@@ -17,6 +19,8 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Carga salidas reales con enriquecimiento institucional.
 - Aplica filtros básicos por búsqueda, RBD y estado.
 - Muestra métricas y tabla principal.
+- Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen operacional.
+- Reutiliza el contrato visual global para filtros, CTAs, tablas, chips de estado y tarjetas métricas.
 - Abre modal con detalle completo.
 - En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
 - Exporta CSV y Excel.
@@ -42,3 +46,6 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Sin ordenamiento por columna.
 - Sin filtros avanzados por fecha o territorio.
 - El `monto_referencial` solo se administra desde el modal de detalle del panel admin; no se expone en vistas de directores.
+
+## Contrato visual relevante
+- `AdminTripsTable` y `DetalleSalida` usan primitivas compartidas como `portal-table`, `portal-button`, `portal-chip` y `portal-card-subtle` para mantener consistencia con el resto del portal.

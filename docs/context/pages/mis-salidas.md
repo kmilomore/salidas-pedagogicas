@@ -8,6 +8,8 @@ Entregar al director una vista real de sus registros y acceso rápido a comproba
 
 ## Archivos relacionados
 - `src/app/(director)/mis-salidas/page.tsx`
+- `src/app/(director)/layout.tsx`
+- `src/app/globals.css`
 - `src/lib/admin/trips.ts`
 - `src/app/api/trips/[id]/pdf/route.ts`
 
@@ -15,6 +17,8 @@ Entregar al director una vista real de sus registros y acceso rápido a comproba
 - Consulta solo las salidas del director autenticado.
 - Muestra métricas simples: registradas, enviadas y borradores.
 - Lista destino, fecha, kilometraje y estado.
+- Usa tabla y chips normalizados con el mismo contrato visual del panel administrativo.
+- Mantiene una columna lateral oscura de seguimiento con texto blanco reforzado para mejor contraste.
 - Permite abrir el PDF por registro.
 
 ## Dependencias

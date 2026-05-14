@@ -15,7 +15,7 @@ interface WhitelistPanelProps {
 ```
 
 ## Responsabilidad
-Gestión interactiva de la whitelist de acceso al portal. Recibe datos del server component padre y ejecuta mutaciones vía server actions, confiando en `revalidatePath` para refrescar los props automáticamente.
+Gestión interactiva de la whitelist de acceso al portal. Recibe datos del server component padre y ejecuta mutaciones vía server actions, usando `revalidatePath` y `router.refresh()` para asegurar refresco visible de la tabla.
 
 ## Estado local
 - `showForm`: visibilidad del formulario de alta.
@@ -34,8 +34,11 @@ Gestión interactiva de la whitelist de acceso al portal. Recibe datos del serve
 
 ## Notas de mantenimiento
 - El selector de establecimientos solo aparece cuando `formRol === "director"`.
-- Cuando `revalidatePath("/panel/whitelist")` se ejecuta en la server action, Next.js re-renderiza el server component padre y el cliente recibe props actualizadas sin `router.refresh()`.
+- Tras cada mutación exitosa el cliente llama a `router.refresh()` como respaldo adicional a `revalidatePath("/panel/whitelist")`, evitando estados visuales obsoletos en el RSC padre.
 - `useTransition` asegura que la UI no se bloquee durante las mutaciones.
+
+## Contrato visual relevante
+- El componente reutiliza el sistema visual compartido del portal para formulario inline, filtros, chips y tabla, en vez de definir estilos locales para cada bloque.
 
 ## Dependencias
 - `src/app/actions/whitelist.ts`

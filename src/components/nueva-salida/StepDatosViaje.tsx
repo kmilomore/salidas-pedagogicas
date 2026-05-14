@@ -132,7 +132,7 @@ export default function StepDatosViaje({
           <input
             type="text"
             className="portal-input"
-            placeholder="Ejemplo: visita guiada al museo"
+            placeholder="Acción declara en el PME, ej: 'Explorando el patrimonio local'"
             {...register("actividad", {
               setValueAs: (value) => normalizeSingleLineText(String(value ?? "")),
               required: "Ingresa el nombre de la accion.",

@@ -9,18 +9,24 @@ Permitir al administrador gestionar en tiempo real qué correos tienen acceso al
 ## Archivos relacionados
 - `src/app/(admin)/panel/whitelist/page.tsx`
 - `src/components/admin/WhitelistPanel.tsx`
+- `src/app/(admin)/layout.tsx`
+- `src/app/globals.css`
 - `src/lib/admin/whitelist.ts`
 - `src/app/actions/whitelist.ts`
 
 ## Qué hace hoy
 - Carga todos los usuarios de `whitelist_usuarios` enriquecidos con el nombre del establecimiento desde `BASE DE DATOS ESCUELAS SLEP`.
 - Muestra métricas de resumen (usuarios activos, directores habilitados).
+- Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen.
 - Tabla con columnas: correo, rol, establecimiento (nombre + RBD), estado (activo/inactivo), fecha de creación y acciones. Las cinco primeras columnas tienen cabecera clicable para ordenar ascendente/descendente; el indicador ↕/↑/↓ muestra la dirección activa. Por defecto ordena por fecha de creación descendente.
 - Barra de filtros client-side sobre los datos ya cargados: buscador por nombre de escuela o RBD (texto libre) y selector de rol (todos / director / administrador). Botón "Limpiar" resetea ambos filtros. Los filtros no generan nueva petición a Supabase.
 - Formulario de alta inline: email, rol y — si el rol es `director` — selector de establecimiento poblado desde la tabla maestra. Para rol `admin` el campo RBD no aparece y se guarda como `null`.
 - Botón de activar/desactivar por fila (toggle sobre el campo `activo`).
 - Botón de eliminar por fila con confirmación nativa.
 - Las mutaciones usan server actions; el cliente llama a `router.refresh()` tras cada operación exitosa para garantizar que la tabla refleje el estado real.
+
+## Contrato visual relevante
+- `WhitelistPanel` reutiliza `portal-card-subtle`, `portal-input`, `portal-select`, `portal-button`, `portal-chip` y `portal-table`, alineándose con el resto de superficies administrativas.
 
 ## Manejo de errores en el formulario de alta
 - Error 23505 (email duplicado): "Este correo ya está en la lista de acceso."

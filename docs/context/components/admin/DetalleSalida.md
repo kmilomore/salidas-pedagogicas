@@ -26,3 +26,7 @@ Modal administrativo con la ficha completa de una salida registrada. Consolida r
 - El visor previo depende de que la route handler responda con `Content-Disposition: inline` cuando recibe `?preview=1`.
 - Si la salida solo tiene `ruta_polyline` y no `ruta_segmentos`, el detalle sigue funcionando, pero el PDF pierde diferenciación de colores por tramo.
 - El mapa de detalle es de solo lectura y no debe divergir visualmente de la información persistida.
+
+## Contrato visual relevante
+- El modal usa el mismo contrato de superficies, formularios, tablas y botones compartido con el panel admin y el wizard para evitar divergencias entre revisión y operación.
+- La edición de `monto_referencial` quedó visualmente alineada al resto del portal mediante `portal-card-subtle`, `portal-input` y `portal-button`.

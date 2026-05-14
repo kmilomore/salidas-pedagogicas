@@ -33,3 +33,6 @@ Componente orquestador del formulario completo. Maneja estado global, pasos, cá
 ## Puntos delicados
 - El loader de Google Maps debe mantenerse centralizado para evitar opciones incompatibles entre componentes.
 - Los destinos se persisten también como strings y JSON para simplificar el insert actual.
+
+## Contrato visual relevante
+- El wrapper del wizard, los avisos de estado, el selector de establecimiento para admin y el bloque final de resumen usan primitivas globales compartidas en lugar de estilos locales dispersos.

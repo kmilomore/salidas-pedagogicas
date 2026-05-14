@@ -10,13 +10,21 @@ Ser el punto de ingreso institucional del portal y preparar al usuario para aute
 - `src/app/(auth)/login/page.tsx`
 - `src/app/(auth)/login/login-form.tsx`
 - `src/components/branding/PortalLogo.tsx`
+- `src/components/branding/PlatformFooter.tsx`
+- `src/app/globals.css`
 - `src/app/auth/callback/route.ts`
 
 ## Qué hace hoy
 - Muestra identidad visual institucional con logo y fondo fotográfico.
+- Usa el shell de autenticación normalizado del portal (`portal-auth-frame`, `portal-auth-hero`, `portal-auth-panel`) y el footer institucional compartido.
 - Explica el acceso con cuenta autorizada.
+- Refuerza contraste en títulos, copys y tarjetas del hero con texto blanco de alta legibilidad sobre superficie oscura.
 - Inicia OAuth con Google usando Supabase.
 - Recibe mensajes de error por query string desde middleware o callback.
+
+## Contrato visual relevante
+- La tipografía y los tokens provienen del design system oficial SLEP cargado desde `src/app/layout.tsx`.
+- Los botones, tarjetas de apoyo y notas de acceso reutilizan clases globales compartidas en lugar de utilidades ad-hoc por página.
 
 ## Entradas y salidas
 - Entrada: usuario no autenticado o sesión inválida.
