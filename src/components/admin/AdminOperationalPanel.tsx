@@ -6,17 +6,6 @@ interface AdminOperationalPanelProps {
   auditEvents: PortalAuditEvent[];
 }
 
-function getCheckClasses(status: OperationalSecurityCheck["status"]) {
-  switch (status) {
-    case "critical":
-      return "status-card-danger";
-    case "warning":
-      return "status-card-warning";
-    default:
-      return "status-card-success";
-  }
-}
-
 function getCheckLabel(status: OperationalSecurityCheck["status"]) {
   switch (status) {
     case "critical":
@@ -58,7 +47,7 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
   const warningCount = checks.filter((check) => check.status === "warning").length;
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+    <div className="grid gap-6">
       <section className="portal-section-card">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -74,18 +63,44 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
           </p>
         </div>
 
-        <div className="mt-6 grid gap-4">
-          {checks.map((check) => (
-            <article key={check.id} className={`portal-status-card ${getCheckClasses(check.status)}`}>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold">{check.label}</p>
-                <span className="portal-chip portal-chip--info">{getCheckLabel(check.status)}</span>
+          <div className="portal-table mt-6 overflow-x-auto">
+            <div className="min-w-[720px]">
+              <div className="portal-table__head grid grid-cols-[1fr_0.7fr_2.2fr_0.8fr] gap-4 px-5 py-4">
+                <span>Control</span>
+                <span>Estado</span>
+                <span>Descripcion</span>
+                <span>Sensibilidad</span>
               </div>
-              <p className="mt-2 text-sm leading-6">
-                {check.description} {check.isSensitive ? "No se expone el valor, solo la presencia del secreto." : ""}
-              </p>
-            </article>
-          ))}
+
+              {checks.length ? (
+                <div className="portal-table__body">
+                  {checks.map((check) => (
+                    <div key={check.id} className="grid grid-cols-[1fr_0.7fr_2.2fr_0.8fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                      <div>
+                        <p className="font-medium text-slate-950">{check.label}</p>
+                      </div>
+                      <div>
+                        <span className={getSeverityChip(check.status === "critical" ? "error" : check.status === "warning" ? "warning" : "info")}>
+                          {getCheckLabel(check.status)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-slate-700">{check.description}</p>
+                      </div>
+                      <div>
+                        <span className={check.isSensitive ? "portal-chip portal-chip--warning" : "portal-chip portal-chip--info"}>
+                          {check.isSensitive ? "Secreto" : "Visible"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="portal-table__empty">
+                  No hay controles cargados para esta vista.
+                </div>
+              )}
+            </div>
         </div>
       </section>
 
@@ -98,9 +113,9 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
           <p className="text-sm leading-6 text-slate-500">Accesos, exportaciones, cambios administrativos y acciones operativas recientes.</p>
         </div>
 
-        <div className="portal-table mt-6 overflow-x-auto">
+        <div className="portal-table mt-6 overflow-hidden">
           <div className="min-w-[760px]">
-            <div className="portal-table__head grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 px-5 py-4">
+            <div className="portal-table__head grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 px-5 py-4 sticky top-0 z-10 border-b border-slate-200">
               <span>Fecha</span>
               <span>Evento</span>
               <span>Actor</span>
@@ -110,7 +125,8 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
             </div>
 
             {auditEvents.length ? (
-              <div className="portal-table__body">
+              <div className="max-h-[560px] overflow-auto">
+                <div className="portal-table__body">
                 {auditEvents.map((event) => (
                   <div key={event.id} className="grid grid-cols-[0.9fr_1.1fr_1.2fr_0.8fr_1fr_1fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                     <div>
@@ -138,6 +154,7 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
                     </div>
                   </div>
                 ))}
+                </div>
               </div>
             ) : (
               <div className="portal-table__empty">
