@@ -20,7 +20,7 @@ Entregar al director una vista real de sus registros y acceso rápido a comproba
 - Usa tabla y chips normalizados con el mismo contrato visual del panel administrativo.
 - Mantiene una columna lateral oscura de seguimiento con texto blanco reforzado para mejor contraste.
 - Permite abrir el PDF por registro.
-- Mientras resuelve la consulta server-side, la ruta usa `src/app/(director)/mis-salidas/loading.tsx` con un loader contextual: resumen institucional, métricas skeleton y tabla placeholder consistente con la estructura final.
+- Mientras resuelve la consulta server-side, la ruta usa `src/app/(director)/mis-salidas/loading.tsx` con un skeleton contextual de métricas, tabla y panel lateral consistente con la estructura final.
 
 ## Dependencias
 - [Operación de salidas pedagógicas](../modules/operacion-salidas.md)

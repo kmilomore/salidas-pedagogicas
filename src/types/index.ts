@@ -183,6 +183,7 @@ export interface AdminTripRecord {
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
+  requerimientos_adicionales: string | null;
   funcionarios: TripStaffMember[];
   created_at: string;
   school_name: string;
@@ -210,6 +211,7 @@ export interface TripDraftFormValues {
   pme_subdimension_label: string;
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
+  requerimientos_adicionales: string;
   funcionarios: TripStaffMember[];
   objetivo: string;
   actividad: string;

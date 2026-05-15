@@ -88,6 +88,7 @@ export const salidaSchema = z.object({
   ruta_segmentos: z.array(routeSegmentSchema).min(1, "La ruta debe incluir al menos un segmento."),
   cantidad_estudiantes: z.coerce.number().int().min(1, "Ingresa al menos 1 estudiante."),
   cantidad_apoderados: z.coerce.number().int().min(0, "La cantidad de apoderados no puede ser negativa."),
+  requerimientos_adicionales: z.string().transform(normalizeMultilineText).optional().default(""),
   funcionarios: z.array(funcionarioSchema).min(1, "Debes registrar al menos un funcionario."),
 });
 

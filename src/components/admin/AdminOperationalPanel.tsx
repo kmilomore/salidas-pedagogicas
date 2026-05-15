@@ -1,9 +1,12 @@
+import Link from "next/link";
+
 import { formatChileDateTime } from "@/lib/date-time";
 import type { OperationalSecurityCheck, PortalAuditEvent } from "@/types";
 
 interface AdminOperationalPanelProps {
   checks: OperationalSecurityCheck[];
   auditEvents: PortalAuditEvent[];
+  auditActorFilter?: string;
 }
 
 function getCheckLabel(status: OperationalSecurityCheck["status"]) {
@@ -42,7 +45,7 @@ function getSeverityChip(severity: PortalAuditEvent["severity"]) {
   }
 }
 
-export default function AdminOperationalPanel({ checks, auditEvents }: AdminOperationalPanelProps) {
+export default function AdminOperationalPanel({ checks, auditEvents, auditActorFilter }: AdminOperationalPanelProps) {
   const criticalCount = checks.filter((check) => check.status === "critical").length;
   const warningCount = checks.filter((check) => check.status === "warning").length;
 
@@ -110,8 +113,39 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Auditoria</p>
             <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Ultimos movimientos</h3>
           </div>
-          <p className="text-sm leading-6 text-slate-500">Accesos, exportaciones, cambios administrativos y acciones operativas recientes.</p>
+          <p className="text-sm leading-6 text-slate-500">
+            {auditActorFilter
+              ? `Mostrando ${auditEvents.length} evento(s) para actores que coinciden con \"${auditActorFilter}\".`
+              : "Accesos, exportaciones, cambios administrativos y acciones operativas recientes."}
+          </p>
         </div>
+
+        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(0,1.5fr)_auto_auto]">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Actor o correo electronico</span>
+            <input
+              type="text"
+              name="actor"
+              defaultValue={auditActorFilter ?? ""}
+              placeholder="nombre@establecimiento.cl"
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            />
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center self-end rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
+          >
+            Filtrar actor
+          </button>
+
+          <Link
+            href="/panel/auditoria"
+            className="inline-flex items-center justify-center self-end rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+          >
+            Limpiar
+          </Link>
+        </form>
 
         <div className="mt-6 min-w-0 overflow-x-auto">
           <div className="portal-table min-w-[760px] overflow-hidden">
@@ -157,7 +191,9 @@ export default function AdminOperationalPanel({ checks, auditEvents }: AdminOper
                 </div>
               ) : (
                 <div className="portal-table__empty">
-                  Aun no hay eventos de auditoria persistidos o la migracion no ha sido aplicada en la base de datos.
+                  {auditActorFilter
+                    ? "No hay eventos de auditoria que coincidan con el actor o correo buscado."
+                    : "Aun no hay eventos de auditoria persistidos o la migracion no ha sido aplicada en la base de datos."}
                 </div>
               )}
             </div>

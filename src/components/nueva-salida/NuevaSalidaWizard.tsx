@@ -122,6 +122,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
       pme_subdimension_label: "",
       cantidad_estudiantes: 1,
       cantidad_apoderados: 0,
+      requerimientos_adicionales: "",
       funcionarios: [{ nombre_completo: "", rut: "", cargo: "" }],
       objetivo: "",
       actividad: "",
@@ -382,6 +383,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
           ruta_segmentos: routeResult?.segmentos ?? [],
           cantidad_estudiantes: getValues("cantidad_estudiantes"),
           cantidad_apoderados: getValues("cantidad_apoderados"),
+          requerimientos_adicionales: getValues("requerimientos_adicionales"),
           funcionarios: getValues("funcionarios"),
         });
 
@@ -531,6 +533,7 @@ export default function NuevaSalidaWizard({ schoolProfile, viewerRole, schoolOpt
                 <p>Destino{selectedPlaces.length > 1 ? "s" : ""}: {getValues("lugar_nombre") || "-"}</p>
                 <p>Estudiantes: {getValues("cantidad_estudiantes") || 0}</p>
                 <p>Apoderados: {getValues("cantidad_apoderados") || 0}</p>
+                <p>Req. adicionales: {getValues("requerimientos_adicionales") || "-"}</p>
                 <p>Funcionarios: {getValues("funcionarios")?.length ?? 0}</p>
                 <p>Ida: {getValues("distancia_ida_km") || "-"} km</p>
                 <p>Vuelta: {getValues("distancia_vuelta_km") || "-"} km</p>

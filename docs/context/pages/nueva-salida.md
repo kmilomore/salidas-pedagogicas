@@ -31,15 +31,17 @@ Concentrar la creación completa de una salida pedagógica con datos PME, destin
 - Los mapas operativos ya usan `AdvancedMarkerElement` a través de un wrapper propio, evitando la API deprecada de markers tradicionales.
 - El wizard completo usa primitivas visuales compartidas: cards, fields, botones, tablas, badges y alertas definidas en `src/app/globals.css`.
 - En el paso 3 (participantes), al presionar **"Revisar y confirmar"** abre `ConfirmacionModal` con el resumen completo de la salida antes de persistirla. El usuario puede cerrar el modal para modificar o confirmar para guardar.
+- En el paso 3 tambien se puede registrar un campo opcional de **requerimientos adicionales para el servicio / observaciones del director** (por ejemplo: movilidad reducida, apoyos especiales u otros antecedentes operativos). Este dato queda persistido en `salidas_pedagogicas` y se expone en el PDF y en la vista de detalle.
 - Guarda salidas reales en Supabase vía `guardarSalidaPedagogica` (solo al confirmar desde el modal).
 - Al llegar a `/nueva-salida/exito`, monta `TripNotifier` que dispara `POST /api/trips/[id]/notify` (fire-and-forget desde el cliente).
 - Muestra el **total de pasajeros** (estudiantes + apoderados + funcionarios) en el modal de confirmación.
 - El PDF y el detalle admin también muestran el total de pasajeros como indicador destacado.
+- El PDF y el detalle admin muestran tambien los requerimientos adicionales u observaciones del director cuando existen.
 - El PDF adjunto conserva resumen, desglose de ruta y QR de navegación, pero ya no incluye una imagen embebida del trayecto.
 
 ## Contrato visual relevante
 - `NuevaSalidaWizard`, `StepDatosViaje`, `StepDestino`, `StepParticipantes`, `FuncionariosList`, `Stepper`, `MapaRuta`, `DistanciaResumen` y `ConfirmacionModal` ya no dependen de estilos aislados por componente: convergen sobre el mismo sistema de superficies, campos y estados del portal.
-- El estado de carga previo al wizard reutiliza `PortalSectionLoader` para mantener continuidad visual con el loader global y con la jerarquía institucional del formulario.
+- El estado de carga previo al wizard reutiliza `PortalSectionLoader` como skeleton compartido, sin cabecera extra de branding y alineado a la estructura real del formulario.
 
 ## Flujo de notificación por correo
 

@@ -37,6 +37,10 @@ interface AuditEventRow {
   metadata: Record<string, unknown> | null;
 }
 
+interface AuditEventFilters {
+  actorEmail?: string;
+}
+
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase();
 }
@@ -158,15 +162,21 @@ export async function logAuditEvent({
   }
 }
 
-export async function getRecentAuditEvents(limit = 20): Promise<PortalAuditEvent[]> {
+export async function getRecentAuditEvents(limit = 20, filters: AuditEventFilters = {}): Promise<PortalAuditEvent[]> {
   try {
     const adminClient = await assertAdminAuditAccess();
-    const { data, error } = await adminClient
+    const actorEmail = filters.actorEmail?.trim().toLowerCase();
+    let query = adminClient
       .from("portal_audit_log")
       .select("id, created_at, actor_user_id, actor_email, actor_role, event_type, severity, route, target_type, target_id, target_label, ip_address, user_agent, metadata")
       .order("created_at", { ascending: false })
-      .limit(limit)
-      .returns<AuditEventRow[]>();
+      .limit(limit);
+
+    if (actorEmail) {
+      query = query.ilike("actor_email", `%${actorEmail}%`);
+    }
+
+    const { data, error } = await query.returns<AuditEventRow[]>();
 
     if (error || !data) {
       return [];

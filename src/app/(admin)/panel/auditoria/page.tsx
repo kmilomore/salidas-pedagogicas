@@ -1,15 +1,26 @@
 import AdminOperationalPanel from "@/components/admin/AdminOperationalPanel";
 import { getOperationalSecurityChecks, getRecentAuditEvents, logAuditEvent } from "@/lib/admin/audit";
 
-export default async function AdminAuditPage() {
+interface AdminAuditPageProps {
+  searchParams?: {
+    actor?: string;
+  };
+}
+
+export default async function AdminAuditPage({ searchParams }: AdminAuditPageProps) {
+  const actorFilter = searchParams?.actor?.trim() || undefined;
+
   await logAuditEvent({
     eventType: "page_view",
     route: "/panel/auditoria",
     targetType: "page",
     targetLabel: "Auditoria y controles",
+    metadata: {
+      actor: actorFilter ?? null,
+    },
   });
 
-  const auditEvents = await getRecentAuditEvents(30);
+  const auditEvents = await getRecentAuditEvents(actorFilter ? 100 : 30, { actorEmail: actorFilter });
   const operationalChecks = getOperationalSecurityChecks();
   const criticalCount = operationalChecks.filter((check) => check.status === "critical").length;
   const warningCount = operationalChecks.filter((check) => check.status === "warning").length;
@@ -36,7 +47,7 @@ export default async function AdminAuditPage() {
       </aside>
 
       <div className="xl:col-span-12">
-        <AdminOperationalPanel checks={operationalChecks} auditEvents={auditEvents} />
+        <AdminOperationalPanel checks={operationalChecks} auditEvents={auditEvents} auditActorFilter={actorFilter} />
       </div>
     </section>
   );

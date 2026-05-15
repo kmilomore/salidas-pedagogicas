@@ -17,7 +17,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 ## Contrato visual actual
 - `src/app/layout.tsx` carga el design system oficial y reemplaza la tipografía web previa por Museo Sans institucional.
 - `src/app/globals.css` actúa como capa de compatibilidad y normalización: remapea tokens legacy y concentra primitivas compartidas como `portal-button`, `portal-section-card`, `portal-subsection-card`, `portal-card-subtle`, `portal-input`, `portal-select`, `portal-textarea`, `portal-chip`, `portal-table` y `portal-status-card`.
-- La experiencia de carga ya no depende solo del `loading.tsx` global: `mis-salidas`, `nueva-salida`, `panel`, `panel/auditoria` y `panel/whitelist` cuentan con loaders de sección que reutilizan `PortalSectionLoader`, mantienen branding SLEP y muestran skeletons contextuales según la ruta.
+- La experiencia de carga ya no depende solo del `loading.tsx` global: `mis-salidas`, `nueva-salida`, `panel`, `panel/auditoria` y `panel/whitelist` cuentan con loaders de sección que reutilizan `PortalSectionLoader` y muestran skeletons contextuales según la ruta.
 - Los shells de login, director y administración ya no dependen de estilos aislados por pantalla: usan clases compartidas para header, navegación, footer, paneles, formularios y estados.
 - Las superficies oscuras institucionales de login, director y administración usan texto blanco reforzado para priorizar legibilidad en titulares y copys secundarios.
 
@@ -39,7 +39,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 ## Puntos de entrada importantes
 - `src/app/layout.tsx`: metadata global, favicon y shell base.
 - `src/app/globals.css`: capa central del contrato visual compartido.
-- `src/components/branding/PortalSectionLoader.tsx`: loader reutilizable para secciones con skeletons y barra institucional.
+- `src/components/branding/PortalSectionLoader.tsx`: loader reutilizable para secciones y fallback global, basado solo en skeletons contextuales.
 - `src/middleware.ts`: control de acceso transversal.
 - `src/app/(auth)/login/page.tsx`: acceso institucional.
 - `src/app/(director)/layout.tsx`: shell común del portal director.
@@ -84,7 +84,7 @@ Portal institucional para registrar, revisar y administrar salidas pedagógicas 
 - El PDF ya incluye logo institucional, QR y mapa estático de la ruta.
 - El admin puede gestionar la whitelist de acceso desde `/panel/whitelist`: altas, activación/desactivación y eliminación de usuarios.
 - La interfaz ya quedó normalizada sobre el design system oficial SLEP: shells, tablas, campos, botones, modal administrativo y wizard operativo usan primitivas visuales compartidas en `globals.css`.
-- El portal ya usa carga progresiva institucional: el fallback global cubre cambios amplios de navegación y las rutas de mayor peso del flujo director y admin muestran loaders específicos con skeletons acordes al contenido esperado.
+- El portal ya usa carga progresiva con skeletons reutilizables: el fallback global cubre cambios amplios de navegación y las rutas de mayor peso del flujo director y admin muestran placeholders acordes al contenido esperado.
 - Las fechas y horas visibles de auditoría y administración ya se formatean pensando en `America/Santiago`.
 - Los mapas del portal ya migraron desde `google.maps.Marker`/`MarkerF` hacia `AdvancedMarkerElement` para evitar la API deprecada.
 - El visor previo del PDF administrativo usa `iframe` en mismo origen; `X-Frame-Options` quedó en `SAMEORIGIN` para permitir esa revisión sin abrir el documento fuera del portal.

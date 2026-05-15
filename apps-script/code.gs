@@ -3,7 +3,10 @@
 // Desplegar como: Ejecutar como "Yo" · Acceso "Cualquier persona"
 // ============================================================
 
-var CC_EMAIL     = "emma.diaz@slepcolchagua.cl";
+var CC_EMAILS    = [
+  "emma.diaz@slepcolchagua.cl",
+  "camilo.serra@slepcolchagua.cl"
+];
 var SENDER_NAME  = "Portal SLEP Colchagua";
 
 // Protección mínima: el cliente debe enviar este valor en el campo "secret".
@@ -42,7 +45,7 @@ function doPost(e) {
     var htmlBody  = buildHtmlBody(schoolName, rbd, fecha, actividad, destino, distanciaKm, cantEstudiantes, cantApoderados, tripId);
 
     var options = {
-      cc:          CC_EMAIL,
+      cc:          CC_EMAILS.join(","),
       htmlBody:    htmlBody,
       name:        SENDER_NAME,
     };

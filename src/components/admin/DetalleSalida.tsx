@@ -221,6 +221,10 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   <p className="font-semibold text-slate-950">Objetivo pedagogico</p>
                   <p className="whitespace-pre-line">{trip.objetivo}</p>
                 </div>
+                <div>
+                  <p className="font-semibold text-slate-950">Requerimientos adicionales / observaciones del director</p>
+                  <p className="whitespace-pre-line">{trip.requerimientos_adicionales || "Sin observaciones adicionales."}</p>
+                </div>
               </div>
             </section>
 

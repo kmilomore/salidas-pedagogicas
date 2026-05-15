@@ -372,6 +372,13 @@ export default function TripSummaryPdf({ trip, directionsUrl, portalLogoDataUrl,
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Requerimientos adicionales / observaciones</Text>
+          <Text style={[styles.fieldValue, { marginTop: 10 }]}>
+            {trip.requerimientos_adicionales || "Sin observaciones adicionales informadas por el establecimiento."}
+          </Text>
+        </View>
+
         <View style={styles.participants}>
           <Text style={styles.sectionTitle}>Participantes</Text>
           <View style={styles.metricRow}>

@@ -150,6 +150,13 @@ export default function ConfirmacionModal({ values, schoolProfile, isBusy, saveE
                   </div>
                 </div>
               ) : null}
+
+              <div className="mt-4">
+                <Field
+                  label="Requerimientos adicionales / observaciones"
+                  value={values.requerimientos_adicionales || "Sin observaciones adicionales"}
+                />
+              </div>
             </section>
 
             {/* Aviso */}

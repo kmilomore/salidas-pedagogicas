@@ -131,6 +131,7 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
       pme_subdimension: normalizeSingleLineText(input.pme_subdimension),
       actividad: normalizeSingleLineText(input.actividad),
       objetivo: normalizeMultilineText(input.objetivo),
+      requerimientos_adicionales: normalizeMultilineText(input.requerimientos_adicionales),
       lugar_nombre: normalizeSingleLineText(input.lugar_nombre),
       lugar_direccion: normalizeSingleLineText(input.lugar_direccion),
       lugar_comuna: normalizeSingleLineText(input.lugar_comuna),
@@ -186,6 +187,7 @@ export async function guardarSalidaPedagogica(input: SalidaSchemaInput): Promise
         estado: "enviada",
         cantidad_estudiantes: payload.cantidad_estudiantes,
         cantidad_apoderados: payload.cantidad_apoderados,
+        requerimientos_adicionales: payload.requerimientos_adicionales || null,
         funcionarios: payload.funcionarios,
       })
       .select("id")

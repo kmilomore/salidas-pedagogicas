@@ -25,7 +25,7 @@ Permitir al administrador gestionar en tiempo real qué correos tienen acceso al
 - Botón de activar/desactivar por fila (toggle sobre el campo `activo`).
 - Botón de eliminar por fila con confirmación nativa.
 - Las mutaciones usan server actions; el cliente llama a `router.refresh()` tras cada operación exitosa para garantizar que la tabla refleje el estado real.
-- Mientras carga usuarios y escuelas, la ruta usa `src/app/(admin)/panel/whitelist/loading.tsx` con un loader contextual de resumen, formulario, filtros y tabla de accesos.
+- Mientras carga usuarios y escuelas, la ruta usa `src/app/(admin)/panel/whitelist/loading.tsx` con un skeleton contextual de resumen, formulario, filtros y tabla de accesos.
 
 ## Contrato visual relevante
 - `WhitelistPanel` reutiliza `portal-card-subtle`, `portal-input`, `portal-select`, `portal-button`, `portal-chip` y `portal-table`, alineándose con el resto de superficies administrativas.

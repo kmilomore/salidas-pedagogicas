@@ -28,6 +28,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Exporta CSV y Excel.
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
+- La bitácora de `/panel/auditoria` permite filtrar por actor usando correo electrónico parcial o completo.
 
 ## Dependencias
 - [Administración y exportaciones](../modules/admin.md)
@@ -47,12 +48,12 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 ## Limitaciones actuales
 - Sin paginación (página cap en 100 filas; exports sin límite).
 - Sin ordenamiento por columna.
-- Sin filtros avanzados por fecha o territorio.
+- Sin filtros avanzados por fecha o territorio; la auditoría ya admite filtro por actor/correo.
 - El `monto_referencial` solo se administra desde el modal de detalle del panel admin; no se expone en vistas de directores.
 
 ## Contrato visual relevante
 - `AdminTripsTable` y `DetalleSalida` usan primitivas compartidas como `portal-table`, `portal-button`, `portal-chip` y `portal-card-subtle` para mantener consistencia con el resto del portal.
-- El loader de esta ruta también reutiliza el contrato compartido: usa barra institucional, tipografía Museo Sans y skeletons definidos sobre tokens del design system en `src/app/globals.css`.
+- El loader de esta ruta también reutiliza el contrato compartido: usa skeletons definidos sobre tokens del design system en `src/app/globals.css` y la misma composición general del panel real.
 
 ## Conexiones
 - La supervisión operativa y la bitácora administrativa ya no viven en esta pantalla: se consultan desde `/panel/auditoria`.

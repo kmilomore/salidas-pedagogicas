@@ -70,6 +70,17 @@ export default function StepParticipantes({ register, setValue, errors, fields, 
       <div className="mt-8">
         <FuncionariosList register={register} setValue={setValue} errors={errors} fields={fields} append={append} remove={remove} />
       </div>
+
+      <label className="portal-field mt-8 block">
+        <span className="portal-field-label">Requerimientos adicionales para el servicio</span>
+        <textarea
+          rows={4}
+          className="portal-textarea"
+          placeholder="Ej. movilidad reducida, apoyo adicional, observaciones del director u otros antecedentes relevantes para coordinar el servicio."
+          {...register("requerimientos_adicionales")}
+        />
+        <FieldError message={errors.requerimientos_adicionales?.message} />
+      </label>
     </section>
   );
 }
