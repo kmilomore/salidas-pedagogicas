@@ -20,6 +20,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Carga salidas reales con enriquecimiento institucional.
 - Aplica filtros básicos por búsqueda, RBD y estado.
 - Muestra métricas y tabla principal.
+- El listado transversal incluye columna de total de pasajeros por salida y usa el ancho completo disponible del shell administrativo.
 - Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen operacional.
 - Reutiliza el contrato visual global para filtros, CTAs, tablas, chips de estado y tarjetas métricas.
 - Mientras reúne salidas, filtros y resumen transversal, la ruta usa `src/app/(admin)/panel/loading.tsx` con métricas, filtros y tabla skeleton alineados a la composición real del panel.

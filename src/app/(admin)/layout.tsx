@@ -15,7 +15,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="portal-app-shell">
       <a className="skip-link" href="#main-content">Saltar al contenido</a>
-      <div className="portal-app-frame">
+      <div className="portal-app-frame portal-app-frame--admin">
         <header className="portal-app-header">
           <div className="portal-app-header__lead">
             <p className="portal-kicker">Portal administrador</p>

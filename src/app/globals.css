@@ -137,6 +137,10 @@ a {
   box-shadow: var(--shadow-lg);
 }
 
+.portal-app-frame--admin {
+  max-width: calc(100vw - 32px);
+}
+
 .portal-app-header {
   display: flex;
   flex-direction: column;
@@ -445,7 +449,8 @@ a {
 }
 
 .portal-table {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--border-1);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
