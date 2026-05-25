@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import type { AdminTripRecord, RouteSegment, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
 
@@ -50,16 +51,6 @@ interface AuthContext {
   supabase: ReturnType<typeof createClient>;
   userId: string;
   role: UserRole;
-}
-
-export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
-  const cantidadFuncionarios = trip.funcionarios.length;
-  const cantidadTotalPasajeros = trip.cantidad_estudiantes + trip.cantidad_apoderados + cantidadFuncionarios;
-
-  return {
-    cantidadFuncionarios,
-    cantidadTotalPasajeros,
-  };
 }
 
 function parseCoordinate(value: string | null) {

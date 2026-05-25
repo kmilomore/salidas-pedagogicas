@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 
-import { formatDistance, formatTripDate, getStatusClasses, getStatusLabel } from "@/lib/admin/trip-formatting";
-import { getTripPassengerTotals } from "@/lib/admin/trips";
+import { formatDistance, formatTripDate, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import type { AdminTripRecord } from "@/types";
 
 import DetalleSalida from "./DetalleSalida";

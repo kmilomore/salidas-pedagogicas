@@ -1,6 +1,16 @@
 import { formatChileDateFromIsoDate } from "@/lib/date-time";
 import type { AdminTripRecord } from "@/types";
 
+export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
+  const cantidadFuncionarios = trip.funcionarios.length;
+  const cantidadTotalPasajeros = trip.cantidad_estudiantes + trip.cantidad_apoderados + cantidadFuncionarios;
+
+  return {
+    cantidadFuncionarios,
+    cantidadTotalPasajeros,
+  };
+}
+
 export function formatTripDate(value: string) {
   return formatChileDateFromIsoDate(value);
 }

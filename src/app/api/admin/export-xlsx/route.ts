@@ -1,7 +1,8 @@
 import * as XLSX from "xlsx";
 
 import { logAuditEvent } from "@/lib/admin/audit";
-import { filterTrips, getAdminTrips, getTripPassengerTotals } from "@/lib/admin/trips";
+import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import type { TripQueryFilters } from "@/types";
 
 const sanitizeFormula = (value: string | null | undefined) => {
