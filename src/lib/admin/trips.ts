@@ -52,6 +52,16 @@ interface AuthContext {
   role: UserRole;
 }
 
+export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
+  const cantidadFuncionarios = trip.funcionarios.length;
+  const cantidadTotalPasajeros = trip.cantidad_estudiantes + trip.cantidad_apoderados + cantidadFuncionarios;
+
+  return {
+    cantidadFuncionarios,
+    cantidadTotalPasajeros,
+  };
+}
+
 function parseCoordinate(value: string | null) {
   if (!value) {
     return null;
@@ -284,6 +294,8 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     "duracion_vuelta_minutos",
     "cantidad_estudiantes",
     "cantidad_apoderados",
+    "cantidad_funcionarios",
+    "cantidad_total_pasajeros",
     "requerimientos_adicionales",
     "ruta_resumen",
     "funcionarios_json",
@@ -298,37 +310,43 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     return `"${text}"`;
   };
 
-  const rows = trips.map((trip) => [
-    trip.id,
-    trip.fecha,
-    trip.hora_salida,
-    trip.hora_regreso,
-    trip.estado,
-    trip.rbd,
-    trip.school_name,
-    trip.school_comuna,
-    trip.director_email,
-    trip.pme_dimension,
-    trip.pme_subdimension,
-    trip.actividad,
-    trip.objetivo,
-    trip.lugar_nombre,
-    trip.lugar_direccion,
-    trip.lugar_comuna,
-    trip.lugar_region,
-    trip.distancia_km,
-    trip.distancia_ida_km,
-    trip.distancia_vuelta_km,
-    trip.duracion_minutos,
-    trip.duracion_ida_minutos,
-    trip.duracion_vuelta_minutos,
-    trip.cantidad_estudiantes,
-    trip.cantidad_apoderados,
-    trip.requerimientos_adicionales,
-    trip.ruta_resumen,
-    JSON.stringify(trip.funcionarios),
-    trip.created_at,
-  ]);
+  const rows = trips.map((trip) => {
+    const { cantidadFuncionarios, cantidadTotalPasajeros } = getTripPassengerTotals(trip);
+
+    return [
+      trip.id,
+      trip.fecha,
+      trip.hora_salida,
+      trip.hora_regreso,
+      trip.estado,
+      trip.rbd,
+      trip.school_name,
+      trip.school_comuna,
+      trip.director_email,
+      trip.pme_dimension,
+      trip.pme_subdimension,
+      trip.actividad,
+      trip.objetivo,
+      trip.lugar_nombre,
+      trip.lugar_direccion,
+      trip.lugar_comuna,
+      trip.lugar_region,
+      trip.distancia_km,
+      trip.distancia_ida_km,
+      trip.distancia_vuelta_km,
+      trip.duracion_minutos,
+      trip.duracion_ida_minutos,
+      trip.duracion_vuelta_minutos,
+      trip.cantidad_estudiantes,
+      trip.cantidad_apoderados,
+      cantidadFuncionarios,
+      cantidadTotalPasajeros,
+      trip.requerimientos_adicionales,
+      trip.ruta_resumen,
+      JSON.stringify(trip.funcionarios),
+      trip.created_at,
+    ];
+  });
 
   return [headers, ...rows].map((row) => row.map((cell) => escapeCsv(cell)).join(",")).join("\n");
 }

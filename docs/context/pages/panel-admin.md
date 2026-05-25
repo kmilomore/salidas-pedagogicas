@@ -25,7 +25,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Mientras reúne salidas, filtros y resumen transversal, la ruta usa `src/app/(admin)/panel/loading.tsx` con métricas, filtros y tabla skeleton alineados a la composición real del panel.
 - Abre modal con detalle completo.
 - En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
-- Exporta CSV y Excel.
+- Exporta CSV y Excel, incluyendo cantidad de funcionarios y total de pasajeros por salida.
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
 - La bitácora de `/panel/auditoria` permite filtrar por actor usando correo electrónico parcial o completo.

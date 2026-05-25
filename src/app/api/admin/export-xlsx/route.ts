@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 
 import { logAuditEvent } from "@/lib/admin/audit";
-import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
+import { filterTrips, getAdminTrips, getTripPassengerTotals } from "@/lib/admin/trips";
 import type { TripQueryFilters } from "@/types";
 
 const sanitizeFormula = (value: string | null | undefined) => {
@@ -21,35 +21,41 @@ export async function GET(request: Request) {
   const trips = filterTrips(await getAdminTrips(), filters);
   const workbook = XLSX.utils.book_new();
 
-  const tripRows = trips.map((trip) => ({
-    ID: trip.id,
-    Fecha: trip.fecha,
-    HoraSalida: trip.hora_salida,
-    HoraRegreso: trip.hora_regreso ?? "",
-    Estado: trip.estado,
-    RBD: trip.rbd,
-    Establecimiento: sanitizeFormula(trip.school_name),
-    ComunaEstablecimiento: sanitizeFormula(trip.school_comuna),
-    Director: trip.director_email ?? "",
-    PmeDimension: sanitizeFormula(trip.pme_dimension),
-    PmeSubdimension: sanitizeFormula(trip.pme_subdimension),
-    Actividad: sanitizeFormula(trip.actividad),
-    Objetivo: sanitizeFormula(trip.objetivo),
-    Destino: sanitizeFormula(trip.lugar_nombre),
-    DireccionDestino: sanitizeFormula(trip.lugar_direccion),
-    ComunaDestino: sanitizeFormula(trip.lugar_comuna),
-    RegionDestino: sanitizeFormula(trip.lugar_region),
-    DistanciaKm: trip.distancia_km,
-    DistanciaIdaKm: trip.distancia_ida_km,
-    DistanciaVueltaKm: trip.distancia_vuelta_km,
-    DuracionMinutos: trip.duracion_minutos,
-    DuracionIdaMinutos: trip.duracion_ida_minutos,
-    DuracionVueltaMinutos: trip.duracion_vuelta_minutos,
-    Estudiantes: trip.cantidad_estudiantes,
-    Apoderados: trip.cantidad_apoderados,
-    ResumenRuta: sanitizeFormula(trip.ruta_resumen),
-    CreadoEn: trip.created_at,
-  }));
+  const tripRows = trips.map((trip) => {
+    const { cantidadFuncionarios, cantidadTotalPasajeros } = getTripPassengerTotals(trip);
+
+    return {
+      ID: trip.id,
+      Fecha: trip.fecha,
+      HoraSalida: trip.hora_salida,
+      HoraRegreso: trip.hora_regreso ?? "",
+      Estado: trip.estado,
+      RBD: trip.rbd,
+      Establecimiento: sanitizeFormula(trip.school_name),
+      ComunaEstablecimiento: sanitizeFormula(trip.school_comuna),
+      Director: trip.director_email ?? "",
+      PmeDimension: sanitizeFormula(trip.pme_dimension),
+      PmeSubdimension: sanitizeFormula(trip.pme_subdimension),
+      Actividad: sanitizeFormula(trip.actividad),
+      Objetivo: sanitizeFormula(trip.objetivo),
+      Destino: sanitizeFormula(trip.lugar_nombre),
+      DireccionDestino: sanitizeFormula(trip.lugar_direccion),
+      ComunaDestino: sanitizeFormula(trip.lugar_comuna),
+      RegionDestino: sanitizeFormula(trip.lugar_region),
+      DistanciaKm: trip.distancia_km,
+      DistanciaIdaKm: trip.distancia_ida_km,
+      DistanciaVueltaKm: trip.distancia_vuelta_km,
+      DuracionMinutos: trip.duracion_minutos,
+      DuracionIdaMinutos: trip.duracion_ida_minutos,
+      DuracionVueltaMinutos: trip.duracion_vuelta_minutos,
+      Estudiantes: trip.cantidad_estudiantes,
+      Apoderados: trip.cantidad_apoderados,
+      Funcionarios: cantidadFuncionarios,
+      TotalPasajeros: cantidadTotalPasajeros,
+      ResumenRuta: sanitizeFormula(trip.ruta_resumen),
+      CreadoEn: trip.created_at,
+    };
+  });
 
   const staffRows = trips.flatMap((trip) =>
     trip.funcionarios.map((staff) => ({
