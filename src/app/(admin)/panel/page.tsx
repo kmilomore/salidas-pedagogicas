@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { logAuditEvent } from "@/lib/admin/audit";
 import { PERMITTED_DIRECTOR_EMAIL_SET } from "@/lib/admin/permitted-directors";
+import AdminPendingReviewTable from "@/components/admin/AdminPendingReviewTable";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
 import { filterTrips, getAdminTrips, serializeTripFilters } from "@/lib/admin/trips";
@@ -13,6 +14,7 @@ interface AdminPanelPageProps {
     search?: string;
     rbd?: string;
     estado?: string;
+    decision_admin?: string;
   };
 }
 
@@ -22,8 +24,13 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
     search: searchParams?.search?.trim() || undefined,
     rbd: searchParams?.rbd?.trim() || undefined,
     estado: searchParams?.estado === "borrador" || searchParams?.estado === "enviada" ? searchParams.estado : "all",
+    decision_admin:
+      searchParams?.decision_admin === "pendiente" || searchParams?.decision_admin === "aceptada" || searchParams?.decision_admin === "rechazada"
+        ? searchParams.decision_admin
+        : "all",
   };
   const trips = filterTrips(allTrips, filters).slice(0, 100);
+  const pendingReviewTrips = filterTrips(allTrips, { ...filters, decision_admin: "pendiente" }).slice(0, 12);
   const schoolOptions = Array.from(new Map(allTrips.map((trip) => [trip.rbd, { rbd: trip.rbd, name: trip.school_name }])).values()).sort((a, b) =>
     a.name.localeCompare(b.name, "es"),
   );
@@ -78,6 +85,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
       search: filters.search ?? null,
       rbd: filters.rbd ?? null,
       estado: filters.estado ?? "all",
+      decision_admin: filters.decision_admin ?? "all",
     },
   });
 
@@ -156,7 +164,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
           <p className="text-sm leading-6 text-slate-500">Filtros aplicados sobre el historial administrativo real.</p>
         </div>
 
-        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_auto_auto]">
+        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)_auto_auto]">
           <label className="block">
             <span className="text-sm font-semibold text-slate-800">Busqueda</span>
             <input
@@ -197,6 +205,20 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             </select>
           </label>
 
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Decision administrativa</span>
+            <select
+              name="decision_admin"
+              defaultValue={filters.decision_admin ?? "all"}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            >
+              <option value="all">Todas</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aceptada">Aceptada</option>
+              <option value="rechazada">Rechazada</option>
+            </select>
+          </label>
+
           <button
             type="submit"
             className="inline-flex items-center justify-center self-end rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
@@ -213,6 +235,23 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
         </form>
 
         <AdminTripsTable trips={trips} />
+
+        <section className="mt-8 rounded-[24px] border border-amber-200 bg-amber-50/60 p-6">
+          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-[0.24em] text-amber-700">Revision administrativa</p>
+              <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Salidas pendientes de revision</h4>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Este bloque prioriza las salidas con decision administrativa pendiente para que puedas aceptarlas o rechazarlas desde el detalle sin salir del panel.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm text-slate-700">
+              <span className="font-semibold text-slate-950">{pendingReviewTrips.length}</span> pendiente(s) visibles
+            </div>
+          </div>
+
+          <AdminPendingReviewTable trips={pendingReviewTrips} />
+        </section>
 
         <section className="mt-8 space-y-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6">
           <div>

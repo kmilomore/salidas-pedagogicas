@@ -17,16 +17,20 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 
 ## Qué hace hoy
 - Reutiliza `getAdminTrips()` como fuente única para consolidar la analítica administrativa.
-- Acepta filtros por fecha desde/hasta, establecimiento y estado; cada cambio recalcula la lectura en el servidor.
+- Acepta filtros por fecha desde/hasta, establecimiento, estado y decisión administrativa; cada cambio recalcula la lectura en el servidor.
 - Expone KPI de viajes totales, pasajeros acumulados, comunas de destino y establecimientos con actividad.
+- Expone también KPI específicos para salidas aceptadas y rechazadas según la revisión administrativa persistida.
 - Resume la composición de pasajeros entre estudiantes, apoderados y funcionarios con gráfico interactivo.
 - Muestra la distribución entre viajes enviados y borradores con gráfico interactivo.
+- Muestra la distribución entre salidas aceptadas, rechazadas y pendientes con gráfico interactivo adicional.
 - Destaca indicadores rápidos como promedio de pasajeros por viaje, escuela con mayor carga y comuna más frecuente.
 - Presenta ranking gráfico interactivo de viajes por escuela y de comunas de destino.
 - Agrega gráficos específicos para regiones más visitadas y lugares más visitados.
 - Incluye una vista de tendencia mensual interactiva para los últimos meses con actividad.
 - Cierra con un explorador de viajes por escuela a ancho completo: la tabla superior permite seleccionar un establecimiento y debajo despliega sus salidas asociadas dentro de los filtros actuales.
 - El listado de salidas asociadas permite abrir el modal de detalle administrativo sin salir de la analítica.
+- Ese modal reutilizado desde analítica puede cambiar la `decision_admin`, y la página se revalida para refrescar KPI y gráficos.
+- El filtro por decisión administrativa usa la misma lógica compartida del panel y las exportaciones para evitar divergencias de universo.
 - Usa un loader contextual mientras se consolidan las métricas.
 
 ## Dependencias
@@ -36,7 +40,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 
 ## Seguridad aplicada
 - La página depende de `getAdminTrips()`, por lo que mantiene el mismo control de acceso administrativo basado en `assertRoleAccess(["admin"])`.
-- No escribe datos ni expone acciones mutantes; solo consolida lectura agregada de las salidas visibles.
+- Aunque la agregación principal es de lectura, el modal reutilizado desde la analítica sí permite mutar `decision_admin` y `monto_referencial` bajo las mismas server actions protegidas del módulo admin.
 
 ## Limitaciones actuales
 - Los filtros viven en la URL y recalculan toda la vista; aún no hay interacción client-side incremental entre gráficos.

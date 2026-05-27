@@ -4,8 +4,9 @@ import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import AdminSchoolTripsExplorer from "@/components/admin/AdminSchoolTripsExplorer";
 import { logAuditEvent } from "@/lib/admin/audit";
 import { normalizeSingleLineText } from "@/lib/input-normalization";
-import { getAdminTrips } from "@/lib/admin/trips";
+import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import type { TripQueryFilters } from "@/types";
 
 interface AdminAnalyticsPageProps {
   searchParams?: {
@@ -13,6 +14,7 @@ interface AdminAnalyticsPageProps {
     to?: string;
     rbd?: string;
     estado?: string;
+    decision_admin?: string;
   };
 }
 
@@ -75,19 +77,32 @@ function normalizeRegionLabel(value?: string) {
 
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
   const trips = await getAdminTrips();
-  const filters = {
+  const filters: {
+    from?: string;
+    to?: string;
+    rbd?: string;
+    estado: TripQueryFilters["estado"];
+    decision_admin: TripQueryFilters["decision_admin"];
+  } = {
     from: normalizeDateParam(searchParams?.from),
     to: normalizeDateParam(searchParams?.to),
     rbd: searchParams?.rbd?.trim() || undefined,
     estado: searchParams?.estado === "borrador" || searchParams?.estado === "enviada" ? searchParams.estado : "all",
+    decision_admin:
+      searchParams?.decision_admin === "pendiente" || searchParams?.decision_admin === "aceptada" || searchParams?.decision_admin === "rechazada"
+        ? searchParams.decision_admin
+        : "all",
   };
-  const filteredTrips = trips.filter((trip) => {
-    const matchesRbd = filters.rbd ? trip.rbd === filters.rbd : true;
-    const matchesEstado = filters.estado !== "all" ? trip.estado === filters.estado : true;
+  const tripFilters: TripQueryFilters = {
+    rbd: filters.rbd,
+    estado: filters.estado,
+    decision_admin: filters.decision_admin,
+  };
+  const filteredTrips = filterTrips(trips, tripFilters).filter((trip) => {
     const matchesFrom = filters.from ? trip.fecha >= filters.from : true;
     const matchesTo = filters.to ? trip.fecha <= filters.to : true;
 
-    return matchesRbd && matchesEstado && matchesFrom && matchesTo;
+    return matchesFrom && matchesTo;
   });
   const schoolOptions = Array.from(new Map(trips.map((trip) => [trip.rbd, { rbd: trip.rbd, name: trip.school_name }])).values()).sort((a, b) =>
     a.name.localeCompare(b.name, "es"),
@@ -208,6 +223,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
       to: filters.to ?? null,
       rbd: filters.rbd ?? null,
       estado: filters.estado,
+      decision_admin: filters.decision_admin,
     },
   });
 
@@ -239,7 +255,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <p className="text-sm leading-6 text-slate-500">La analitica se recalcula en servidor usando los mismos registros administrativos visibles.</p>
         </div>
 
-        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(180px,0.8fr)_minmax(180px,0.8fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_auto_auto]">
+        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(180px,0.8fr)_minmax(180px,0.8fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)_auto_auto]">
           <label className="block">
             <span className="text-sm font-semibold text-slate-800">Desde</span>
             <input
@@ -286,6 +302,20 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
               <option value="all">Todos</option>
               <option value="enviada">Enviada</option>
               <option value="borrador">Borrador</option>
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Decision administrativa</span>
+            <select
+              name="decision_admin"
+              defaultValue={filters.decision_admin}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            >
+              <option value="all">Todas</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="aceptada">Aceptada</option>
+              <option value="rechazada">Rechazada</option>
             </select>
           </label>
 

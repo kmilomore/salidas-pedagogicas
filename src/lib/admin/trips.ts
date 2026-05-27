@@ -230,6 +230,7 @@ export function filterTrips(trips: AdminTripRecord[], filters: TripQueryFilters)
   return trips.filter((trip) => {
     const matchesRbd = filters.rbd ? trip.rbd === filters.rbd : true;
     const matchesEstado = filters.estado && filters.estado !== "all" ? trip.estado === filters.estado : true;
+    const matchesDecision = filters.decision_admin && filters.decision_admin !== "all" ? trip.decision_admin === filters.decision_admin : true;
     const matchesSearch = normalizedSearch
       ? [trip.school_name, trip.actividad, trip.lugar_nombre, trip.pme_dimension, trip.pme_subdimension, trip.director_email ?? "", trip.rbd]
           .join(" ")
@@ -237,7 +238,7 @@ export function filterTrips(trips: AdminTripRecord[], filters: TripQueryFilters)
           .includes(normalizedSearch)
       : true;
 
-    return matchesRbd && matchesEstado && matchesSearch;
+    return matchesRbd && matchesEstado && matchesDecision && matchesSearch;
   });
 }
 
@@ -256,6 +257,10 @@ export function serializeTripFilters(filters: TripQueryFilters) {
     params.set("estado", filters.estado);
   }
 
+  if (filters.decision_admin && filters.decision_admin !== "all") {
+    params.set("decision_admin", filters.decision_admin);
+  }
+
   const serialized = params.toString();
   return serialized ? `?${serialized}` : "";
 }
@@ -267,6 +272,7 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     "hora_salida",
     "hora_regreso",
     "estado",
+    "decision_admin",
     "rbd",
     "establecimiento",
     "comuna_establecimiento",
@@ -312,6 +318,7 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
       trip.hora_salida,
       trip.hora_regreso,
       trip.estado,
+      trip.decision_admin,
       trip.rbd,
       trip.school_name,
       trip.school_comuna,

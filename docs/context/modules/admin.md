@@ -28,24 +28,29 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 1. `/panel` obtiene el universo administrativo con `getAdminTrips()`.
 2. Aplica filtros en memoria por búsqueda, establecimiento y estado.
 3. Renderiza métricas, tabla con scroll interno vertical y modal de detalle.
-4. Debajo de la tabla muestra un bloque de cobertura de respuesta apilado verticalmente.
+4. Debajo de la tabla muestra una bandeja priorizada de salidas pendientes de revisión administrativa y luego el bloque de cobertura de respuesta apilado verticalmente.
 5. Ese bloque usa KPI en columnas para escuelas consideradas, escuelas que respondieron y escuelas que no respondieron.
 6. El cruce de cobertura ya no depende de `activo=true`: usa el universo esperado de correos permitidos con rol `director` y RBD asociado en la whitelist, aunque hoy el acceso al portal esté deshabilitado.
 7. Luego desglosa escuelas permitidas, escuelas con respuesta y escuelas sin respuesta en tablas independientes con establecimiento, RBD y directores esperados asociados.
 8. Las exportaciones CSV y Excel respetan los filtros actuales.
-9. `/panel/analitica` reutiliza `getAdminTrips()` para consolidar métricas, rankings y gráficos de pasajeros, comunas destino, viajes totales y viajes por establecimiento.
-10. La analítica admite filtros server-side por rango de fechas, establecimiento y estado del viaje.
-11. Los gráficos principales de la analítica se renderizan con una librería dedicada (`recharts`) en un componente cliente desacoplado de la agregación server-side.
-12. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
-13. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
-14. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-15. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-16. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+9. Los filtros administrativos y las exportaciones ahora admiten también segmentación por `decision_admin` (`pendiente`, `aceptada`, `rechazada`).
+10. `/panel/analitica` reutiliza `getAdminTrips()` para consolidar métricas, rankings y gráficos de pasajeros, comunas destino, viajes totales y viajes por establecimiento.
+11. La analítica admite filtros server-side por rango de fechas, establecimiento, estado del viaje y decisión administrativa.
+12. Los gráficos principales de la analítica se renderizan con una librería dedicada (`recharts`) en un componente cliente desacoplado de la agregación server-side.
+13. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
+14. El modal de detalle administrativo permite persistir dos decisiones sobre cada salida: `monto_referencial` y `decision_admin` (`pendiente`, `aceptada`, `rechazada`).
+15. La analítica ahora consolida también la distribución de decisiones administrativas y KPI separados para salidas aceptadas y rechazadas.
+16. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
+17. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+18. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+19. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
 - Filtros básicos por texto, RBD y estado.
+- Filtros básicos por texto, RBD, estado y decisión administrativa en panel, analítica y exportaciones.
 - Tabla administrativa con scroll interno para revisar registros sin desplazar toda la página.
+- Bandeja priorizada de salidas pendientes de revisión administrativa dentro del panel principal.
 - Bloque de cobertura de respuesta apilado bajo la tabla principal, con KPI superiores en columnas.
 - Tabla adicional de escuelas permitidas para cruzar el universo esperado con el estado real de registro.
 - Tablas separadas para escuelas que respondieron y escuelas que no respondieron.
@@ -54,7 +59,8 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Filtros analíticos por fecha desde/hasta, establecimiento y estado del viaje.
 - Gráficos interactivos y rankings para viajes totales, pasajeros acumulados, comunas de destino, regiones más visitadas, lugares más visitados, estados de viaje y viajes por escuela.
 - Explorador interactivo de viajes por escuela con tabla clickeable y listado de salidas asociadas por establecimiento.
-- Modal con detalle operativo, mapa y visor previo del PDF.
+- Modal con detalle operativo, mapa, visor previo del PDF y decision administrativa persistente por salida.
+- Gráfico y KPI para revisar cuántas salidas están aceptadas, rechazadas o pendientes de revisión administrativa.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
 - PDF por salida con QR, logo institucional y mapa estático.

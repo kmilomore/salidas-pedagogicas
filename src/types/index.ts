@@ -201,6 +201,7 @@ export interface TripQueryFilters {
   search?: string;
   rbd?: string;
   estado?: "borrador" | "enviada" | "all";
+  decision_admin?: AdminDecisionStatus | "all";
 }
 
 export interface TripDraftFormValues {

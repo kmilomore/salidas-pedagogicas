@@ -13,10 +13,12 @@ const sanitizeFormula = (value: string | null | undefined) => {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawEstado = searchParams.get("estado");
+  const rawDecision = searchParams.get("decision_admin");
   const filters: TripQueryFilters = {
     search: searchParams.get("search") ?? undefined,
     rbd: searchParams.get("rbd") ?? undefined,
     estado: rawEstado === "borrador" || rawEstado === "enviada" ? rawEstado : "all",
+    decision_admin: rawDecision === "pendiente" || rawDecision === "aceptada" || rawDecision === "rechazada" ? rawDecision : "all",
   };
 
   const trips = filterTrips(await getAdminTrips(), filters);
@@ -31,6 +33,7 @@ export async function GET(request: Request) {
       HoraSalida: trip.hora_salida,
       HoraRegreso: trip.hora_regreso ?? "",
       Estado: trip.estado,
+      DecisionAdministrativa: trip.decision_admin,
       RBD: trip.rbd,
       Establecimiento: sanitizeFormula(trip.school_name),
       ComunaEstablecimiento: sanitizeFormula(trip.school_comuna),
