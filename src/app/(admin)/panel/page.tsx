@@ -207,7 +207,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
 
         <AdminTripsTable trips={trips} />
 
-        <section className="mt-8 grid gap-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <section className="mt-8 space-y-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Cobertura de respuesta</p>
             <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Directores activos asociados</h4>
