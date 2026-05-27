@@ -7,7 +7,7 @@ import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText
 import { limitTripCreation } from "@/lib/rate-limit";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
-import type { SaveTripResponse, UserRole } from "@/types";
+import type { AdminDecisionStatus, SaveTripResponse, UserRole } from "@/types";
 
 async function assertAdminForTripAction() {
   const supabase = createClient();
@@ -84,6 +84,57 @@ export async function updateMontoReferencialSalida(
   return {
     error: null,
     amount: persistedAmount,
+  };
+}
+
+export async function updateDecisionAdministrativaSalida(
+  tripId: string,
+  decision: AdminDecisionStatus,
+): Promise<{ error: string | null; decision: AdminDecisionStatus | null }> {
+  const adminClient = await assertAdminForTripAction();
+
+  if (!adminClient) {
+    return {
+      error: "No tienes permisos para definir la decision administrativa.",
+      decision: null,
+    };
+  }
+
+  if (!["pendiente", "aceptada", "rechazada"].includes(decision)) {
+    return {
+      error: "La decision administrativa indicada no es valida.",
+      decision: null,
+    };
+  }
+
+  const { error } = await adminClient
+    .from("salidas_pedagogicas")
+    .update({ decision_admin: decision })
+    .eq("id", tripId);
+
+  if (error) {
+    return {
+      error: `No fue posible guardar la decision administrativa. (${error.message})`,
+      decision: null,
+    };
+  }
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/analitica");
+
+  await logAuditEvent({
+    eventType: "trip_admin_decision_updated",
+    route: "/panel",
+    targetType: "salida",
+    targetId: tripId,
+    metadata: {
+      decision,
+    },
+  });
+
+  return {
+    error: null,
+    decision,
   };
 }
 

@@ -165,6 +165,9 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
 
   const sentTrips = statusCount.get("enviada") ?? 0;
   const draftTrips = statusCount.get("borrador") ?? 0;
+  const acceptedTrips = filteredTrips.filter((trip) => trip.decision_admin === "aceptada").length;
+  const rejectedTrips = filteredTrips.filter((trip) => trip.decision_admin === "rechazada").length;
+  const pendingAdminTrips = filteredTrips.filter((trip) => trip.decision_admin === "pendiente").length;
   const uniqueCommunes = destinationCommunesCount.size;
   const uniqueSchools = schoolTripCount.size;
   const averagePassengersPerTrip = totalTrips ? totalPassengers / totalTrips : 0;
@@ -176,6 +179,11 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
   const statusData = [
     { name: "Enviadas", value: sentTrips },
     { name: "Borradores", value: draftTrips },
+  ].filter((item) => item.value > 0);
+  const adminDecisionData = [
+    { name: "Aceptadas", value: acceptedTrips },
+    { name: "Rechazadas", value: rejectedTrips },
+    { name: "Pendientes", value: pendingAdminTrips },
   ].filter((item) => item.value > 0);
   const communeChartData = topCommunes.map((commune) => ({ comuna: commune.name, viajes: commune.count }));
   const regionChartData = topRegions.map((region) => ({ region: region.name, viajes: region.count }));
@@ -329,7 +337,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <p className="text-sm leading-6 text-slate-500">Lectura resumida de los hitos mas representativos segun los filtros aplicados.</p>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Promedio pasajeros por viaje</p>
             <p className="mt-4 text-3xl font-semibold text-slate-950">{averagePassengersPerTrip.toFixed(1)}</p>
@@ -356,6 +364,16 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
               {topPlaces[0] ? `${formatCompactNumber(topPlaces[0].count)} viaje(s) • ${topPlaces[0].region}` : "No hay lugares visibles aun."}
             </p>
           </div>
+          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Salidas aceptadas</p>
+            <p className="mt-4 text-3xl font-semibold text-emerald-950">{formatCompactNumber(acceptedTrips)}</p>
+            <p className="mt-2 text-sm text-emerald-800">Registradas como aceptadas en la revision administrativa.</p>
+          </div>
+          <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Salidas rechazadas</p>
+            <p className="mt-4 text-3xl font-semibold text-rose-950">{formatCompactNumber(rejectedTrips)}</p>
+            <p className="mt-2 text-sm text-rose-800">Registradas como rechazadas en la revision administrativa.</p>
+          </div>
         </div>
       </article>
 
@@ -372,6 +390,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <AdminAnalyticsCharts
             passengerCompositionData={passengerCompositionData}
             statusData={statusData}
+            adminDecisionData={adminDecisionData}
             communeChartData={communeChartData}
             regionChartData={regionChartData}
             placeChartData={placeChartData}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { formatDistance, formatTripDate, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { formatDistance, formatTripDate, getAdminDecisionClasses, getAdminDecisionLabel, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import type { AdminTripRecord } from "@/types";
 
 import DetalleSalida from "./DetalleSalida";
@@ -40,7 +40,7 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
     [selectedRbd, trips],
   );
 
-  function handleTripUpdated(montoReferencial: number | null) {
+  function handleTripUpdated(updates: Partial<AdminTripRecord>) {
     setSelectedTrip((currentTrip) => {
       if (!currentTrip) {
         return currentTrip;
@@ -48,7 +48,7 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
 
       return {
         ...currentTrip,
-        monto_referencial: montoReferencial,
+        ...updates,
       };
     });
   }
@@ -119,11 +119,12 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
 
           {selectedSchool && selectedSchoolTrips.length ? (
             <div className="portal-table mt-5">
-              <div className="portal-table__head grid min-w-[980px] grid-cols-[0.8fr_1fr_0.85fr_0.7fr_0.7fr_0.7fr] gap-4 px-5 py-4">
+              <div className="portal-table__head grid min-w-[1080px] grid-cols-[0.8fr_1fr_0.85fr_0.7fr_0.8fr_0.7fr_0.7fr] gap-4 px-5 py-4">
                 <span>Fecha</span>
                 <span>Actividad / destino</span>
                 <span>Comuna / region</span>
                 <span>Pasajeros</span>
+                <span>Decision admin</span>
                 <span>Estado</span>
                 <span>Acciones</span>
               </div>
@@ -133,7 +134,7 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
                   const { cantidadTotalPasajeros } = getTripPassengerTotals(trip);
 
                   return (
-                    <div key={trip.id} className="grid min-w-[980px] grid-cols-[0.8fr_1fr_0.85fr_0.7fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                    <div key={trip.id} className="grid min-w-[1080px] grid-cols-[0.8fr_1fr_0.85fr_0.7fr_0.8fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                       <div>
                         <p className="font-medium text-slate-950">{formatTripDate(trip.fecha)}</p>
                         <p className="text-slate-500">{trip.hora_salida}</p>
@@ -149,6 +150,9 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
                       <div>
                         <p className="font-medium text-slate-950">{cantidadTotalPasajeros}</p>
                         <p className="text-slate-500">{formatDistance(Number(trip.distancia_km ?? 0))}</p>
+                      </div>
+                      <div>
+                        <span className={getAdminDecisionClasses(trip.decision_admin)}>{getAdminDecisionLabel(trip.decision_admin)}</span>
                       </div>
                       <div>
                         <span className={getStatusClasses(trip.estado)}>{getStatusLabel(trip.estado)}</span>

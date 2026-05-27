@@ -11,6 +11,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - `src/app/(admin)/panel/analitica/loading.tsx`
 - `src/app/(admin)/layout.tsx`
 - `src/components/admin/AdminAnalyticsCharts.tsx`
+- `src/components/admin/AdminSchoolTripsExplorer.tsx`
 - `src/lib/admin/trips.ts`
 - `src/lib/admin/trip-formatting.ts`
 
@@ -24,7 +25,8 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Presenta ranking gráfico interactivo de viajes por escuela y de comunas de destino.
 - Agrega gráficos específicos para regiones más visitadas y lugares más visitados.
 - Incluye una vista de tendencia mensual interactiva para los últimos meses con actividad.
-- Cierra con una tabla de viajes por escuela a ancho completo, con conteo y pasajeros acumulados.
+- Cierra con un explorador de viajes por escuela a ancho completo: la tabla superior permite seleccionar un establecimiento y debajo despliega sus salidas asociadas dentro de los filtros actuales.
+- El listado de salidas asociadas permite abrir el modal de detalle administrativo sin salir de la analítica.
 - Usa un loader contextual mientras se consolidan las métricas.
 
 ## Dependencias
@@ -40,6 +42,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Los filtros viven en la URL y recalculan toda la vista; aún no hay interacción client-side incremental entre gráficos.
 - Los gráficos dependen de `recharts`, pero todavía no exponen exportación de imagen o drill-down por clic.
 - Los rankings muestran solo los establecimientos y comunas con mayor volumen visible.
+- El drill-down por escuela hoy vive en la tabla resumen, no en el gráfico de barras de viajes por escuela.
 
 ## Conexiones
 - Se accede desde el menú superior del shell administrativo junto a `/panel`, `/panel/auditoria` y `/panel/whitelist`.

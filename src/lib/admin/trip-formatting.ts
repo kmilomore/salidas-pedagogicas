@@ -1,5 +1,5 @@
 import { formatChileDateFromIsoDate } from "@/lib/date-time";
-import type { AdminTripRecord } from "@/types";
+import type { AdminDecisionStatus, AdminTripRecord } from "@/types";
 
 export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
   const cantidadFuncionarios = trip.funcionarios.length;
@@ -27,4 +27,26 @@ export function getStatusClasses(status: AdminTripRecord["estado"]) {
   return status === "enviada"
     ? "portal-chip portal-chip--success"
     : "portal-chip portal-chip--warning";
+}
+
+export function getAdminDecisionLabel(decision: AdminDecisionStatus) {
+  switch (decision) {
+    case "aceptada":
+      return "Aceptada";
+    case "rechazada":
+      return "Rechazada";
+    default:
+      return "Pendiente";
+  }
+}
+
+export function getAdminDecisionClasses(decision: AdminDecisionStatus) {
+  switch (decision) {
+    case "aceptada":
+      return "portal-chip portal-chip--success";
+    case "rechazada":
+      return "portal-chip portal-chip--danger";
+    default:
+      return "portal-chip portal-chip--info";
+  }
 }

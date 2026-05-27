@@ -5,8 +5,9 @@ import polyline from "@mapbox/polyline";
 import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
-import { updateMontoReferencialSalida } from "@/app/actions/trips";
+import { updateDecisionAdministrativaSalida, updateMontoReferencialSalida } from "@/app/actions/trips";
 import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
+import { getAdminDecisionClasses, getAdminDecisionLabel } from "@/lib/admin/trip-formatting";
 import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTripRecord } from "@/types";
@@ -14,7 +15,7 @@ import type { AdminTripRecord } from "@/types";
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
   onClose: () => void;
-  onTripUpdated: (montoReferencial: number | null) => void;
+  onTripUpdated: (updates: Partial<AdminTripRecord>) => void;
 }
 
 function formatDateTime(value: string | null) {
@@ -61,6 +62,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [amountInput, setAmountInput] = useState("");
+  const [decisionInput, setDecisionInput] = useState<AdminTripRecord["decision_admin"]>("pendiente");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const routePath = useMemo(() => {
@@ -73,6 +75,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
   useEffect(() => {
     setAmountInput(trip?.monto_referencial === null || trip?.monto_referencial === undefined ? "" : String(trip.monto_referencial));
+    setDecisionInput(trip?.decision_admin ?? "pendiente");
     setFeedback(null);
   }, [trip]);
 
@@ -95,12 +98,34 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
           return;
         }
 
-        onTripUpdated(result.amount);
+        onTripUpdated({ monto_referencial: result.amount });
         setAmountInput(result.amount === null ? "" : String(result.amount));
         setFeedback("Monto referencial actualizado correctamente.");
         router.refresh();
       } catch {
         setFeedback("No fue posible actualizar el monto referencial.");
+      }
+    });
+  }
+
+  function handleDecisionUpdate(nextDecision: AdminTripRecord["decision_admin"]) {
+    setFeedback(null);
+
+    startTransition(async () => {
+      try {
+        const result = await updateDecisionAdministrativaSalida(tripId, nextDecision);
+
+        if (result.error || !result.decision) {
+          setFeedback(result.error ?? "No fue posible actualizar la decision administrativa.");
+          return;
+        }
+
+        setDecisionInput(result.decision);
+        onTripUpdated({ decision_admin: result.decision });
+        setFeedback("Decision administrativa actualizada correctamente.");
+        router.refresh();
+      } catch {
+        setFeedback("No fue posible actualizar la decision administrativa.");
       }
     });
   }
@@ -172,10 +197,15 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion administrativa</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-700">Este monto referencial queda persistido para la salida y solo puede ser consultado o editado desde la vista administrativa.</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700">El monto referencial y la decision administrativa quedan persistidos para la salida y solo pueden ser gestionados desde la vista administrativa.</p>
                 </div>
-                <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
-                  {formatCurrency(trip.monto_referencial)}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
+                    {formatCurrency(trip.monto_referencial)}
+                  </div>
+                  <div className={`${getAdminDecisionClasses(decisionInput)} px-4 py-3 text-sm font-semibold normal-case tracking-normal`}>
+                    {getAdminDecisionLabel(decisionInput)}
+                  </div>
                 </div>
               </div>
 
@@ -202,6 +232,37 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   {isPending ? "Guardando..." : "Guardar monto"}
                 </button>
               </form>
+
+              <div className="portal-card-subtle mt-4 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Decision administrativa</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">Define si la salida queda aceptada, rechazada o pendiente para seguimiento posterior y analitica consolidada.</p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleDecisionUpdate("aceptada")}
+                    className="portal-button portal-button--primary portal-button--sm"
+                  >
+                    Aceptar salida
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleDecisionUpdate("rechazada")}
+                    className="portal-button portal-button--secondary portal-button--sm"
+                  >
+                    Rechazar salida
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleDecisionUpdate("pendiente")}
+                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Marcar pendiente
+                  </button>
+                </div>
+              </div>
 
               {feedback ? <p className={`mt-3 text-sm ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
             </section>

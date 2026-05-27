@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { formatDistance, formatTripDate, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { formatDistance, formatTripDate, getAdminDecisionClasses, getAdminDecisionLabel, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import type { AdminTripRecord } from "@/types";
 
 import DetalleSalida from "./DetalleSalida";
@@ -14,7 +14,7 @@ interface AdminTripsTableProps {
 export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
   const [selectedTrip, setSelectedTrip] = useState<AdminTripRecord | null>(null);
 
-  function handleTripUpdated(montoReferencial: number | null) {
+  function handleTripUpdated(updates: Partial<AdminTripRecord>) {
     setSelectedTrip((currentTrip) => {
       if (!currentTrip) {
         return currentTrip;
@@ -22,7 +22,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
 
       return {
         ...currentTrip,
-        monto_referencial: montoReferencial,
+        ...updates,
       };
     });
   }
@@ -36,7 +36,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
           <span>Actividad / destino</span>
           <span>Kilometraje</span>
           <span>Total pasajeros</span>
-          <span>Estado</span>
+          <span>Decision admin</span>
           <span>Acciones</span>
         </div>
 
@@ -66,9 +66,10 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                     <p className="text-slate-500">Incluye funcionarios</p>
                   </div>
                   <div>
-                    <span className={getStatusClasses(trip.estado)}>
-                      {getStatusLabel(trip.estado)}
+                    <span className={getAdminDecisionClasses(trip.decision_admin)}>
+                      {getAdminDecisionLabel(trip.decision_admin)}
                     </span>
+                    <p className="mt-2 text-slate-500">{getStatusLabel(trip.estado)}</p>
                   </div>
                   <div>
                     <button

@@ -10,6 +10,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - `src/app/(admin)/panel/page.tsx`
 - `src/app/(admin)/panel/analitica/page.tsx`
 - `src/app/(admin)/layout.tsx`
+- `src/lib/admin/permitted-directors.ts`
 - `src/components/admin/AdminTripsTable.tsx`
 - `src/components/admin/DetalleSalida.tsx`
 - `src/app/globals.css`
@@ -26,6 +27,8 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Reutiliza el contrato visual global para filtros, CTAs, tablas, chips de estado y tarjetas métricas.
 - Mientras reúne salidas, filtros y resumen transversal, la ruta usa `src/app/(admin)/panel/loading.tsx` con métricas, filtros y tabla skeleton alineados a la composición real del panel.
 - Abre modal con detalle completo.
+- El bloque de cobertura de respuesta cruza las salidas registradas contra un universo esperado de correos permitidos con rol director y escuela asociada en whitelist, aunque esos accesos hoy estén desactivados.
+- Muestra una tabla de escuelas permitidas y luego separa escuelas que respondieron y escuelas que no respondieron según si registraron al menos una salida.
 - En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
 - Exporta CSV y Excel, incluyendo cantidad de funcionarios y total de pasajeros por salida.
 - Desde el modal o la tabla permite descargar PDF.
@@ -40,6 +43,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Seguridad aplicada
 - Las exportaciones administrativas están protegidas en la capa de datos: `getAdminTrips()` llama a `assertRoleAccess(["admin"])` antes de cualquier query y el acceso a detalle/PDF usa `getAuthorizedTripById()` con control por rol (`admin` transversal, `director` solo sobre sus propias salidas).
+- El universo esperado de cobertura está hardcodeado en `src/lib/admin/permitted-directors.ts`; solo esos correos participan del cruce de escuelas esperadas vs. escuelas que efectivamente registraron salidas.
 - La edición del `monto_referencial` usa una server action con verificación explícita de whitelist admin antes de escribir en `salidas_pedagogicas`.
 - El middleware excluye `/api` explícitamente — cualquier nueva ruta en `/api/admin/` **debe** llamar a `assertAdminAccess()` o `assertRoleAccess([...])` al inicio del handler o a través de la función de datos que invoque.
 - Formula injection prevenida: campos de texto libre (actividad, objetivo, destino, funcionarios) se sanitizan con prefijo `'` antes de escribir CSV y XLSX.

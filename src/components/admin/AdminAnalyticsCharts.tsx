@@ -49,6 +49,7 @@ interface MonthlyTripChartDatum {
 interface AdminAnalyticsChartsProps {
   passengerCompositionData: ChartDatum[];
   statusData: ChartDatum[];
+  adminDecisionData: ChartDatum[];
   communeChartData: CommuneChartDatum[];
   regionChartData: RegionChartDatum[];
   placeChartData: PlaceChartDatum[];
@@ -60,6 +61,7 @@ interface AdminAnalyticsChartsProps {
 
 const passengerColors = ["#005f73", "#ee9b00", "#334155"];
 const statusColors = ["#059669", "#f59e0b"];
+const adminDecisionColors = ["#059669", "#dc2626", "#2563eb"];
 
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
@@ -86,6 +88,7 @@ function formatMonthLabel(monthKey: string) {
 export default function AdminAnalyticsCharts({
   passengerCompositionData,
   statusData,
+  adminDecisionData,
   communeChartData,
   regionChartData,
   placeChartData,
@@ -161,6 +164,41 @@ export default function AdminAnalyticsCharts({
                 <span className="text-slate-700">{entry.name}</span>
               </div>
               <span className="font-semibold text-slate-950">{formatCompactNumber(entry.value)} / {totalTrips ? Math.round((entry.value / totalTrips) * 100) : 0}%</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+        <p className="text-sm font-semibold text-slate-950">Decision administrativa</p>
+        <p className="mt-1 text-sm text-slate-500">Distribucion entre salidas aceptadas, rechazadas y pendientes.</p>
+
+        <div className="mt-5 h-[18rem] rounded-[20px] bg-white p-3">
+          {adminDecisionData.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={adminDecisionData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={76} paddingAngle={2}>
+                  {adminDecisionData.map((entry, index) => (
+                    <Cell key={entry.name} fill={adminDecisionColors[index % adminDecisionColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={formatTooltipValue} />
+                <Legend verticalAlign="bottom" height={24} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay decisiones administrativas visibles con los filtros actuales.</div>
+          )}
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {adminDecisionData.map((entry, index) => (
+            <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: adminDecisionColors[index % adminDecisionColors.length] }} />
+                <span className="text-slate-700">{entry.name}</span>
+              </div>
+              <span className="font-semibold text-slate-950">{formatCompactNumber(entry.value)}</span>
             </div>
           ))}
         </div>

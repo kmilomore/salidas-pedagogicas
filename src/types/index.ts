@@ -1,5 +1,7 @@
 export type UserRole = "director" | "admin";
 
+export type AdminDecisionStatus = "pendiente" | "aceptada" | "rechazada";
+
 export type AuditSeverity = "info" | "warning" | "error";
 
 export interface PortalAuditEvent {
@@ -180,6 +182,7 @@ export interface AdminTripRecord {
   ruta_resumen: string;
   ruta_segmentos: RouteSegment[];
   monto_referencial: number | null;
+  decision_admin: AdminDecisionStatus;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
