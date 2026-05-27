@@ -245,16 +245,29 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               </span>
             </div>
 
-            <div className="mt-4 max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+            <div className="portal-table mt-4">
+              <div className="portal-table__head grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
+                <span>Establecimiento</span>
+                <span>RBD</span>
+                <span>Directores activos asociados</span>
+              </div>
+
               {respondedSchools.length ? (
-                respondedSchools.map((school) => (
-                  <article key={school.rbd} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="font-semibold text-slate-950">{school.schoolName}</p>
-                    <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{school.directors.join(", ")}</p>
-                  </article>
-                ))
+                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                  {respondedSchools.map((school) => (
+                    <div key={school.rbd} className="grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                      <div>
+                        <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-950">{school.rbd}</p>
+                      </div>
+                      <div>
+                        <p>{school.directors.join(", ")}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm leading-6 text-slate-500">
                   No hay escuelas respondidas dentro del universo actual de directores activos.
@@ -274,16 +287,29 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               </span>
             </div>
 
-            <div className="mt-4 max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+            <div className="portal-table mt-4">
+              <div className="portal-table__head grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
+                <span>Establecimiento</span>
+                <span>RBD</span>
+                <span>Directores activos asociados</span>
+              </div>
+
               {pendingSchools.length ? (
-                pendingSchools.map((school) => (
-                  <article key={school.rbd} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="font-semibold text-slate-950">{school.schoolName}</p>
-                    <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
-                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
-                    <p className="mt-2 text-sm leading-6 text-slate-700">{school.directors.join(", ")}</p>
-                  </article>
-                ))
+                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                  {pendingSchools.map((school) => (
+                    <div key={school.rbd} className="grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                      <div>
+                        <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-950">{school.rbd}</p>
+                      </div>
+                      <div>
+                        <p>{school.directors.join(", ")}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 py-6 text-sm leading-6 text-emerald-800">
                   Todas las escuelas con director activo ya registran al menos una salida.
