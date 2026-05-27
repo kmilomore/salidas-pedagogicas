@@ -85,7 +85,7 @@ export default function AdminSchoolTripsExplorer({ trips, topSchools }: AdminSch
                     key={school.rbd}
                     type="button"
                     onClick={() => setSelectedRbd(school.rbd)}
-                    className={`grid min-w-[780px] grid-cols-[1.4fr_0.55fr_0.55fr] gap-4 px-5 py-4 text-left text-sm leading-6 transition ${
+                    className={`grid w-full min-w-[780px] grid-cols-[minmax(0,1.4fr)_minmax(120px,0.55fr)_minmax(120px,0.55fr)] gap-4 px-5 py-4 text-left text-sm leading-6 transition ${
                       isSelected ? "bg-slep/10 text-slate-900" : "text-slate-700 hover:bg-white"
                     }`}
                   >
