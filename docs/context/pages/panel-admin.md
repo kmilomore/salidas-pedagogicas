@@ -8,6 +8,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Archivos relacionados
 - `src/app/(admin)/panel/page.tsx`
+- `src/app/(admin)/panel/analitica/page.tsx`
 - `src/app/(admin)/layout.tsx`
 - `src/components/admin/AdminTripsTable.tsx`
 - `src/components/admin/DetalleSalida.tsx`
@@ -29,6 +30,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Exporta CSV y Excel, incluyendo cantidad de funcionarios y total de pasajeros por salida.
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
+- Enlaza por navegación superior a `/panel/analitica` para revisar métricas y gráficos transversales del mismo universo administrativo.
 - La bitácora de `/panel/auditoria` permite filtrar por actor usando correo electrónico parcial o completo.
 
 ## Dependencias
@@ -58,3 +60,4 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 
 ## Conexiones
 - La supervisión operativa y la bitácora administrativa ya no viven en esta pantalla: se consultan desde `/panel/auditoria`.
+- La lectura agregada de pasajeros, comunas destino, viajes totales y viajes por establecimiento se consulta desde `/panel/analitica`.

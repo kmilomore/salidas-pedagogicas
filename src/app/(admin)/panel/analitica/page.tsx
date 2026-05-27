@@ -1,6 +1,18 @@
-import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import Link from "next/link";
+
+import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import { logAuditEvent } from "@/lib/admin/audit";
 import { getAdminTrips } from "@/lib/admin/trips";
+import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+
+interface AdminAnalyticsPageProps {
+  searchParams?: {
+    from?: string;
+    to?: string;
+    rbd?: string;
+    estado?: string;
+  };
+}
 
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
@@ -14,29 +26,47 @@ function formatPercent(value: number, total: number) {
   return `${Math.round((value / total) * 100)}%`;
 }
 
-function formatMonthLabel(monthKey: string) {
-  const [year, month] = monthKey.split("-").map(Number);
+function normalizeDateParam(value?: string) {
+  const normalized = value?.trim();
 
-  return new Intl.DateTimeFormat("es-CL", {
-    month: "short",
-    year: "numeric",
-  }).format(new Date(year, month - 1, 1));
+  if (!normalized || !/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return undefined;
+  }
+
+  return normalized;
 }
 
-export default async function AdminAnalyticsPage() {
+export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
   const trips = await getAdminTrips();
+  const filters = {
+    from: normalizeDateParam(searchParams?.from),
+    to: normalizeDateParam(searchParams?.to),
+    rbd: searchParams?.rbd?.trim() || undefined,
+    estado: searchParams?.estado === "borrador" || searchParams?.estado === "enviada" ? searchParams.estado : "all",
+  };
+  const filteredTrips = trips.filter((trip) => {
+    const matchesRbd = filters.rbd ? trip.rbd === filters.rbd : true;
+    const matchesEstado = filters.estado !== "all" ? trip.estado === filters.estado : true;
+    const matchesFrom = filters.from ? trip.fecha >= filters.from : true;
+    const matchesTo = filters.to ? trip.fecha <= filters.to : true;
 
-  const totalTrips = trips.length;
-  const totalPassengers = trips.reduce((sum, trip) => sum + getTripPassengerTotals(trip).cantidadTotalPasajeros, 0);
-  const totalStudents = trips.reduce((sum, trip) => sum + trip.cantidad_estudiantes, 0);
-  const totalGuardians = trips.reduce((sum, trip) => sum + trip.cantidad_apoderados, 0);
-  const totalStaff = trips.reduce((sum, trip) => sum + trip.funcionarios.length, 0);
+    return matchesRbd && matchesEstado && matchesFrom && matchesTo;
+  });
+  const schoolOptions = Array.from(new Map(trips.map((trip) => [trip.rbd, { rbd: trip.rbd, name: trip.school_name }])).values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "es"),
+  );
+
+  const totalTrips = filteredTrips.length;
+  const totalPassengers = filteredTrips.reduce((sum, trip) => sum + getTripPassengerTotals(trip).cantidadTotalPasajeros, 0);
+  const totalStudents = filteredTrips.reduce((sum, trip) => sum + trip.cantidad_estudiantes, 0);
+  const totalGuardians = filteredTrips.reduce((sum, trip) => sum + trip.cantidad_apoderados, 0);
+  const totalStaff = filteredTrips.reduce((sum, trip) => sum + trip.funcionarios.length, 0);
   const destinationCommunesCount = new Map<string, number>();
   const schoolTripCount = new Map<string, { schoolName: string; tripCount: number; passengers: number }>();
   const monthTripCount = new Map<string, number>();
   const statusCount = new Map<string, number>();
 
-  for (const trip of trips) {
+  for (const trip of filteredTrips) {
     const normalizedComuna = trip.lugar_comuna?.trim() || "Comuna no informada";
     destinationCommunesCount.set(normalizedComuna, (destinationCommunesCount.get(normalizedComuna) ?? 0) + 1);
 
@@ -72,14 +102,27 @@ export default async function AdminAnalyticsPage() {
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-8);
 
-  const maxCommuneCount = Math.max(...topCommunes.map((item) => item.count), 1);
-  const maxSchoolTripCount = Math.max(...topSchools.map((item) => item.tripCount), 1);
-  const maxMonthlyTripCount = Math.max(...monthlyTrips.map((item) => item.count), 1);
   const sentTrips = statusCount.get("enviada") ?? 0;
   const draftTrips = statusCount.get("borrador") ?? 0;
   const uniqueCommunes = destinationCommunesCount.size;
   const uniqueSchools = schoolTripCount.size;
   const averagePassengersPerTrip = totalTrips ? totalPassengers / totalTrips : 0;
+  const passengerCompositionData = [
+    { name: "Estudiantes", value: totalStudents },
+    { name: "Apoderados", value: totalGuardians },
+    { name: "Funcionarios", value: totalStaff },
+  ].filter((item) => item.value > 0);
+  const statusData = [
+    { name: "Enviadas", value: sentTrips },
+    { name: "Borradores", value: draftTrips },
+  ].filter((item) => item.value > 0);
+  const communeChartData = topCommunes.map((commune) => ({ comuna: commune.name, viajes: commune.count }));
+  const schoolChartData = topSchools.map((school) => ({
+    establecimiento: school.schoolName,
+    viajes: school.tripCount,
+    pasajeros: school.passengers,
+  }));
+  const monthlyTripsChartData = monthlyTrips.map((month) => ({ month: month.month, viajes: month.count }));
 
   await logAuditEvent({
     eventType: "page_view",
@@ -90,6 +133,10 @@ export default async function AdminAnalyticsPage() {
       totalTrips,
       uniqueCommunes,
       uniqueSchools,
+      from: filters.from ?? null,
+      to: filters.to ?? null,
+      rbd: filters.rbd ?? null,
+      estado: filters.estado,
     },
   });
 
@@ -111,6 +158,81 @@ export default async function AdminAnalyticsPage() {
             : "Aun no hay viajes visibles para construir una vista analitica en el panel administrativo."}
         </p>
       </aside>
+
+      <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Filtros analiticos</p>
+            <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Segmenta la lectura ejecutiva</h3>
+          </div>
+          <p className="text-sm leading-6 text-slate-500">La analitica se recalcula en servidor usando los mismos registros administrativos visibles.</p>
+        </div>
+
+        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(180px,0.8fr)_minmax(180px,0.8fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_auto_auto]">
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Desde</span>
+            <input
+              type="date"
+              name="from"
+              defaultValue={filters.from ?? ""}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Hasta</span>
+            <input
+              type="date"
+              name="to"
+              defaultValue={filters.to ?? ""}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Establecimiento</span>
+            <select
+              name="rbd"
+              defaultValue={filters.rbd ?? ""}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            >
+              <option value="">Todos los establecimientos</option>
+              {schoolOptions.map((option) => (
+                <option key={option.rbd} value={option.rbd}>
+                  {option.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Estado</span>
+            <select
+              name="estado"
+              defaultValue={filters.estado}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            >
+              <option value="all">Todos</option>
+              <option value="enviada">Enviada</option>
+              <option value="borrador">Borrador</option>
+            </select>
+          </label>
+
+          <button
+            type="submit"
+            className="inline-flex items-center justify-center self-end rounded-2xl bg-slep px-5 py-3 text-sm font-semibold text-white transition hover:bg-slep-dark"
+          >
+            Aplicar filtros
+          </button>
+
+          <Link
+            href="/panel/analitica"
+            className="inline-flex items-center justify-center self-end rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep"
+          >
+            Limpiar
+          </Link>
+        </form>
+      </article>
 
       <div className="grid gap-6 md:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
         <article className="portal-panel rounded-[28px] p-8">
@@ -141,71 +263,19 @@ export default async function AdminAnalyticsPage() {
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen analitico</p>
             <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Lectura transversal de respuestas y demanda</h3>
           </div>
-          <p className="text-sm leading-6 text-slate-500">Graficos construidos sobre las salidas administrativas visibles en tiempo real.</p>
+          <p className="text-sm leading-6 text-slate-500">Graficos interactivos construidos sobre las salidas administrativas visibles segun los filtros aplicados.</p>
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-3">
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
-            <p className="text-sm font-semibold text-slate-950">Composicion de pasajeros</p>
-            <p className="mt-1 text-sm text-slate-500">Distribucion acumulada por tipo de pasajero.</p>
-
-            <div className="mt-5 h-4 overflow-hidden rounded-full bg-white">
-              <div className="flex h-full w-full">
-                <div className="bg-slep" style={{ width: `${totalPassengers ? (totalStudents / totalPassengers) * 100 : 0}%` }} />
-                <div className="bg-amber-400" style={{ width: `${totalPassengers ? (totalGuardians / totalPassengers) * 100 : 0}%` }} />
-                <div className="bg-slate-700" style={{ width: `${totalPassengers ? (totalStaff / totalPassengers) * 100 : 0}%` }} />
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full bg-slep" />
-                  <span className="text-sm text-slate-700">Estudiantes</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-950">{formatCompactNumber(totalStudents)} ({formatPercent(totalStudents, totalPassengers)})</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full bg-amber-400" />
-                  <span className="text-sm text-slate-700">Apoderados</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-950">{formatCompactNumber(totalGuardians)} ({formatPercent(totalGuardians, totalPassengers)})</span>
-              </div>
-              <div className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3">
-                <div className="flex items-center gap-3">
-                  <span className="h-3 w-3 rounded-full bg-slate-700" />
-                  <span className="text-sm text-slate-700">Funcionarios</span>
-                </div>
-                <span className="text-sm font-semibold text-slate-950">{formatCompactNumber(totalStaff)} ({formatPercent(totalStaff, totalPassengers)})</span>
-              </div>
-            </div>
-          </section>
-
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
-            <p className="text-sm font-semibold text-slate-950">Estado de viajes</p>
-            <p className="mt-1 text-sm text-slate-500">Proporcion entre salidas enviadas y borradores.</p>
-
-            <div className="mt-5 h-4 overflow-hidden rounded-full bg-white">
-              <div className="flex h-full w-full">
-                <div className="bg-emerald-500" style={{ width: `${totalTrips ? (sentTrips / totalTrips) * 100 : 0}%` }} />
-                <div className="bg-amber-400" style={{ width: `${totalTrips ? (draftTrips / totalTrips) * 100 : 0}%` }} />
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Enviadas</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCompactNumber(sentTrips)}</p>
-                <p className="mt-1 text-sm text-slate-500">{formatPercent(sentTrips, totalTrips)} del total visible.</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">Borradores</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{formatCompactNumber(draftTrips)}</p>
-                <p className="mt-1 text-sm text-slate-500">{formatPercent(draftTrips, totalTrips)} del total visible.</p>
-              </div>
-            </div>
-          </section>
+          <AdminAnalyticsCharts
+            passengerCompositionData={passengerCompositionData}
+            statusData={statusData}
+            communeChartData={communeChartData}
+            schoolChartData={schoolChartData}
+            monthlyTripsChartData={monthlyTripsChartData}
+            totalPassengers={totalPassengers}
+            totalTrips={totalTrips}
+          />
 
           <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
             <p className="text-sm font-semibold text-slate-950">Indicadores rapidos</p>
@@ -230,107 +300,7 @@ export default async function AdminAnalyticsPage() {
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-2">
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-950">Viajes por escuela</p>
-                <p className="mt-1 text-sm text-slate-500">Ranking de establecimientos con mayor carga registrada.</p>
-              </div>
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 10</span>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {topSchools.length ? (
-                topSchools.map((school) => (
-                  <div key={school.rbd} className="rounded-2xl bg-white p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="font-semibold text-slate-950">{school.schoolName}</p>
-                        <p className="text-sm text-slate-500">RBD {school.rbd}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-lg font-semibold text-slate-950">{formatCompactNumber(school.tripCount)}</p>
-                        <p className="text-xs text-slate-500">viaje(s)</p>
-                      </div>
-                    </div>
-                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-slep" style={{ width: `${(school.tripCount / maxSchoolTripCount) * 100}%` }} />
-                    </div>
-                    <p className="mt-2 text-sm text-slate-500">{formatCompactNumber(school.passengers)} pasajero(s) acumulados.</p>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm leading-6 text-slate-500">
-                  Aun no hay salidas visibles para construir el ranking por establecimiento.
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-950">Comunas de destino</p>
-                <p className="mt-1 text-sm text-slate-500">Concentracion territorial de las salidas registradas.</p>
-              </div>
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {topCommunes.length ? (
-                topCommunes.map((commune) => (
-                  <div key={commune.name} className="rounded-2xl bg-white p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <p className="font-semibold text-slate-950">{commune.name}</p>
-                      <p className="text-sm font-semibold text-slate-700">{formatCompactNumber(commune.count)} viaje(s)</p>
-                    </div>
-                    <div className="mt-3 h-3 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-amber-400" style={{ width: `${(commune.count / maxCommuneCount) * 100}%` }} />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm leading-6 text-slate-500">
-                  Aun no hay comunas destino visibles para consolidar la distribucion territorial.
-                </div>
-              )}
-            </div>
-          </section>
-        </div>
-
         <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-950">Tendencia mensual de viajes</p>
-                <p className="mt-1 text-sm text-slate-500">Vista tipo columnas para los ultimos meses con actividad.</p>
-              </div>
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ultimos 8 meses</span>
-            </div>
-
-            <div className="mt-6 grid min-h-[18rem] grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8 xl:items-end">
-              {monthlyTrips.length ? (
-                monthlyTrips.map((month) => (
-                  <div key={month.month} className="flex h-full flex-col justify-end rounded-2xl bg-white p-4">
-                    <div className="flex min-h-[10rem] items-end justify-center">
-                      <div
-                        className="w-full rounded-t-[18px] bg-slep"
-                        style={{ height: `${Math.max((month.count / maxMonthlyTripCount) * 100, 12)}%` }}
-                      />
-                    </div>
-                    <p className="mt-4 text-center text-lg font-semibold text-slate-950">{formatCompactNumber(month.count)}</p>
-                    <p className="mt-1 text-center text-xs uppercase tracking-[0.14em] text-slate-500">{formatMonthLabel(month.month)}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-6 text-sm leading-6 text-slate-500">
-                  No hay suficiente historial para desplegar la tendencia mensual.
-                </div>
-              )}
-            </div>
-          </section>
-
           <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-end justify-between gap-3">
               <div>
