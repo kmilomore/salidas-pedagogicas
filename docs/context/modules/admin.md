@@ -63,6 +63,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Modal con detalle operativo, mapa, visor previo del PDF y decision administrativa persistente por salida.
 - Gráfico y KPI para revisar cuántas salidas están aceptadas, rechazadas o pendientes de revisión administrativa.
 - Tablas analíticas de escuelas aprobadas y rechazadas con copia masiva de correos visibles para notificación.
+- Acciones por fila en analítica para copiar los correos de una escuela específica y una plantilla de mensaje contextualizada según aprobación o rechazo.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
 - PDF por salida con QR, logo institucional y mapa estático.

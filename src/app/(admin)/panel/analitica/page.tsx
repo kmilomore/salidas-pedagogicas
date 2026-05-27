@@ -508,6 +508,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             emptyMessage="No hay escuelas con salidas aceptadas bajo los filtros actuales."
             badgeClassName="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800"
             badgeLabel={`${acceptedSchoolRows.length} escuela(s)`}
+            decisionType="aceptada"
             rows={acceptedSchoolRows}
           />
           <AdminDecisionSchoolsTable
@@ -516,6 +517,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             emptyMessage="No hay escuelas con salidas rechazadas bajo los filtros actuales."
             badgeClassName="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-800"
             badgeLabel={`${rejectedSchoolRows.length} escuela(s)`}
+            decisionType="rechazada"
             rows={rejectedSchoolRows}
           />
         </div>
