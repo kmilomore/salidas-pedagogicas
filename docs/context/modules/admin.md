@@ -22,15 +22,18 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 ## Flujo del módulo
 1. `/panel` obtiene el universo administrativo con `getAdminTrips()`.
 2. Aplica filtros en memoria por búsqueda, establecimiento y estado.
-3. Renderiza métricas, tabla y modal de detalle.
-4. Las exportaciones CSV y Excel respetan los filtros actuales.
-5. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-6. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-7. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+3. Renderiza métricas, tabla con scroll interno vertical y modal de detalle.
+4. Debajo de la tabla resume cobertura de respuesta usando como universo los directores con perfil activo y RBD asignado en la whitelist.
+5. Las exportaciones CSV y Excel respetan los filtros actuales.
+6. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+7. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+8. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
 - Filtros básicos por texto, RBD y estado.
+- Tabla administrativa con scroll interno para revisar registros sin desplazar toda la página.
+- Resumen de escuelas que respondieron y no respondieron, calculado sobre el universo de directores activos asociados por RBD.
 - Modal con detalle operativo, mapa y visor previo del PDF.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.

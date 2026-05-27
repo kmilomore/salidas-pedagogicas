@@ -41,7 +41,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
         </div>
 
         {trips.length ? (
-          <div className="portal-table__body">
+          <div className="portal-table__body max-h-[32rem] overflow-y-auto">
             {trips.map((trip) => {
               const { cantidadTotalPasajeros } = getTripPassengerTotals(trip);
 

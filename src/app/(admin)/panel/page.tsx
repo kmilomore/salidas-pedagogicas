@@ -4,6 +4,7 @@ import { logAuditEvent } from "@/lib/admin/audit";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
 import { filterTrips, getAdminTrips, serializeTripFilters } from "@/lib/admin/trips";
+import { getWhitelistUsers } from "@/lib/admin/whitelist";
 import type { TripQueryFilters } from "@/types";
 
 interface AdminPanelPageProps {
@@ -15,7 +16,7 @@ interface AdminPanelPageProps {
 }
 
 export default async function AdminPanelPage({ searchParams }: AdminPanelPageProps) {
-  const allTrips = await getAdminTrips();
+  const [allTrips, whitelistUsers] = await Promise.all([getAdminTrips(), getWhitelistUsers()]);
   const filters: TripQueryFilters = {
     search: searchParams?.search?.trim() || undefined,
     rbd: searchParams?.rbd?.trim() || undefined,
@@ -30,6 +31,37 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
   const totalDistance = trips.reduce((sum, trip) => sum + Number(trip.distancia_km ?? 0), 0);
+  const activeDirectorProfiles = whitelistUsers.filter((user) => user.rol === "director" && user.activo && user.rbd);
+  const directorCoverageBySchool = new Map<string, { rbd: string; schoolName: string; directors: string[] }>();
+
+  for (const director of activeDirectorProfiles) {
+    const rbd = director.rbd as string;
+    const currentEntry = directorCoverageBySchool.get(rbd);
+
+    if (currentEntry) {
+      currentEntry.directors.push(director.email);
+      continue;
+    }
+
+    directorCoverageBySchool.set(rbd, {
+      rbd,
+      schoolName: director.school_name ?? `RBD ${rbd}`,
+      directors: [director.email],
+    });
+  }
+
+  const respondedRbds = new Set(allTrips.map((trip) => trip.rbd));
+  const directorCoverage = Array.from(directorCoverageBySchool.values())
+    .map((school) => ({
+      ...school,
+      directors: school.directors.sort((a, b) => a.localeCompare(b, "es")),
+    }))
+    .sort((a, b) => a.schoolName.localeCompare(b.schoolName, "es"));
+  const respondedSchools = directorCoverage.filter((school) => respondedRbds.has(school.rbd));
+  const pendingSchools = directorCoverage.filter((school) => !respondedRbds.has(school.rbd));
+  const respondedDirectorCount = respondedSchools.reduce((sum, school) => sum + school.directors.length, 0);
+  const pendingDirectorCount = pendingSchools.reduce((sum, school) => sum + school.directors.length, 0);
+
   await logAuditEvent({
     eventType: "page_view",
     route: "/panel",
@@ -174,6 +206,92 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
         </form>
 
         <AdminTripsTable trips={trips} />
+
+        <section className="mt-8 grid gap-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1fr)]">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Cobertura de respuesta</p>
+            <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Directores activos asociados</h4>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Este resumen usa como universo los directores con perfil activo y RBD asignado en la whitelist. Una escuela cuenta como respondida si ya registra al menos una salida en el historial.
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Escuelas consideradas</p>
+                <p className="mt-2 text-2xl font-semibold text-slate-950">{directorCoverage.length}</p>
+                <p className="mt-1 text-sm text-slate-500">{activeDirectorProfiles.length} director(es) activos con RBD.</p>
+              </div>
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Respondieron</p>
+                <p className="mt-2 text-2xl font-semibold text-emerald-950">{respondedSchools.length}</p>
+                <p className="mt-1 text-sm text-emerald-800">{respondedDirectorCount} director(es) activos asociados a escuelas con carga.</p>
+              </div>
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">No respondieron</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-950">{pendingSchools.length}</p>
+                <p className="mt-1 text-sm text-amber-800">{pendingDirectorCount} director(es) activos siguen pendientes.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-emerald-200 bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Escuelas con respuesta</p>
+                <p className="text-sm text-slate-500">Directores activos asociados a escuelas que ya registraron salidas.</p>
+              </div>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                {respondedSchools.length}
+              </span>
+            </div>
+
+            <div className="mt-4 max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+              {respondedSchools.length ? (
+                respondedSchools.map((school) => (
+                  <article key={school.rbd} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                    <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{school.directors.join(", ")}</p>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-6 text-sm leading-6 text-slate-500">
+                  No hay escuelas respondidas dentro del universo actual de directores activos.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-amber-200 bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Escuelas sin respuesta</p>
+                <p className="text-sm text-slate-500">Directores activos asociados a escuelas que aun no registran salidas.</p>
+              </div>
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
+                {pendingSchools.length}
+              </span>
+            </div>
+
+            <div className="mt-4 max-h-[22rem] space-y-3 overflow-y-auto pr-1">
+              {pendingSchools.length ? (
+                pendingSchools.map((school) => (
+                  <article key={school.rbd} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                    <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
+                    <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">{school.directors.join(", ")}</p>
+                  </article>
+                ))
+              ) : (
+                <div className="rounded-2xl border border-dashed border-emerald-300 bg-emerald-50 px-4 py-6 text-sm leading-6 text-emerald-800">
+                  Todas las escuelas con director activo ya registran al menos una salida.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
       </article>
     </section>
   );
