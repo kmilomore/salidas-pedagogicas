@@ -22,8 +22,9 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Muestra la distribución entre viajes enviados y borradores con gráfico interactivo.
 - Destaca indicadores rápidos como promedio de pasajeros por viaje, escuela con mayor carga y comuna más frecuente.
 - Presenta ranking gráfico interactivo de viajes por escuela y de comunas de destino.
+- Agrega gráficos específicos para regiones más visitadas y lugares más visitados.
 - Incluye una vista de tendencia mensual interactiva para los últimos meses con actividad.
-- Cierra con una tabla de viajes por escuela con conteo y pasajeros acumulados.
+- Cierra con una tabla de viajes por escuela a ancho completo, con conteo y pasajeros acumulados.
 - Usa un loader contextual mientras se consolidan las métricas.
 
 ## Dependencias

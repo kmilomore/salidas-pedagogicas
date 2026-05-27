@@ -54,13 +54,30 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
   const totalGuardians = filteredTrips.reduce((sum, trip) => sum + trip.cantidad_apoderados, 0);
   const totalStaff = filteredTrips.reduce((sum, trip) => sum + trip.funcionarios.length, 0);
   const destinationCommunesCount = new Map<string, number>();
+  const destinationRegionsCount = new Map<string, number>();
+  const destinationPlacesCount = new Map<string, { name: string; region: string; count: number }>();
   const schoolTripCount = new Map<string, { schoolName: string; tripCount: number; passengers: number }>();
   const monthTripCount = new Map<string, number>();
   const statusCount = new Map<string, number>();
 
   for (const trip of filteredTrips) {
     const normalizedComuna = trip.lugar_comuna?.trim() || "Comuna no informada";
+    const normalizedRegion = trip.lugar_region?.trim() || "Region no informada";
+    const normalizedPlace = trip.lugar_nombre?.trim() || "Lugar no informado";
     destinationCommunesCount.set(normalizedComuna, (destinationCommunesCount.get(normalizedComuna) ?? 0) + 1);
+    destinationRegionsCount.set(normalizedRegion, (destinationRegionsCount.get(normalizedRegion) ?? 0) + 1);
+
+    const currentPlace = destinationPlacesCount.get(normalizedPlace);
+
+    if (currentPlace) {
+      currentPlace.count += 1;
+    } else {
+      destinationPlacesCount.set(normalizedPlace, {
+        name: normalizedPlace,
+        region: normalizedRegion,
+        count: 1,
+      });
+    }
 
     const currentSchool = schoolTripCount.get(trip.rbd);
     const tripPassengers = getTripPassengerTotals(trip).cantidadTotalPasajeros;
@@ -83,6 +100,13 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
 
   const topCommunes = Array.from(destinationCommunesCount.entries())
     .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"))
+    .slice(0, 8);
+  const topRegions = Array.from(destinationRegionsCount.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"))
+    .slice(0, 8);
+  const topPlaces = Array.from(destinationPlacesCount.values())
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"))
     .slice(0, 8);
   const topSchools = Array.from(schoolTripCount.entries())
@@ -109,6 +133,8 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
     { name: "Borradores", value: draftTrips },
   ].filter((item) => item.value > 0);
   const communeChartData = topCommunes.map((commune) => ({ comuna: commune.name, viajes: commune.count }));
+  const regionChartData = topRegions.map((region) => ({ region: region.name, viajes: region.count }));
+  const placeChartData = topPlaces.map((place) => ({ lugar: place.name, region: place.region, viajes: place.count }));
   const schoolChartData = topSchools.map((school) => ({
     establecimiento: school.schoolName,
     viajes: school.tripCount,
@@ -263,6 +289,8 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             passengerCompositionData={passengerCompositionData}
             statusData={statusData}
             communeChartData={communeChartData}
+            regionChartData={regionChartData}
+            placeChartData={placeChartData}
             schoolChartData={schoolChartData}
             monthlyTripsChartData={monthlyTripsChartData}
             totalPassengers={totalPassengers}
@@ -288,49 +316,59 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
                 <p className="mt-2 text-lg font-semibold text-slate-950">{topCommunes[0]?.name ?? "Sin datos"}</p>
                 <p className="mt-1 text-sm text-slate-500">{topCommunes[0] ? `${formatCompactNumber(topCommunes[0].count)} viaje(s)` : "No hay destinos visibles aun."}</p>
               </div>
+              <div className="rounded-2xl bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Region mas visitada</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">{topRegions[0]?.name ?? "Sin datos"}</p>
+                <p className="mt-1 text-sm text-slate-500">{topRegions[0] ? `${formatCompactNumber(topRegions[0].count)} viaje(s)` : "No hay regiones visibles aun."}</p>
+              </div>
+              <div className="rounded-2xl bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Lugar mas visitado</p>
+                <p className="mt-2 text-lg font-semibold text-slate-950">{topPlaces[0]?.name ?? "Sin datos"}</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {topPlaces[0] ? `${formatCompactNumber(topPlaces[0].count)} viaje(s) • ${topPlaces[0].region}` : "No hay lugares visibles aun."}
+                </p>
+              </div>
             </div>
           </section>
         </div>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-slate-950">Viajes por escuela</p>
-                <p className="mt-1 text-sm text-slate-500">Tabla resumen de conteo y pasajeros.</p>
-              </div>
+        <section className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">Viajes por escuela</p>
+              <p className="mt-1 text-sm text-slate-500">Tabla resumen de conteo y pasajeros.</p>
+            </div>
+          </div>
+
+          <div className="portal-table mt-5">
+            <div className="portal-table__head grid min-w-[780px] grid-cols-[1.4fr_0.55fr_0.55fr] gap-4 px-5 py-4">
+              <span>Establecimiento</span>
+              <span>Viajes</span>
+              <span>Pasajeros</span>
             </div>
 
-            <div className="portal-table mt-5">
-              <div className="portal-table__head grid min-w-[640px] grid-cols-[1.1fr_0.45fr_0.45fr] gap-4 px-5 py-4">
-                <span>Establecimiento</span>
-                <span>Viajes</span>
-                <span>Pasajeros</span>
-              </div>
-
-              {topSchools.length ? (
-                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
-                  {topSchools.map((school) => (
-                    <div key={school.rbd} className="grid min-w-[640px] grid-cols-[1.1fr_0.45fr_0.45fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
-                      <div>
-                        <p className="font-semibold text-slate-950">{school.schoolName}</p>
-                        <p className="text-slate-500">RBD {school.rbd}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-950">{formatCompactNumber(school.tripCount)}</p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-slate-950">{formatCompactNumber(school.passengers)}</p>
-                      </div>
+            {topSchools.length ? (
+              <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                {topSchools.map((school) => (
+                  <div key={school.rbd} className="grid min-w-[780px] grid-cols-[1.4fr_0.55fr_0.55fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                    <div>
+                      <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      <p className="text-slate-500">RBD {school.rbd}</p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="portal-table__empty">Aun no hay viajes visibles para construir el resumen por establecimiento.</div>
-              )}
-            </div>
-          </section>
-        </div>
+                    <div>
+                      <p className="font-medium text-slate-950">{formatCompactNumber(school.tripCount)}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-950">{formatCompactNumber(school.passengers)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="portal-table__empty">Aun no hay viajes visibles para construir el resumen por establecimiento.</div>
+            )}
+          </div>
+        </section>
       </article>
     </section>
   );

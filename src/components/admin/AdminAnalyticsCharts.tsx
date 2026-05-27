@@ -24,6 +24,17 @@ interface CommuneChartDatum {
   viajes: number;
 }
 
+interface RegionChartDatum {
+  region: string;
+  viajes: number;
+}
+
+interface PlaceChartDatum {
+  lugar: string;
+  region: string;
+  viajes: number;
+}
+
 interface SchoolChartDatum {
   establecimiento: string;
   viajes: number;
@@ -39,6 +50,8 @@ interface AdminAnalyticsChartsProps {
   passengerCompositionData: ChartDatum[];
   statusData: ChartDatum[];
   communeChartData: CommuneChartDatum[];
+  regionChartData: RegionChartDatum[];
+  placeChartData: PlaceChartDatum[];
   schoolChartData: SchoolChartDatum[];
   monthlyTripsChartData: MonthlyTripChartDatum[];
   totalPassengers: number;
@@ -74,6 +87,8 @@ export default function AdminAnalyticsCharts({
   passengerCompositionData,
   statusData,
   communeChartData,
+  regionChartData,
+  placeChartData,
   schoolChartData,
   monthlyTripsChartData,
   totalPassengers,
@@ -201,6 +216,58 @@ export default function AdminAnalyticsCharts({
             </ResponsiveContainer>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay comunas visibles para graficar.</div>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">Regiones mas visitadas</p>
+            <p className="mt-1 text-sm text-slate-500">Distribucion territorial por region de destino.</p>
+          </div>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
+        </div>
+
+        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+          {regionChartData.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={regionChartData} layout="vertical" margin={{ top: 10, right: 12, left: 16, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis type="category" dataKey="region" width={110} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={formatTooltipValue} />
+                <Bar dataKey="viajes" name="Viajes" fill="#0f766e" radius={[0, 10, 10, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay regiones visibles para graficar.</div>
+          )}
+        </div>
+      </section>
+
+      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-2">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">Lugares mas visitados</p>
+            <p className="mt-1 text-sm text-slate-500">Destinos especificos con mayor recurrencia en el historial visible.</p>
+          </div>
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
+        </div>
+
+        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+          {placeChartData.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={placeChartData} margin={{ top: 10, right: 12, left: 0, bottom: 56 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="lugar" angle={-25} textAnchor="end" height={70} interval={0} tick={{ fontSize: 11 }} />
+                <YAxis allowDecimals={false} />
+                <Tooltip formatter={formatTooltipValue} labelFormatter={(label) => String(label)} />
+                <Bar dataKey="viajes" name="Viajes" fill="#7c3aed" radius={[10, 10, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay lugares visibles para graficar.</div>
           )}
         </div>
       </section>

@@ -47,7 +47,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Cobertura calculada sobre el universo de directores activos asociados por RBD en `whitelist_usuarios`.
 - Página analítica separada accesible desde el menú superior del shell admin.
 - Filtros analíticos por fecha desde/hasta, establecimiento y estado del viaje.
-- Gráficos interactivos y rankings para viajes totales, pasajeros acumulados, comunas de destino, estados de viaje y viajes por escuela.
+- Gráficos interactivos y rankings para viajes totales, pasajeros acumulados, comunas de destino, regiones más visitadas, lugares más visitados, estados de viaje y viajes por escuela.
 - Modal con detalle operativo, mapa y visor previo del PDF.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
