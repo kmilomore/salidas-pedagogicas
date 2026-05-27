@@ -18,14 +18,6 @@ function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
 }
 
-function formatPercent(value: number, total: number) {
-  if (!total) {
-    return "0%";
-  }
-
-  return `${Math.round((value / total) * 100)}%`;
-}
-
 function normalizeDateParam(value?: string) {
   const normalized = value?.trim();
 
