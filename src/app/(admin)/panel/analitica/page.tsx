@@ -322,6 +322,45 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Indicadores rapidos</p>
+            <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Referencias operativas del universo administrativo</h3>
+          </div>
+          <p className="text-sm leading-6 text-slate-500">Lectura resumida de los hitos mas representativos segun los filtros aplicados.</p>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Promedio pasajeros por viaje</p>
+            <p className="mt-4 text-3xl font-semibold text-slate-950">{averagePassengersPerTrip.toFixed(1)}</p>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Escuela con mas viajes</p>
+            <p className="mt-4 text-lg font-semibold text-slate-950">{topSchools[0]?.schoolName ?? "Sin datos"}</p>
+            <p className="mt-2 text-sm text-slate-500">{topSchools[0] ? `${formatCompactNumber(topSchools[0].tripCount)} viaje(s)` : "No hay registros para comparar."}</p>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Comuna de destino mas frecuente</p>
+            <p className="mt-4 text-lg font-semibold text-slate-950">{topCommunes[0]?.name ?? "Sin datos"}</p>
+            <p className="mt-2 text-sm text-slate-500">{topCommunes[0] ? `${formatCompactNumber(topCommunes[0].count)} viaje(s)` : "No hay destinos visibles aun."}</p>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Region mas visitada</p>
+            <p className="mt-4 text-lg font-semibold text-slate-950">{topRegions[0]?.name ?? "Sin datos"}</p>
+            <p className="mt-2 text-sm text-slate-500">{topRegions[0] ? `${formatCompactNumber(topRegions[0].count)} viaje(s)` : "No hay regiones visibles aun."}</p>
+          </div>
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Lugar mas visitado</p>
+            <p className="mt-4 text-lg font-semibold text-slate-950">{topPlaces[0]?.name ?? "Sin datos"}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {topPlaces[0] ? `${formatCompactNumber(topPlaces[0].count)} viaje(s) • ${topPlaces[0].region}` : "No hay lugares visibles aun."}
+            </p>
+          </div>
+        </div>
+      </article>
+
+      <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen analitico</p>
             <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Lectura transversal de respuestas y demanda</h3>
           </div>
@@ -340,40 +379,6 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             totalPassengers={totalPassengers}
             totalTrips={totalTrips}
           />
-
-          <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
-            <p className="text-sm font-semibold text-slate-950">Indicadores rapidos</p>
-            <p className="mt-1 text-sm text-slate-500">Referencias operativas del universo administrativo actual.</p>
-
-            <div className="mt-5 space-y-3">
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Promedio pasajeros por viaje</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">{averagePassengersPerTrip.toFixed(1)}</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Escuela con mas viajes</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950">{topSchools[0]?.schoolName ?? "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-500">{topSchools[0] ? `${formatCompactNumber(topSchools[0].tripCount)} viaje(s)` : "No hay registros para comparar."}</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Comuna de destino mas frecuente</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950">{topCommunes[0]?.name ?? "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-500">{topCommunes[0] ? `${formatCompactNumber(topCommunes[0].count)} viaje(s)` : "No hay destinos visibles aun."}</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Region mas visitada</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950">{topRegions[0]?.name ?? "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-500">{topRegions[0] ? `${formatCompactNumber(topRegions[0].count)} viaje(s)` : "No hay regiones visibles aun."}</p>
-              </div>
-              <div className="rounded-2xl bg-white p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Lugar mas visitado</p>
-                <p className="mt-2 text-lg font-semibold text-slate-950">{topPlaces[0]?.name ?? "Sin datos"}</p>
-                <p className="mt-1 text-sm text-slate-500">
-                  {topPlaces[0] ? `${formatCompactNumber(topPlaces[0].count)} viaje(s) • ${topPlaces[0].region}` : "No hay lugares visibles aun."}
-                </p>
-              </div>
-            </div>
-          </section>
         </div>
 
         <section className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
