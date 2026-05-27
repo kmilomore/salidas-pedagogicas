@@ -52,6 +52,15 @@ function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
 }
 
+function formatTooltipValue(value: number | string | ReadonlyArray<number | string> | undefined) {
+  if (Array.isArray(value)) {
+    return value.join(", ");
+  }
+
+  const normalized = typeof value === "number" ? value : Number(value ?? 0);
+  return formatCompactNumber(Number.isFinite(normalized) ? normalized : 0);
+}
+
 function formatMonthLabel(monthKey: string) {
   const [year, month] = monthKey.split("-").map(Number);
 
@@ -85,7 +94,7 @@ export default function AdminAnalyticsCharts({
                     <Cell key={entry.name} fill={passengerColors[index % passengerColors.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCompactNumber(value)} />
+                <Tooltip formatter={formatTooltipValue} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
             </ResponsiveContainer>
@@ -120,7 +129,7 @@ export default function AdminAnalyticsCharts({
                     <Cell key={entry.name} fill={statusColors[index % statusColors.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCompactNumber(value)} />
+                <Tooltip formatter={formatTooltipValue} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
             </ResponsiveContainer>
@@ -158,7 +167,7 @@ export default function AdminAnalyticsCharts({
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="establecimiento" angle={-25} textAnchor="end" height={70} interval={0} tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} />
-                <Tooltip formatter={(value: number) => formatCompactNumber(value)} />
+                <Tooltip formatter={formatTooltipValue} />
                 <Legend />
                 <Bar dataKey="viajes" name="Viajes" fill="#005f73" radius={[10, 10, 0, 0]} />
                 <Bar dataKey="pasajeros" name="Pasajeros" fill="#94a3b8" radius={[10, 10, 0, 0]} />
@@ -186,7 +195,7 @@ export default function AdminAnalyticsCharts({
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis type="category" dataKey="comuna" width={90} tick={{ fontSize: 11 }} />
-                <Tooltip formatter={(value: number) => formatCompactNumber(value)} />
+                <Tooltip formatter={formatTooltipValue} />
                 <Bar dataKey="viajes" name="Viajes" fill="#ee9b00" radius={[0, 10, 10, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -212,7 +221,7 @@ export default function AdminAnalyticsCharts({
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickFormatter={formatMonthLabel} tick={{ fontSize: 11 }} />
                 <YAxis allowDecimals={false} />
-                <Tooltip labelFormatter={(label) => formatMonthLabel(String(label))} formatter={(value: number) => formatCompactNumber(value)} />
+                <Tooltip labelFormatter={(label) => formatMonthLabel(String(label))} formatter={formatTooltipValue} />
                 <Bar dataKey="viajes" name="Viajes" fill="#005f73" radius={[12, 12, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

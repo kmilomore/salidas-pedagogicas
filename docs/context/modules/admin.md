@@ -7,6 +7,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - `src/app/(admin)/panel/page.tsx`
 - `src/app/(admin)/panel/analitica/page.tsx`
 - `src/app/(admin)/panel/analitica/loading.tsx`
+- `src/components/admin/AdminAnalyticsCharts.tsx`
 - `src/app/(admin)/panel/whitelist/page.tsx`
 - `src/components/admin/AdminTripsTable.tsx`
 - `src/components/admin/DetalleSalida.tsx`
@@ -30,10 +31,12 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 6. Luego desglosa escuelas con respuesta y sin respuesta en tablas independientes con establecimiento, RBD y directores activos asociados.
 7. Las exportaciones CSV y Excel respetan los filtros actuales.
 8. `/panel/analitica` reutiliza `getAdminTrips()` para consolidar métricas, rankings y gráficos de pasajeros, comunas destino, viajes totales y viajes por establecimiento.
-9. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
-10. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-11. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-12. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+9. La analítica admite filtros server-side por rango de fechas, establecimiento y estado del viaje.
+10. Los gráficos principales de la analítica se renderizan con una librería dedicada (`recharts`) en un componente cliente desacoplado de la agregación server-side.
+11. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
+12. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+13. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+14. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
@@ -43,7 +46,8 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Tablas separadas para escuelas que respondieron y escuelas que no respondieron.
 - Cobertura calculada sobre el universo de directores activos asociados por RBD en `whitelist_usuarios`.
 - Página analítica separada accesible desde el menú superior del shell admin.
-- Gráficos y rankings para viajes totales, pasajeros acumulados, comunas de destino, estados de viaje y viajes por escuela.
+- Filtros analíticos por fecha desde/hasta, establecimiento y estado del viaje.
+- Gráficos interactivos y rankings para viajes totales, pasajeros acumulados, comunas de destino, estados de viaje y viajes por escuela.
 - Modal con detalle operativo, mapa y visor previo del PDF.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
