@@ -23,17 +23,21 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 1. `/panel` obtiene el universo administrativo con `getAdminTrips()`.
 2. Aplica filtros en memoria por búsqueda, establecimiento y estado.
 3. Renderiza métricas, tabla con scroll interno vertical y modal de detalle.
-4. Debajo de la tabla resume cobertura de respuesta usando como universo los directores con perfil activo y RBD asignado en la whitelist.
-5. Las exportaciones CSV y Excel respetan los filtros actuales.
-6. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-7. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-8. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+4. Debajo de la tabla muestra un bloque de cobertura de respuesta apilado verticalmente.
+5. Ese bloque usa KPI en columnas para escuelas consideradas, escuelas que respondieron y escuelas que no respondieron.
+6. Luego desglosa escuelas con respuesta y sin respuesta en tablas independientes con establecimiento, RBD y directores activos asociados.
+7. Las exportaciones CSV y Excel respetan los filtros actuales.
+8. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+9. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+10. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
 - Filtros básicos por texto, RBD y estado.
 - Tabla administrativa con scroll interno para revisar registros sin desplazar toda la página.
-- Resumen de escuelas que respondieron y no respondieron, calculado sobre el universo de directores activos asociados por RBD.
+- Bloque de cobertura de respuesta apilado bajo la tabla principal, con KPI superiores en columnas.
+- Tablas separadas para escuelas que respondieron y escuelas que no respondieron.
+- Cobertura calculada sobre el universo de directores activos asociados por RBD en `whitelist_usuarios`.
 - Modal con detalle operativo, mapa y visor previo del PDF.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
