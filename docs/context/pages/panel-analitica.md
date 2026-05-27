@@ -23,6 +23,8 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Resume la composición de pasajeros entre estudiantes, apoderados y funcionarios con gráfico interactivo.
 - Muestra la distribución entre viajes enviados y borradores con gráfico interactivo.
 - Muestra la distribución entre salidas aceptadas, rechazadas y pendientes con gráfico interactivo adicional.
+- Incluye dos tablas operativas para escuelas aprobadas y rechazadas con RBD, nombre de directora(o), correo del establecimiento/directora y cantidad de salidas asociadas.
+- Cada una de esas tablas permite copiar en bloque todos los correos visibles para comunicar aceptación o rechazo a las escuelas afectadas.
 - Destaca indicadores rápidos como promedio de pasajeros por viaje, escuela con mayor carga y comuna más frecuente.
 - Presenta ranking gráfico interactivo de viajes por escuela y de comunas de destino.
 - Agrega gráficos específicos para regiones más visitadas y lugares más visitados.

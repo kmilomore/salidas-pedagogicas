@@ -40,10 +40,11 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 13. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
 14. El modal de detalle administrativo permite persistir dos decisiones sobre cada salida: `monto_referencial` y `decision_admin` (`pendiente`, `aceptada`, `rechazada`).
 15. La analítica ahora consolida también la distribución de decisiones administrativas y KPI separados para salidas aceptadas y rechazadas.
-16. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
-17. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-18. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-19. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+16. La analítica agrega tablas de escuelas aprobadas y rechazadas con directora(o), correo de contacto y botón de copia masiva de correos para comunicación operativa.
+17. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
+18. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+19. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+20. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
@@ -61,6 +62,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Explorador interactivo de viajes por escuela con tabla clickeable y listado de salidas asociadas por establecimiento.
 - Modal con detalle operativo, mapa, visor previo del PDF y decision administrativa persistente por salida.
 - Gráfico y KPI para revisar cuántas salidas están aceptadas, rechazadas o pendientes de revisión administrativa.
+- Tablas analíticas de escuelas aprobadas y rechazadas con copia masiva de correos visibles para notificación.
 - Exportación CSV.
 - Exportación Excel con hoja de salidas y hoja de funcionarios.
 - PDF por salida con QR, logo institucional y mapa estático.

@@ -1,12 +1,14 @@
 import Link from "next/link";
 
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
+import AdminDecisionSchoolsTable from "@/components/admin/AdminDecisionSchoolsTable";
 import AdminSchoolTripsExplorer from "@/components/admin/AdminSchoolTripsExplorer";
 import { logAuditEvent } from "@/lib/admin/audit";
+import { createAdminClient } from "@/lib/supabase/server";
 import { normalizeSingleLineText } from "@/lib/input-normalization";
 import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
-import type { TripQueryFilters } from "@/types";
+import type { SchoolRecord, TripQueryFilters } from "@/types";
 
 interface AdminAnalyticsPageProps {
   searchParams?: {
@@ -75,6 +77,46 @@ function normalizeRegionLabel(value?: string) {
   return normalized;
 }
 
+interface DecisionSchoolRow {
+  rbd: string;
+  schoolName: string;
+  directorName: string;
+  emails: string[];
+  tripCount: number;
+}
+
+function buildDecisionSchoolRows(
+  trips: Awaited<ReturnType<typeof getAdminTrips>>,
+  decision: "aceptada" | "rechazada",
+  schoolContacts: Map<string, { directorName: string; emails: string[] }>,
+) {
+  const groupedSchools = new Map<string, DecisionSchoolRow>();
+
+  for (const trip of trips) {
+    if (trip.decision_admin !== decision) {
+      continue;
+    }
+
+    const current = groupedSchools.get(trip.rbd);
+    const schoolContact = schoolContacts.get(trip.rbd);
+
+    if (current) {
+      current.tripCount += 1;
+      continue;
+    }
+
+    groupedSchools.set(trip.rbd, {
+      rbd: trip.rbd,
+      schoolName: trip.school_name,
+      directorName: schoolContact?.directorName ?? "",
+      emails: schoolContact?.emails ?? [],
+      tripCount: 1,
+    });
+  }
+
+  return Array.from(groupedSchools.values()).sort((a, b) => b.tripCount - a.tripCount || a.schoolName.localeCompare(b.schoolName, "es"));
+}
+
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
   const trips = await getAdminTrips();
   const filters: {
@@ -104,9 +146,35 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
 
     return matchesFrom && matchesTo;
   });
+  const analyticsRbds = Array.from(new Set(filteredTrips.map((trip) => trip.rbd)));
   const schoolOptions = Array.from(new Map(trips.map((trip) => [trip.rbd, { rbd: trip.rbd, name: trip.school_name }])).values()).sort((a, b) =>
     a.name.localeCompare(b.name, "es"),
   );
+
+  const schoolContacts = new Map<string, { directorName: string; emails: string[] }>();
+
+  if (analyticsRbds.length) {
+    const adminClient = createAdminClient();
+    const { data: schoolRows } = await adminClient
+      .from("BASE DE DATOS ESCUELAS SLEP")
+      .select('RBD,"DIRECTOR/A","CORREO ELECTRÓNICO"')
+      .in("RBD", analyticsRbds)
+      .returns<Pick<SchoolRecord, "RBD" | "DIRECTOR/A" | "CORREO ELECTRÓNICO">[]>();
+
+    for (const row of schoolRows ?? []) {
+      const rbd = row.RBD?.trim();
+
+      if (!rbd) {
+        continue;
+      }
+
+      const email = row["CORREO ELECTRÓNICO"]?.trim();
+      schoolContacts.set(rbd, {
+        directorName: row["DIRECTOR/A"]?.trim() ?? "",
+        emails: email ? [email] : [],
+      });
+    }
+  }
 
   const totalTrips = filteredTrips.length;
   const totalPassengers = filteredTrips.reduce((sum, trip) => sum + getTripPassengerTotals(trip).cantidadTotalPasajeros, 0);
@@ -200,6 +268,8 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
     { name: "Rechazadas", value: rejectedTrips },
     { name: "Pendientes", value: pendingAdminTrips },
   ].filter((item) => item.value > 0);
+  const acceptedSchoolRows = buildDecisionSchoolRows(filteredTrips, "aceptada", schoolContacts);
+  const rejectedSchoolRows = buildDecisionSchoolRows(filteredTrips, "rechazada", schoolContacts);
   const communeChartData = topCommunes.map((commune) => ({ comuna: commune.name, viajes: commune.count }));
   const regionChartData = topRegions.map((region) => ({ region: region.name, viajes: region.count }));
   const placeChartData = topPlaces.map((place) => ({ lugar: place.name, region: place.region, viajes: place.count }));
@@ -428,6 +498,25 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             monthlyTripsChartData={monthlyTripsChartData}
             totalPassengers={totalPassengers}
             totalTrips={totalTrips}
+          />
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-2">
+          <AdminDecisionSchoolsTable
+            title="Escuelas aprobadas"
+            description="Escuelas con al menos una salida aceptada dentro del universo analitico visible."
+            emptyMessage="No hay escuelas con salidas aceptadas bajo los filtros actuales."
+            badgeClassName="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800"
+            badgeLabel={`${acceptedSchoolRows.length} escuela(s)`}
+            rows={acceptedSchoolRows}
+          />
+          <AdminDecisionSchoolsTable
+            title="Escuelas rechazadas"
+            description="Escuelas con al menos una salida rechazada para comunicar observaciones o resultado administrativo."
+            emptyMessage="No hay escuelas con salidas rechazadas bajo los filtros actuales."
+            badgeClassName="rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-rose-800"
+            badgeLabel={`${rejectedSchoolRows.length} escuela(s)`}
+            rows={rejectedSchoolRows}
           />
         </div>
 
