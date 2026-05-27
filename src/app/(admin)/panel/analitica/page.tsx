@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
+import AdminSchoolTripsExplorer from "@/components/admin/AdminSchoolTripsExplorer";
 import { logAuditEvent } from "@/lib/admin/audit";
 import { normalizeSingleLineText } from "@/lib/input-normalization";
 import { getAdminTrips } from "@/lib/admin/trips";
@@ -381,43 +382,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           />
         </div>
 
-        <section className="mt-6 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-slate-950">Viajes por escuela</p>
-              <p className="mt-1 text-sm text-slate-500">Tabla resumen de conteo y pasajeros.</p>
-            </div>
-          </div>
-
-          <div className="portal-table mt-5">
-            <div className="portal-table__head grid min-w-[780px] grid-cols-[1.4fr_0.55fr_0.55fr] gap-4 px-5 py-4">
-              <span>Establecimiento</span>
-              <span>Viajes</span>
-              <span>Pasajeros</span>
-            </div>
-
-            {topSchools.length ? (
-              <div className="portal-table__body max-h-[22rem] overflow-y-auto">
-                {topSchools.map((school) => (
-                  <div key={school.rbd} className="grid min-w-[780px] grid-cols-[1.4fr_0.55fr_0.55fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
-                    <div>
-                      <p className="font-semibold text-slate-950">{school.schoolName}</p>
-                      <p className="text-slate-500">RBD {school.rbd}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-950">{formatCompactNumber(school.tripCount)}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-slate-950">{formatCompactNumber(school.passengers)}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="portal-table__empty">Aun no hay viajes visibles para construir el resumen por establecimiento.</div>
-            )}
-          </div>
-        </section>
+        <AdminSchoolTripsExplorer trips={filteredTrips} topSchools={topSchools} />
       </article>
     </section>
   );
