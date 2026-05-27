@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import { logAuditEvent } from "@/lib/admin/audit";
+import { normalizeSingleLineText } from "@/lib/input-normalization";
 import { getAdminTrips } from "@/lib/admin/trips";
 import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 
@@ -23,6 +24,49 @@ function normalizeDateParam(value?: string) {
 
   if (!normalized || !/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
     return undefined;
+  }
+
+  return normalized;
+}
+
+function normalizeRegionLabel(value?: string) {
+  const normalized = normalizeSingleLineText(value ?? "");
+
+  if (!normalized) {
+    return "Region no informada";
+  }
+
+  const simplified = normalized
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\b(region|region of|region de|regio?n)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const regionAliases = [
+    { label: "Arica y Parinacota", aliases: ["arica y parinacota"] },
+    { label: "Tarapaca", aliases: ["tarapaca"] },
+    { label: "Antofagasta", aliases: ["antofagasta"] },
+    { label: "Atacama", aliases: ["atacama"] },
+    { label: "Coquimbo", aliases: ["coquimbo"] },
+    { label: "Valparaiso", aliases: ["valparaiso"] },
+    { label: "Metropolitana", aliases: ["metropolitana", "metropolitana de santiago", "santiago metropolitan"] },
+    { label: "O'Higgins", aliases: ["o higgins", "ohiggins", "libertador bernardo ohiggins", "bernardo ohiggins"] },
+    { label: "Maule", aliases: ["maule"] },
+    { label: "Nuble", aliases: ["nuble", "ñuble"] },
+    { label: "Biobio", aliases: ["biobio", "bio bio"] },
+    { label: "La Araucania", aliases: ["araucania", "la araucania"] },
+    { label: "Los Rios", aliases: ["los rios"] },
+    { label: "Los Lagos", aliases: ["los lagos"] },
+    { label: "Aysen", aliases: ["aysen", "aisen", "aysen del general carlos ibanez del campo"] },
+    { label: "Magallanes", aliases: ["magallanes", "magallanes y de la antartica chilena"] },
+  ];
+
+  for (const region of regionAliases) {
+    if (region.aliases.some((alias) => simplified.includes(alias))) {
+      return region.label;
+    }
   }
 
   return normalized;
@@ -62,7 +106,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
 
   for (const trip of filteredTrips) {
     const normalizedComuna = trip.lugar_comuna?.trim() || "Comuna no informada";
-    const normalizedRegion = trip.lugar_region?.trim() || "Region no informada";
+    const normalizedRegion = normalizeRegionLabel(trip.lugar_region);
     const normalizedPlace = trip.lugar_nombre?.trim() || "Lugar no informado";
     destinationCommunesCount.set(normalizedComuna, (destinationCommunesCount.get(normalizedComuna) ?? 0) + 1);
     destinationRegionsCount.set(normalizedRegion, (destinationRegionsCount.get(normalizedRegion) ?? 0) + 1);
