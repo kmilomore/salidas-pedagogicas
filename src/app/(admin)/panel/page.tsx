@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { logAuditEvent } from "@/lib/admin/audit";
+import { PERMITTED_DIRECTOR_EMAIL_SET } from "@/lib/admin/permitted-directors";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
 import { filterTrips, getAdminTrips, serializeTripFilters } from "@/lib/admin/trips";
@@ -31,10 +32,12 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
   const totalDistance = trips.reduce((sum, trip) => sum + Number(trip.distancia_km ?? 0), 0);
-  const activeDirectorProfiles = whitelistUsers.filter((user) => user.rol === "director" && user.activo && user.rbd);
+  const expectedDirectorProfiles = whitelistUsers.filter(
+    (user) => user.rol === "director" && user.rbd && PERMITTED_DIRECTOR_EMAIL_SET.has(user.email.trim().toLowerCase()),
+  );
   const directorCoverageBySchool = new Map<string, { rbd: string; schoolName: string; directors: string[] }>();
 
-  for (const director of activeDirectorProfiles) {
+  for (const director of expectedDirectorProfiles) {
     const rbd = director.rbd as string;
     const currentEntry = directorCoverageBySchool.get(rbd);
 
@@ -57,6 +60,10 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
       directors: school.directors.sort((a, b) => a.localeCompare(b, "es")),
     }))
     .sort((a, b) => a.schoolName.localeCompare(b.schoolName, "es"));
+  const permittedSchools = directorCoverage.map((school) => ({
+    ...school,
+    responded: respondedRbds.has(school.rbd),
+  }));
   const respondedSchools = directorCoverage.filter((school) => respondedRbds.has(school.rbd));
   const pendingSchools = directorCoverage.filter((school) => !respondedRbds.has(school.rbd));
   const respondedDirectorCount = respondedSchools.reduce((sum, school) => sum + school.directors.length, 0);
@@ -210,27 +217,73 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
         <section className="mt-8 space-y-6 rounded-[24px] border border-slate-200 bg-slate-50 p-6">
           <div>
             <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Cobertura de respuesta</p>
-            <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Directores activos asociados</h4>
+            <h4 className="font-display mt-3 text-2xl font-semibold text-slate-950">Directores esperados asociados</h4>
             <p className="mt-3 text-sm leading-6 text-slate-600">
-              Este resumen usa como universo los directores con perfil activo y RBD asignado en la whitelist. Una escuela cuenta como respondida si ya registra al menos una salida en el historial.
+              Este resumen usa como universo las escuelas asociadas a los correos permitidos con perfil director y RBD asignado en la whitelist, aunque hoy ese acceso esté desactivado. Una escuela cuenta como respondida si ya registra al menos una salida en el historial.
             </p>
 
             <div className="mt-6 grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Escuelas consideradas</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-950">{directorCoverage.length}</p>
-                <p className="mt-1 text-sm text-slate-500">{activeDirectorProfiles.length} director(es) activos con RBD.</p>
+                <p className="mt-1 text-sm text-slate-500">{expectedDirectorProfiles.length} director(es) esperados con RBD.</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Respondieron</p>
                 <p className="mt-2 text-2xl font-semibold text-emerald-950">{respondedSchools.length}</p>
-                <p className="mt-1 text-sm text-emerald-800">{respondedDirectorCount} director(es) activos asociados a escuelas con carga.</p>
+                <p className="mt-1 text-sm text-emerald-800">{respondedDirectorCount} director(es) esperados asociados a escuelas con carga.</p>
               </div>
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">No respondieron</p>
                 <p className="mt-2 text-2xl font-semibold text-amber-950">{pendingSchools.length}</p>
-                <p className="mt-1 text-sm text-amber-800">{pendingDirectorCount} director(es) activos siguen pendientes.</p>
+                <p className="mt-1 text-sm text-amber-800">{pendingDirectorCount} director(es) esperados siguen pendientes.</p>
               </div>
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-950">Escuelas permitidas</p>
+                <p className="text-sm text-slate-500">Cruce base entre escuelas habilitadas por correo permitido y su estado de registro.</p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-700">
+                {permittedSchools.length}
+              </span>
+            </div>
+
+            <div className="portal-table mt-4">
+              <div className="portal-table__head grid min-w-[980px] grid-cols-[1.1fr_0.5fr_1.3fr_0.7fr] gap-4 px-5 py-4">
+                <span>Establecimiento</span>
+                <span>RBD</span>
+                <span>Director(es) permitidos</span>
+                <span>Estado</span>
+              </div>
+
+              {permittedSchools.length ? (
+                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                  {permittedSchools.map((school) => (
+                    <div key={school.rbd} className="grid min-w-[980px] grid-cols-[1.1fr_0.5fr_1.3fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                      <div>
+                        <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-950">{school.rbd}</p>
+                      </div>
+                      <div>
+                        <p>{school.directors.join(", ")}</p>
+                      </div>
+                      <div>
+                        <span className={school.responded ? "portal-chip portal-chip--success" : "portal-chip portal-chip--warning"}>
+                          {school.responded ? "Respondio" : "No respondio"}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="portal-table__empty">No hay escuelas permitidas activas asociadas a los correos entregados.</div>
+              )}
             </div>
           </div>
 
@@ -238,7 +291,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-slate-950">Escuelas con respuesta</p>
-                <p className="text-sm text-slate-500">Directores activos asociados a escuelas que ya registraron salidas.</p>
+                <p className="text-sm text-slate-500">Directores esperados asociados a escuelas que ya registraron salidas.</p>
               </div>
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
                 {respondedSchools.length}
@@ -280,7 +333,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-slate-950">Escuelas sin respuesta</p>
-                <p className="text-sm text-slate-500">Directores activos asociados a escuelas que aun no registran salidas.</p>
+                <p className="text-sm text-slate-500">Directores esperados asociados a escuelas que aun no registran salidas.</p>
               </div>
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
                 {pendingSchools.length}
