@@ -215,7 +215,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               Este resumen usa como universo los directores con perfil activo y RBD asignado en la whitelist. Una escuela cuenta como respondida si ya registra al menos una salida en el historial.
             </p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Escuelas consideradas</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-950">{directorCoverage.length}</p>
