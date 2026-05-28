@@ -1,5 +1,5 @@
 import { PERMITTED_DIRECTOR_EMAIL_SET } from "@/lib/admin/permitted-directors";
-import type { AdminTripSummary, WhitelistUser } from "@/types";
+import type { WhitelistUserEnriched } from "@/lib/admin/whitelist";
 
 interface ResponseCoverageSchool {
   rbd: string;
@@ -17,8 +17,8 @@ export interface ResponseCoverageSummary {
 }
 
 export function buildResponseCoverageSummary(
-  whitelistUsers: WhitelistUser[],
-  trips: Pick<AdminTripSummary, "rbd">[],
+  whitelistUsers: WhitelistUserEnriched[],
+  trips: Array<{ rbd: string }>,
 ): ResponseCoverageSummary {
   const expectedDirectorProfiles = whitelistUsers.filter(
     (user) => user.rol === "director" && user.rbd && PERMITTED_DIRECTOR_EMAIL_SET.has(user.email.trim().toLowerCase()),
