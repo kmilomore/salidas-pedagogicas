@@ -15,6 +15,10 @@ interface UpdateGestionAdministrativaPayload {
   unitAmount: string;
 }
 
+interface UpdateObservacionesAdministrativasPayload {
+  observations: string;
+}
+
 async function assertAdminForTripAction() {
   const supabase = createClient();
   const {
@@ -242,6 +246,53 @@ export async function updateEtapaAdministrativaSalida(
   return {
     error: null,
     stage,
+  };
+}
+
+export async function updateObservacionesAdministrativasSalida(
+  tripId: string,
+  payload: UpdateObservacionesAdministrativasPayload,
+): Promise<{ error: string | null; observations: string | null }> {
+  const adminClient = await assertAdminForTripAction();
+
+  if (!adminClient) {
+    return {
+      error: "No tienes permisos para editar las observaciones administrativas.",
+      observations: null,
+    };
+  }
+
+  const normalizedObservations = normalizeMultilineText(payload.observations ?? "");
+  const persistedObservations = normalizedObservations ? normalizedObservations : null;
+
+  const { error } = await adminClient
+    .from("salidas_pedagogicas")
+    .update({ observaciones_admin: persistedObservations })
+    .eq("id", tripId);
+
+  if (error) {
+    return {
+      error: `No fue posible guardar las observaciones administrativas. (${error.message})`,
+      observations: null,
+    };
+  }
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/analitica");
+
+  await logAuditEvent({
+    eventType: "trip_admin_observations_updated",
+    route: "/panel",
+    targetType: "salida",
+    targetId: tripId,
+    metadata: {
+      hasObservations: Boolean(persistedObservations),
+    },
+  });
+
+  return {
+    error: null,
+    observations: persistedObservations,
   };
 }
 

@@ -5,7 +5,7 @@ import polyline from "@mapbox/polyline";
 import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
-import { updateDecisionAdministrativaSalida, updateEtapaAdministrativaSalida, updateGestionAdministrativaSalida } from "@/app/actions/trips";
+import { updateDecisionAdministrativaSalida, updateEtapaAdministrativaSalida, updateGestionAdministrativaSalida, updateObservacionesAdministrativasSalida } from "@/app/actions/trips";
 import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
 import { getAdminDecisionClasses, getAdminDecisionLabel, getAdminStageClasses, getAdminStageLabel } from "@/lib/admin/trip-formatting";
 import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
@@ -78,6 +78,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
   const [unitAmountInput, setUnitAmountInput] = useState("");
   const [decisionInput, setDecisionInput] = useState<AdminTripRecord["decision_admin"]>("pendiente");
   const [stageInput, setStageInput] = useState<AdminTripRecord["etapa_admin"]>("pendiente");
+  const [adminObservationsInput, setAdminObservationsInput] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const routePath = useMemo(() => {
@@ -105,6 +106,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
     setUnitAmountInput(trip?.valor_unitario_bus_referencial === null || trip?.valor_unitario_bus_referencial === undefined ? "" : String(trip.valor_unitario_bus_referencial));
     setDecisionInput(trip?.decision_admin ?? "pendiente");
     setStageInput(trip?.etapa_admin ?? "pendiente");
+    setAdminObservationsInput(trip?.observaciones_admin ?? "");
     setFeedback(null);
   }, [trip]);
 
@@ -187,6 +189,31 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
         router.refresh();
       } catch {
         setFeedback("No fue posible actualizar la etapa administrativa.");
+      }
+    });
+  }
+
+  function handleObservationsSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFeedback(null);
+
+    startTransition(async () => {
+      try {
+        const result = await updateObservacionesAdministrativasSalida(tripId, {
+          observations: adminObservationsInput,
+        });
+
+        if (result.error) {
+          setFeedback(result.error);
+          return;
+        }
+
+        onTripUpdated({ observaciones_admin: result.observations });
+        setAdminObservationsInput(result.observations ?? "");
+        setFeedback("Observaciones administrativas actualizadas correctamente.");
+        router.refresh();
+      } catch {
+        setFeedback("No fue posible actualizar las observaciones administrativas.");
       }
     });
   }
@@ -410,6 +437,26 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
               </div>
 
+              <form onSubmit={handleObservationsSubmit} className="portal-card-subtle mt-4 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Observaciones administrativas</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">Usa este apartado para dejar comentarios internos, observaciones de revisión o indicaciones de seguimiento para la salida.</p>
+                <label className="mt-4 block">
+                  <textarea
+                    value={adminObservationsInput}
+                    onChange={(event) => setAdminObservationsInput(event.target.value)}
+                    rows={5}
+                    placeholder="Escribe aquí las observaciones administrativas..."
+                    className="portal-input min-h-[8rem]"
+                  />
+                </label>
+                <div className="mt-4 flex items-center gap-3">
+                  <button type="submit" disabled={isPending} className="portal-button portal-button--primary portal-button--sm">
+                    {isPending ? "Guardando..." : "Guardar observaciones"}
+                  </button>
+                  <p className="text-sm text-slate-500">{trip.observaciones_admin ? "Ya existen observaciones administrativas guardadas." : "Aun no hay observaciones administrativas registradas."}</p>
+                </div>
+              </form>
+
               {feedback ? <p className={`mt-3 text-sm ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
             </section>
 
@@ -427,6 +474,10 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 <div>
                   <p className="font-semibold text-slate-950">Objetivo pedagogico</p>
                   <p className="whitespace-pre-line">{trip.objetivo}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-950">Observaciones administrativas</p>
+                  <p className="whitespace-pre-line">{trip.observaciones_admin || "Sin observaciones administrativas."}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-slate-950">Requerimientos adicionales / observaciones del director</p>

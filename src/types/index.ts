@@ -189,6 +189,7 @@ export interface AdminTripRecord {
   monto_referencial: number | null;
   decision_admin: AdminDecisionStatus;
   etapa_admin: AdminStageStatus;
+  observaciones_admin: string | null;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;

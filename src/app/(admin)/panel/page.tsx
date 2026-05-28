@@ -288,7 +288,31 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             </div>
 
             <div className="portal-table mt-4">
-              <div className="portal-table__head grid min-w-[980px] grid-cols-[1.1fr_0.5fr_1.3fr_0.7fr] gap-4 px-5 py-4">
+              <div className="space-y-3 xl:hidden">
+                {permittedSchools.length ? (
+                  permittedSchools.map((school) => (
+                    <article key={`${school.rbd}-mobile-permitted`} className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                          <p className="text-sm text-slate-500">RBD {school.rbd}</p>
+                        </div>
+                        <span className={school.responded ? "portal-chip portal-chip--success" : "portal-chip portal-chip--warning"}>
+                          {school.responded ? "Respondio" : "No respondio"}
+                        </span>
+                      </div>
+                      <div className="mt-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Director(es) permitidos</p>
+                        <p className="mt-1 text-sm text-slate-700">{school.directors.join(", ")}</p>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  <div className="portal-table__empty">No hay escuelas permitidas activas asociadas a los correos entregados.</div>
+                )}
+              </div>
+
+              <div className="portal-table__head hidden xl:grid min-w-[980px] grid-cols-[1.1fr_0.5fr_1.3fr_0.7fr] gap-4 px-5 py-4">
                 <span>Establecimiento</span>
                 <span>RBD</span>
                 <span>Director(es) permitidos</span>
@@ -296,7 +320,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               </div>
 
               {permittedSchools.length ? (
-                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                <div className="portal-table__body hidden max-h-[22rem] overflow-y-auto xl:block">
                   {permittedSchools.map((school) => (
                     <div key={school.rbd} className="grid min-w-[980px] grid-cols-[1.1fr_0.5fr_1.3fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                       <div>
@@ -334,14 +358,27 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             </div>
 
             <div className="portal-table mt-4">
-              <div className="portal-table__head grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
+              <div className="space-y-3 xl:hidden">
+                {respondedSchools.length ? (
+                  respondedSchools.map((school) => (
+                    <article key={`${school.rbd}-mobile-responded`} className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
+                      <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
+                      <p className="mt-1 text-sm text-slate-700">{school.directors.join(", ")}</p>
+                    </article>
+                  ))
+                ) : null}
+              </div>
+
+              <div className="portal-table__head hidden xl:grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
                 <span>Establecimiento</span>
                 <span>RBD</span>
                 <span>Directores activos asociados</span>
               </div>
 
               {respondedSchools.length ? (
-                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                <div className="portal-table__body hidden max-h-[22rem] overflow-y-auto xl:block">
                   {respondedSchools.map((school) => (
                     <div key={school.rbd} className="grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                       <div>
@@ -376,14 +413,27 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
             </div>
 
             <div className="portal-table mt-4">
-              <div className="portal-table__head grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
+              <div className="space-y-3 xl:hidden">
+                {pendingSchools.length ? (
+                  pendingSchools.map((school) => (
+                    <article key={`${school.rbd}-mobile-pending`} className="rounded-[20px] border border-slate-200 bg-white p-4 shadow-sm">
+                      <p className="font-semibold text-slate-950">{school.schoolName}</p>
+                      <p className="mt-1 text-sm text-slate-500">RBD {school.rbd}</p>
+                      <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Directores activos asociados</p>
+                      <p className="mt-1 text-sm text-slate-700">{school.directors.join(", ")}</p>
+                    </article>
+                  ))
+                ) : null}
+              </div>
+
+              <div className="portal-table__head hidden xl:grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4">
                 <span>Establecimiento</span>
                 <span>RBD</span>
                 <span>Directores activos asociados</span>
               </div>
 
               {pendingSchools.length ? (
-                <div className="portal-table__body max-h-[22rem] overflow-y-auto">
+                <div className="portal-table__body hidden max-h-[22rem] overflow-y-auto xl:block">
                   {pendingSchools.map((school) => (
                     <div key={school.rbd} className="grid min-w-[720px] grid-cols-[1.2fr_0.55fr_1.5fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                       <div>

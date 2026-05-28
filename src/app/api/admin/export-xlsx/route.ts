@@ -66,6 +66,7 @@ export async function GET(request: Request) {
       CantidadBusesReferencial: trip.cantidad_buses_referencial ?? "",
       ValorUnitarioBusReferencial: trip.valor_unitario_bus_referencial ?? "",
       MontoReferencial: trip.monto_referencial ?? "",
+      ObservacionesAdministrativas: sanitizeFormula(trip.observaciones_admin ?? ""),
       ResumenRuta: sanitizeFormula(trip.ruta_resumen),
       CreadoEn: trip.created_at,
     };
