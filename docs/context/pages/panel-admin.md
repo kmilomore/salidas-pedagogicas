@@ -21,20 +21,24 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 ## Qué hace hoy
 - Carga salidas reales con enriquecimiento institucional.
 - Aplica filtros básicos por búsqueda, RBD y estado.
-- Aplica filtros básicos por búsqueda, RBD, estado y decisión administrativa.
+- Aplica filtros básicos por búsqueda, RBD, estado, decisión administrativa y etapa administrativa.
 - Muestra métricas y tabla principal.
+- En la cabecera de métricas también resume monto total aceptado y porcentajes de salidas y escuelas aceptadas dentro del universo visible filtrado.
 - El listado transversal incluye columna de total de pasajeros por salida y usa el ancho completo disponible del shell administrativo.
 - Usa el shell administrativo compartido y un panel lateral oscuro con texto blanco reforzado para el resumen operacional.
 - Reutiliza el contrato visual global para filtros, CTAs, tablas, chips de estado y tarjetas métricas.
 - Mientras reúne salidas, filtros y resumen transversal, la ruta usa `src/app/(admin)/panel/loading.tsx` con métricas, filtros y tabla skeleton alineados a la composición real del panel.
 - Abre modal con detalle completo.
+- Debajo de la tabla principal incorpora un tablero tipo kanban con columnas `pendientes`, `en proceso`, `aceptadas` y `rechazadas` sobre el mismo universo filtrado del panel.
+- Ese tablero permite arrastrar tarjetas entre columnas para actualizar rápidamente `decision_admin` y `etapa_admin`, además de abrir el detalle completo al hacer click en una tarjeta.
 - El bloque de cobertura de respuesta cruza las salidas registradas contra un universo esperado de correos permitidos con rol director y escuela asociada en whitelist, aunque esos accesos hoy estén desactivados.
 - Muestra una tabla de escuelas permitidas y luego separa escuelas que respondieron y escuelas que no respondieron según si registraron al menos una salida.
-- En el detalle administrativo permite registrar y editar un `monto_referencial` persistente por salida.
-- En ese mismo detalle permite dejar una `decision_admin` persistente por salida con tres estados: pendiente, aceptada o rechazada.
+- En el detalle administrativo permite registrar y editar `tipo_transporte_referencial`, cantidad de buses, valor unitario y `monto_referencial` persistente por salida.
+- En ese mismo detalle permite dejar `decision_admin`, `etapa_admin` y `observaciones_admin` persistentes por salida.
+- El detalle administrativo ya no guarda cada bloque por separado: usa un único botón para persistir transporte, monto, etapa, decisión y observaciones en una sola acción.
 - Bajo la tabla principal muestra una bandeja operativa de salidas con `decision_admin = pendiente` para revisión rápida.
 - Exporta CSV y Excel, incluyendo cantidad de funcionarios y total de pasajeros por salida.
-- Las exportaciones administrativas respetan también el filtro por decisión administrativa.
+- Las exportaciones administrativas respetan también los filtros por decisión administrativa y etapa administrativa.
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
 - Enlaza por navegación superior a `/panel/analitica` para revisar métricas y gráficos transversales del mismo universo administrativo.
@@ -48,7 +52,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 ## Seguridad aplicada
 - Las exportaciones administrativas están protegidas en la capa de datos: `getAdminTrips()` llama a `assertRoleAccess(["admin"])` antes de cualquier query y el acceso a detalle/PDF usa `getAuthorizedTripById()` con control por rol (`admin` transversal, `director` solo sobre sus propias salidas).
 - El universo esperado de cobertura está hardcodeado en `src/lib/admin/permitted-directors.ts`; solo esos correos participan del cruce de escuelas esperadas vs. escuelas que efectivamente registraron salidas.
-- La edición del `monto_referencial` y de la `decision_admin` usan server actions con verificación explícita de whitelist admin antes de escribir en `salidas_pedagogicas`.
+- La edición de transporte, `monto_referencial`, `decision_admin`, `etapa_admin` y `observaciones_admin` usa server actions con verificación explícita de whitelist admin antes de escribir en `salidas_pedagogicas`.
 - El middleware excluye `/api` explícitamente — cualquier nueva ruta en `/api/admin/` **debe** llamar a `assertAdminAccess()` o `assertRoleAccess([...])` al inicio del handler o a través de la función de datos que invoque.
 - Formula injection prevenida: campos de texto libre (actividad, objetivo, destino, funcionarios) se sanitizan con prefijo `'` antes de escribir CSV y XLSX.
 - `estado` validado explícitamente en las rutas de export (`"borrador" | "enviada"`, cualquier otro valor cae a `"all"`).
@@ -61,7 +65,7 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Sin ordenamiento por columna.
 - Sin filtros avanzados por fecha o territorio; la auditoría ya admite filtro por actor/correo.
 - La bandeja de pendientes se limita a las primeras 12 salidas visibles tras aplicar el resto de filtros del panel.
-- El `monto_referencial` y la `decision_admin` solo se administran desde el modal de detalle del panel admin o desde el mismo modal reutilizado en analítica; no se exponen en vistas de directores.
+- La gestión administrativa completa solo se administra desde el modal de detalle del panel admin o desde el mismo modal reutilizado en analítica; no se expone en vistas de directores.
 
 ## Contrato visual relevante
 - `AdminTripsTable` y `DetalleSalida` usan primitivas compartidas como `portal-table`, `portal-button`, `portal-chip` y `portal-card-subtle` para mantener consistencia con el resto del portal.

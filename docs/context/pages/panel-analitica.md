@@ -17,9 +17,11 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 
 ## Qué hace hoy
 - Reutiliza `getAdminTrips()` como fuente única para consolidar la analítica administrativa.
-- Acepta filtros por fecha desde/hasta, establecimiento, estado y decisión administrativa; cada cambio recalcula la lectura en el servidor.p
+- Acepta filtros por fecha desde/hasta, establecimiento, estado, decisión administrativa y etapa administrativa; cada cambio recalcula la lectura en el servidor.
 - Expone KPI de viajes totales, pasajeros acumulados, comunas de destino y establecimientos con actividad.
 - Expone también KPI específicos para salidas aceptadas y rechazadas según la revisión administrativa persistida.
+- Dentro de indicadores rápidos agrega monto total aceptado y porcentajes de salidas y escuelas aceptadas sobre el universo visible filtrado.
+- El bloque de indicadores rápidos se distribuye en 5 columnas por fila en desktop para evitar saturación visual y mantener dos filas legibles cuando hay 10 tarjetas.
 - Resume la composición de pasajeros entre estudiantes, apoderados y funcionarios con gráfico interactivo.
 - Muestra la distribución entre viajes enviados y borradores con gráfico interactivo.
 - Muestra la distribución entre salidas aceptadas, rechazadas y pendientes con gráfico interactivo adicional.
@@ -33,8 +35,8 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Incluye una vista de tendencia mensual interactiva para los últimos meses con actividad.
 - Cierra con un explorador de viajes por escuela a ancho completo: la tabla superior permite seleccionar un establecimiento y debajo despliega sus salidas asociadas dentro de los filtros actuales.
 - El listado de salidas asociadas permite abrir el modal de detalle administrativo sin salir de la analítica.
-- Ese modal reutilizado desde analítica puede cambiar la `decision_admin`, y la página se revalida para refrescar KPI y gráficos.
-- El filtro por decisión administrativa usa la misma lógica compartida del panel y las exportaciones para evitar divergencias de universo.
+- Ese modal reutilizado desde analítica permite actualizar la gestión administrativa completa y la página se revalida para refrescar KPI y gráficos.
+- El filtro por decisión administrativa y etapa administrativa usa la misma lógica compartida del panel y las exportaciones para evitar divergencias de universo.
 - Usa un loader contextual mientras se consolidan las métricas.
 
 ## Dependencias
@@ -44,7 +46,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 
 ## Seguridad aplicada
 - La página depende de `getAdminTrips()`, por lo que mantiene el mismo control de acceso administrativo basado en `assertRoleAccess(["admin"])`.
-- Aunque la agregación principal es de lectura, el modal reutilizado desde la analítica sí permite mutar `decision_admin` y `monto_referencial` bajo las mismas server actions protegidas del módulo admin.
+- Aunque la agregación principal es de lectura, el modal reutilizado desde la analítica sí permite mutar transporte, `monto_referencial`, `decision_admin`, `etapa_admin` y `observaciones_admin` bajo las mismas server actions protegidas del módulo admin.
 
 ## Limitaciones actuales
 - Los filtros viven en la URL y recalculan toda la vista; aún no hay interacción client-side incremental entre gráficos.
