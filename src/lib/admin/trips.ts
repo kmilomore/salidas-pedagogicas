@@ -66,7 +66,7 @@ const TRIP_SELECT_VARIANTS = [
 ] as const;
 
 async function runTripQueryWithFallback(
-  executeQuery: (selectClause: string) => Promise<{ data: AdminTripQueryRow[] | null; error: { message: string } | null }>,
+  executeQuery: (selectClause: string) => PromiseLike<{ data: AdminTripQueryRow[] | null; error: { message: string } | null }>,
 ) {
   for (const [index, selectClause] of TRIP_SELECT_VARIANTS.entries()) {
     const result = await executeQuery(selectClause);
