@@ -10,6 +10,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - `src/app/(admin)/panel/auditoria/page.tsx`
 - `src/components/admin/AdminAnalyticsCharts.tsx`
 - `src/components/admin/AdminDecisionSchoolsTable.tsx`
+- `src/components/admin/AdminTripsKanban.tsx`
 - `src/components/admin/AdminOperationalPanel.tsx`
 - `src/components/admin/AdminSchoolTripsExplorer.tsx`
 - `src/app/(admin)/panel/whitelist/page.tsx`
@@ -38,26 +39,28 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 1. `/panel` obtiene el universo administrativo con `getAdminTrips()`.
 2. Aplica filtros en memoria por búsqueda, establecimiento y estado.
 3. Renderiza métricas, tabla con scroll interno vertical y modal de detalle; la tabla principal resume también el transporte referencial y el monto total administrativo por salida.
-4. Debajo de la tabla muestra una bandeja priorizada de salidas pendientes de revisión administrativa y luego el bloque de cobertura de respuesta apilado verticalmente.
-5. Ese bloque usa KPI en columnas para escuelas consideradas, escuelas que respondieron y escuelas que no respondieron.
-6. El cruce de cobertura ya no depende de `activo=true`: usa el universo esperado de correos permitidos con rol `director` y RBD asociado en la whitelist, aunque hoy el acceso al portal esté deshabilitado.
-7. Luego desglosa escuelas permitidas, escuelas con respuesta y escuelas sin respuesta en tablas independientes con establecimiento, RBD y directores esperados asociados.
-8. Las exportaciones CSV y Excel respetan los filtros actuales.
-9. Los filtros administrativos y las exportaciones ahora admiten también segmentación por `decision_admin` (`pendiente`, `aceptada`, `rechazada`) y por `etapa_admin` (`pendiente`, `etapa_1`, `etapa_2`, `terminada`, `seleccionada`).
-10. `/panel/analitica` reutiliza `getAdminTrips()` para consolidar métricas, rankings y gráficos de pasajeros, comunas destino, viajes totales y viajes por establecimiento.
-11. La analítica admite filtros server-side por rango de fechas, establecimiento, estado del viaje y decisión administrativa.
-12. Los gráficos principales de la analítica se renderizan con una librería dedicada (`recharts`) en un componente cliente desacoplado de la agregación server-side.
-13. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
-14. El modal de detalle administrativo permite persistir la gestion administrativa de cada salida: tipo de transporte referencial (`bus` o `taxi_bus`), cantidad de buses, valor unitario, `monto_referencial` calculado, `decision_admin` (`pendiente`, `aceptada`, `rechazada`), `etapa_admin` (`pendiente`, `etapa_1`, `etapa_2`, `terminada`, `seleccionada`) y un apartado de `observaciones_admin` para comentarios internos.
-15. La analítica ahora consolida también la distribución de decisiones administrativas y KPI separados para salidas aceptadas y rechazadas.
-16. Debajo de los indicadores rápidos y antes del resumen analítico, la analítica incluye un gráfico de torta de cobertura de respuesta que compara escuelas que respondieron versus escuelas que no respondieron, explicita el porcentaje de respuesta sobre el total esperado y despliega los nombres de los establecimientos en cada categoría.
-17. La analítica agrega tablas de escuelas aprobadas y rechazadas con directora(o), correo de contacto y botón de copia masiva de correos para comunicación operativa.
-18. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
-19. `/panel/auditoria` consulta la bitácora reciente y controles operativos para revisar accesos, exportaciones, acciones administrativas y configuración sensible.
-20. La ruta `/api/trips/[id]/notify` genera el PDF de la salida, lo envía a Apps Script para notificación y registra eventos `sent`, `failed` o `skipped` en la bitácora administrativa.
-21. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-22. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-23. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+4. Debajo de la tabla muestra un tablero administrativo tipo kanban con estados pendientes, en proceso, aceptadas y rechazadas; cada tarjeta abre el detalle y también puede arrastrarse entre columnas para actualizar su estado administrativo rápido.
+5. Después del kanban se muestra una bandeja priorizada de salidas pendientes de revisión administrativa y luego el bloque de cobertura de respuesta apilado verticalmente.
+6. Ese bloque usa KPI en columnas para escuelas consideradas, escuelas que respondieron y escuelas que no respondieron.
+7. El cruce de cobertura ya no depende de `activo=true`: usa el universo esperado de correos permitidos con rol `director` y RBD asociado en la whitelist, aunque hoy el acceso al portal esté deshabilitado.
+8. Luego desglosa escuelas permitidas, escuelas con respuesta y escuelas sin respuesta en tablas independientes con establecimiento, RBD y directores esperados asociados.
+9. Las exportaciones CSV y Excel respetan los filtros actuales.
+10. Los filtros administrativos y las exportaciones ahora admiten también segmentación por `decision_admin` (`pendiente`, `aceptada`, `rechazada`) y por `etapa_admin` (`pendiente`, `etapa_1`, `etapa_2`, `terminada`, `seleccionada`).
+11. `/panel/analitica` reutiliza `getAdminTrips()` para consolidar métricas, rankings y gráficos de pasajeros, comunas destino, viajes totales y viajes por establecimiento.
+12. La analítica admite filtros server-side por rango de fechas, establecimiento, estado del viaje y decisión administrativa.
+13. Los gráficos principales de la analítica se renderizan con una librería dedicada (`recharts`) en un componente cliente desacoplado de la agregación server-side.
+14. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
+15. El modal de detalle administrativo permite persistir la gestion administrativa de cada salida: tipo de transporte referencial (`bus` o `taxi_bus`), cantidad de buses, valor unitario, `monto_referencial` calculado, `decision_admin` (`pendiente`, `aceptada`, `rechazada`), `etapa_admin` (`pendiente`, `etapa_1`, `etapa_2`, `terminada`, `seleccionada`) y un apartado de `observaciones_admin` para comentarios internos.
+16. Ese mismo detalle ahora usa un guardado administrativo unificado: un solo botón persiste transporte, monto, etapa, decisión y observaciones en una única acción.
+17. La analítica ahora consolida también la distribución de decisiones administrativas y KPI separados para salidas aceptadas y rechazadas.
+18. Debajo de los indicadores rápidos y antes del resumen analítico, la analítica incluye un gráfico de torta de cobertura de respuesta que compara escuelas que respondieron versus escuelas que no respondieron, explicita el porcentaje de respuesta sobre el total esperado y despliega los nombres de los establecimientos en cada categoría.
+19. La analítica agrega tablas de escuelas aprobadas y rechazadas con directora(o), correo de contacto y botón de copia masiva de correos para comunicación operativa.
+20. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
+21. `/panel/auditoria` consulta la bitácora reciente y controles operativos para revisar accesos, exportaciones, acciones administrativas y configuración sensible.
+22. La ruta `/api/trips/[id]/notify` genera el PDF de la salida, lo envía a Apps Script para notificación y registra eventos `sent`, `failed` o `skipped` en la bitácora administrativa.
+23. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+24. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+25. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
@@ -66,6 +69,8 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Tabla administrativa con scroll interno para revisar registros sin desplazar toda la página.
 - Tabla administrativa con resumen visible de transporte referencial, cantidad de buses y monto total por salida sin entrar al detalle.
 - Tabla administrativa con visualización de etapa administrativa por salida para distinguir etapa 1, etapa 2, terminada y seleccionada.
+- Tablero administrativo tipo kanban con columnas de pendientes, en proceso, aceptadas y rechazadas sobre el mismo universo filtrado del panel.
+- Reasignación rápida del estado administrativo desde el kanban mediante arrastre de tarjetas entre columnas, con apertura del detalle completo al hacer click en una tarjeta.
 - Bandeja priorizada de salidas pendientes de revisión administrativa dentro del panel principal.
 - Bloque de cobertura de respuesta apilado bajo la tabla principal, con KPI superiores en columnas.
 - Tabla adicional de escuelas permitidas para cruzar el universo esperado con el estado real de registro.
@@ -80,6 +85,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Selección administrativa por etapas desde el detalle de salida: etapa 1, etapa 2, terminada, seleccionada o pendiente.
 - Apartado de observaciones administrativas persistentes dentro del detalle para registrar comentarios internos de revisión y seguimiento.
 - Formulario de gestion administrativa con tipo de transporte, cantidad de buses, valor unitario y monto total calculado automaticamente a partir de esos valores.
+- Guardado administrativo unificado desde el detalle: un solo botón persiste transporte, monto, etapa, decisión y observaciones de la salida.
 - Gráfico y KPI para revisar cuántas salidas están aceptadas, rechazadas o pendientes de revisión administrativa.
 - Tablas analíticas de escuelas aprobadas y rechazadas con copia masiva de correos visibles para notificación.
 - Acciones por fila en analítica para copiar los correos de una escuela específica y una plantilla de mensaje contextualizada según aprobación o rechazo.
@@ -93,12 +99,12 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Gestión CRUD de la whitelist de acceso: altas con validación de RBD, activación/desactivación y eliminación.
 
 ## Iteraciones recientes
-1. Iteración actual: el detalle administrativo ahora incluye un apartado persistente para observaciones administrativas internas por salida, editable solo desde admin y visible dentro del mismo detalle.
-2. Iteración previa inmediata: la gestión administrativa del detalle de salida ahora permite clasificar cada salida por etapa administrativa (`etapa_1`, `etapa_2`, `terminada`, `seleccionada` o `pendiente`) desde el admin, y esa etapa queda visible y filtrable en panel, analítica y exportaciones.
-3. Iteración previa: la gestión administrativa del detalle de salida reemplazó el monto manual por un bloque persistente con tipo de transporte (`bus` o `taxi_bus`), cantidad de buses, valor unitario y monto total calculado automáticamente como multiplicación entre cantidad y valor unitario; además, la tabla principal administrativa ahora resume ese transporte y la exportación CSV expone esos datos con etiquetas legibles.
-4. Iteración previa: el gráfico de cobertura de respuesta en analítica ahora no solo muestra proporciones, sino también el listado visible de establecimientos que respondieron y los que siguen pendientes, además de un tooltip enriquecido por categoría.
-5. Iteración previa: la analítica incorporó tablas de escuelas aprobadas y rechazadas, con correo de contacto, copia masiva de destinatarios y acciones para preparar comunicación operativa según la decisión administrativa.
-6. Iteración previa: el módulo administrativo consolidó `decision_admin` como eje transversal, permitiendo persistir la decisión por salida, filtrar panel/analítica/exportaciones y visualizar su distribución con KPI dedicados.
+1. Iteración actual: el panel administrativo ahora incorpora un tablero tipo kanban con columnas `pendientes`, `en proceso`, `aceptadas` y `rechazadas`; cada tarjeta puede abrir su detalle o arrastrarse entre columnas para actualizar rápidamente la decisión y la etapa administrativa.
+2. Iteración previa inmediata: el detalle administrativo reemplazó los guardados separados por un guardado unificado, de modo que transporte, monto, etapa, decisión y observaciones se persisten con un solo botón.
+3. Iteración previa: el detalle administrativo ahora incluye un apartado persistente para observaciones administrativas internas por salida, editable solo desde admin y visible dentro del mismo detalle.
+4. Iteración previa: la gestión administrativa del detalle de salida ahora permite clasificar cada salida por etapa administrativa (`etapa_1`, `etapa_2`, `terminada`, `seleccionada` o `pendiente`) desde el admin, y esa etapa queda visible y filtrable en panel, analítica y exportaciones.
+5. Iteración previa: la gestión administrativa del detalle de salida reemplazó el monto manual por un bloque persistente con tipo de transporte (`bus` o `taxi_bus`), cantidad de buses, valor unitario y monto total calculado automáticamente como multiplicación entre cantidad y valor unitario; además, la tabla principal administrativa ahora resume ese transporte y la exportación CSV expone esos datos con etiquetas legibles.
+6. Iteración previa: el gráfico de cobertura de respuesta en analítica ahora no solo muestra proporciones, sino también el listado visible de establecimientos que respondieron y los que siguen pendientes, además de un tooltip enriquecido por categoría.
 
 ## Pendientes dentro del módulo
 - Paginación.
