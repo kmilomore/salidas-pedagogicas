@@ -17,7 +17,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 
 ## Qué hace hoy
 - Reutiliza `getAdminTrips()` como fuente única para consolidar la analítica administrativa.
-- Acepta filtros por fecha desde/hasta, establecimiento, estado y decisión administrativa; cada cambio recalcula la lectura en el servidor.
+- Acepta filtros por fecha desde/hasta, establecimiento, estado y decisión administrativa; cada cambio recalcula la lectura en el servidor.p
 - Expone KPI de viajes totales, pasajeros acumulados, comunas de destino y establecimientos con actividad.
 - Expone también KPI específicos para salidas aceptadas y rechazadas según la revisión administrativa persistida.
 - Resume la composición de pasajeros entre estudiantes, apoderados y funcionarios con gráfico interactivo.
