@@ -47,6 +47,9 @@ interface MonthlyTripChartDatum {
 }
 
 interface AdminAnalyticsChartsProps {
+  responseCoverageData: ChartDatum[];
+  responseCoverageTotalSchools: number;
+  responseRate: number;
   passengerCompositionData: ChartDatum[];
   statusData: ChartDatum[];
   adminDecisionData: ChartDatum[];
@@ -57,11 +60,13 @@ interface AdminAnalyticsChartsProps {
   monthlyTripsChartData: MonthlyTripChartDatum[];
   totalPassengers: number;
   totalTrips: number;
+  renderMode?: "full" | "responseCoverage";
 }
 
 const passengerColors = ["#005f73", "#ee9b00", "#334155"];
 const statusColors = ["#059669", "#f59e0b"];
 const adminDecisionColors = ["#059669", "#dc2626", "#2563eb"];
+const responseCoverageColors = ["#059669", "#f59e0b"];
 
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
@@ -86,6 +91,9 @@ function formatMonthLabel(monthKey: string) {
 }
 
 export default function AdminAnalyticsCharts({
+  responseCoverageData,
+  responseCoverageTotalSchools,
+  responseRate,
   passengerCompositionData,
   statusData,
   adminDecisionData,
@@ -96,7 +104,57 @@ export default function AdminAnalyticsCharts({
   monthlyTripsChartData,
   totalPassengers,
   totalTrips,
+  renderMode = "full",
 }: AdminAnalyticsChartsProps) {
+  if (renderMode === "responseCoverage") {
+    return (
+      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">Respuesta de escuelas</p>
+            <p className="mt-1 text-sm text-slate-500">Distribucion de escuelas que ya registraron al menos una salida frente a las que siguen pendientes.</p>
+          </div>
+          <div className="rounded-2xl bg-white px-4 py-3 text-right shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Tasa de respuesta</p>
+            <p className="mt-2 text-3xl font-semibold text-slate-950">{responseRate}%</p>
+          </div>
+        </div>
+
+        <div className="mt-5 h-[20rem] rounded-[20px] bg-white p-3">
+          {responseCoverageData.length ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={responseCoverageData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={3}>
+                  {responseCoverageData.map((entry, index) => (
+                    <Cell key={entry.name} fill={responseCoverageColors[index % responseCoverageColors.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={formatTooltipValue} />
+                <Legend verticalAlign="bottom" height={24} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay escuelas esperadas visibles para calcular cobertura.</div>
+          )}
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {responseCoverageData.map((entry, index) => (
+            <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
+              <div className="flex items-center gap-3">
+                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: responseCoverageColors[index % responseCoverageColors.length] }} />
+                <span className="text-slate-700">{entry.name}</span>
+              </div>
+              <span className="font-semibold text-slate-950">
+                {formatCompactNumber(entry.value)} / {responseCoverageTotalSchools ? Math.round((entry.value / responseCoverageTotalSchools) * 100) : 0}%
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
   return (
     <>
       <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">

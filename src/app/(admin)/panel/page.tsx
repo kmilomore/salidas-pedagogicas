@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { logAuditEvent } from "@/lib/admin/audit";
-import { PERMITTED_DIRECTOR_EMAIL_SET } from "@/lib/admin/permitted-directors";
+import { buildResponseCoverageSummary } from "@/lib/admin/response-coverage";
 import AdminPendingReviewTable from "@/components/admin/AdminPendingReviewTable";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
@@ -39,42 +39,12 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
   const totalDistance = trips.reduce((sum, trip) => sum + Number(trip.distancia_km ?? 0), 0);
-  const expectedDirectorProfiles = whitelistUsers.filter(
-    (user) => user.rol === "director" && user.rbd && PERMITTED_DIRECTOR_EMAIL_SET.has(user.email.trim().toLowerCase()),
-  );
-  const directorCoverageBySchool = new Map<string, { rbd: string; schoolName: string; directors: string[] }>();
-
-  for (const director of expectedDirectorProfiles) {
-    const rbd = director.rbd as string;
-    const currentEntry = directorCoverageBySchool.get(rbd);
-
-    if (currentEntry) {
-      currentEntry.directors.push(director.email);
-      continue;
-    }
-
-    directorCoverageBySchool.set(rbd, {
-      rbd,
-      schoolName: director.school_name ?? `RBD ${rbd}`,
-      directors: [director.email],
-    });
-  }
-
-  const respondedRbds = new Set(allTrips.map((trip) => trip.rbd));
-  const directorCoverage = Array.from(directorCoverageBySchool.values())
-    .map((school) => ({
-      ...school,
-      directors: school.directors.sort((a, b) => a.localeCompare(b, "es")),
-    }))
-    .sort((a, b) => a.schoolName.localeCompare(b.schoolName, "es"));
+  const { directorCoverage, respondedSchools, pendingSchools, expectedDirectorCount, respondedDirectorCount, pendingDirectorCount } =
+    buildResponseCoverageSummary(whitelistUsers, allTrips);
   const permittedSchools = directorCoverage.map((school) => ({
     ...school,
-    responded: respondedRbds.has(school.rbd),
+    responded: respondedSchools.some((respondedSchool) => respondedSchool.rbd === school.rbd),
   }));
-  const respondedSchools = directorCoverage.filter((school) => respondedRbds.has(school.rbd));
-  const pendingSchools = directorCoverage.filter((school) => !respondedRbds.has(school.rbd));
-  const respondedDirectorCount = respondedSchools.reduce((sum, school) => sum + school.directors.length, 0);
-  const pendingDirectorCount = pendingSchools.reduce((sum, school) => sum + school.directors.length, 0);
 
   await logAuditEvent({
     eventType: "page_view",
@@ -265,7 +235,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               <div className="rounded-2xl border border-slate-200 bg-white p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Escuelas consideradas</p>
                 <p className="mt-2 text-2xl font-semibold text-slate-950">{directorCoverage.length}</p>
-                <p className="mt-1 text-sm text-slate-500">{expectedDirectorProfiles.length} director(es) esperados con RBD.</p>
+                <p className="mt-1 text-sm text-slate-500">{expectedDirectorCount} director(es) esperados con RBD.</p>
               </div>
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Respondieron</p>

@@ -27,6 +27,7 @@ Entregar una lectura ejecutiva y visual de la demanda registrada en el portal me
 - Cada una de esas tablas permite copiar en bloque todos los correos visibles para comunicar aceptación o rechazo a las escuelas afectadas.
 - Cada fila permite además copiar solo los correos de esa escuela y copiar una plantilla de mensaje personalizada para su resultado administrativo.
 - Destaca indicadores rápidos como promedio de pasajeros por viaje, escuela con mayor carga y comuna más frecuente.
+- Debajo de esos indicadores rápidos y antes del resumen analítico se muestra un gráfico de torta de cobertura de respuesta que compara escuelas que respondieron y escuelas que no respondieron, indicando el porcentaje de respuesta sobre el total esperado.
 - Presenta ranking gráfico interactivo de viajes por escuela y de comunas de destino.
 - Agrega gráficos específicos para regiones más visitadas y lugares más visitados.
 - Incluye una vista de tendencia mensual interactiva para los últimos meses con actividad.

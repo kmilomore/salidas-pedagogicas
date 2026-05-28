@@ -40,11 +40,12 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 13. El resumen “Viajes por escuela” de la analítica vive en un componente cliente que permite seleccionar un establecimiento y abrir sus salidas asociadas con drill-down a detalle.
 14. El modal de detalle administrativo permite persistir dos decisiones sobre cada salida: `monto_referencial` y `decision_admin` (`pendiente`, `aceptada`, `rechazada`).
 15. La analítica ahora consolida también la distribución de decisiones administrativas y KPI separados para salidas aceptadas y rechazadas.
-16. La analítica agrega tablas de escuelas aprobadas y rechazadas con directora(o), correo de contacto y botón de copia masiva de correos para comunicación operativa.
-17. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
-18. El PDF de una salida se genera bajo demanda desde una route handler protegida.
-19. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
-20. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
+16. Debajo de los indicadores rápidos y antes del resumen analítico, la analítica incluye un gráfico de torta de cobertura de respuesta que compara escuelas que respondieron versus escuelas que no respondieron y explicita el porcentaje de respuesta sobre el total esperado.
+17. La analítica agrega tablas de escuelas aprobadas y rechazadas con directora(o), correo de contacto y botón de copia masiva de correos para comunicación operativa.
+18. El menú superior administrativo enlaza panel, analítica, auditoría y gestión de acceso como vistas hermanas.
+19. El PDF de una salida se genera bajo demanda desde una route handler protegida.
+20. `/panel/whitelist` carga usuarios de `whitelist_usuarios` enriquecidos con nombre de establecimiento.
+21. El componente `WhitelistPanel` ejecuta altas, activaciones/desactivaciones y eliminaciones vía server actions.
 
 ## Capacidades actuales
 - Métricas base del panel.
@@ -59,6 +60,7 @@ Entregar visibilidad transversal para administradores: métricas, filtros, detal
 - Página analítica separada accesible desde el menú superior del shell admin.
 - Filtros analíticos por fecha desde/hasta, establecimiento y estado del viaje.
 - Gráficos interactivos y rankings para viajes totales, pasajeros acumulados, comunas de destino, regiones más visitadas, lugares más visitados, estados de viaje y viajes por escuela.
+- Gráfico de torta de cobertura de respuesta en analítica, ubicado bajo los indicadores rápidos y sobre el resumen analítico, con porcentaje de escuelas que respondieron frente al total esperado.
 - Explorador interactivo de viajes por escuela con tabla clickeable y listado de salidas asociadas por establecimiento.
 - Modal con detalle operativo, mapa, visor previo del PDF y decision administrativa persistente por salida.
 - Gráfico y KPI para revisar cuántas salidas están aceptadas, rechazadas o pendientes de revisión administrativa.

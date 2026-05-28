@@ -4,10 +4,12 @@ import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import AdminDecisionSchoolsTable from "@/components/admin/AdminDecisionSchoolsTable";
 import AdminSchoolTripsExplorer from "@/components/admin/AdminSchoolTripsExplorer";
 import { logAuditEvent } from "@/lib/admin/audit";
+import { buildResponseCoverageSummary } from "@/lib/admin/response-coverage";
 import { createAdminClient } from "@/lib/supabase/server";
 import { normalizeSingleLineText } from "@/lib/input-normalization";
 import { filterTrips, getAdminTrips } from "@/lib/admin/trips";
 import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { getWhitelistUsers } from "@/lib/admin/whitelist";
 import type { SchoolRecord, TripQueryFilters } from "@/types";
 
 interface AdminAnalyticsPageProps {
@@ -118,7 +120,7 @@ function buildDecisionSchoolRows(
 }
 
 export default async function AdminAnalyticsPage({ searchParams }: AdminAnalyticsPageProps) {
-  const trips = await getAdminTrips();
+  const [trips, whitelistUsers] = await Promise.all([getAdminTrips(), getWhitelistUsers()]);
   const filters: {
     from?: string;
     to?: string;
@@ -279,6 +281,14 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
     pasajeros: school.passengers,
   }));
   const monthlyTripsChartData = monthlyTrips.map((month) => ({ month: month.month, viajes: month.count }));
+  const responseCoverage = buildResponseCoverageSummary(whitelistUsers, filteredTrips);
+  const responseCoverageChartData = [
+    { name: "Respondieron", value: responseCoverage.respondedSchools.length },
+    { name: "No respondieron", value: responseCoverage.pendingSchools.length },
+  ].filter((item) => item.value > 0);
+  const responseRate = responseCoverage.directorCoverage.length
+    ? Math.round((responseCoverage.respondedSchools.length / responseCoverage.directorCoverage.length) * 100)
+    : 0;
 
   await logAuditEvent({
     eventType: "page_view",
@@ -480,14 +490,19 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
       <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen analitico</p>
-            <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Lectura transversal de respuestas y demanda</h3>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Cobertura de respuesta</p>
+            <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Escuelas que respondieron versus pendientes</h3>
           </div>
-          <p className="text-sm leading-6 text-slate-500">Graficos interactivos construidos sobre las salidas administrativas visibles segun los filtros aplicados.</p>
+          <p className="text-sm leading-6 text-slate-500">
+            El porcentaje se calcula sobre el universo esperado de escuelas con director(es) permitido(s) en whitelist y RBD asociado.
+          </p>
         </div>
 
-        <div className="mt-6 grid gap-6 xl:grid-cols-3">
+        <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
           <AdminAnalyticsCharts
+            responseCoverageData={responseCoverageChartData}
+            responseCoverageTotalSchools={responseCoverage.directorCoverage.length}
+            responseRate={responseRate}
             passengerCompositionData={passengerCompositionData}
             statusData={statusData}
             adminDecisionData={adminDecisionData}
@@ -498,6 +513,54 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             monthlyTripsChartData={monthlyTripsChartData}
             totalPassengers={totalPassengers}
             totalTrips={totalTrips}
+            renderMode="responseCoverage"
+          />
+
+          <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-1">
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Escuelas consideradas</p>
+              <p className="mt-4 text-3xl font-semibold text-slate-950">{formatCompactNumber(responseCoverage.directorCoverage.length)}</p>
+              <p className="mt-2 text-sm text-slate-500">{formatCompactNumber(responseCoverage.expectedDirectorCount)} director(es) esperados con RBD asociado.</p>
+            </div>
+            <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Respondieron</p>
+              <p className="mt-4 text-3xl font-semibold text-emerald-950">{formatCompactNumber(responseCoverage.respondedSchools.length)}</p>
+              <p className="mt-2 text-sm text-emerald-800">{formatCompactNumber(responseCoverage.respondedDirectorCount)} director(es) vinculados a escuelas con carga.</p>
+            </div>
+            <div className="rounded-[24px] border border-amber-200 bg-amber-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-700">No respondieron</p>
+              <p className="mt-4 text-3xl font-semibold text-amber-950">{formatCompactNumber(responseCoverage.pendingSchools.length)}</p>
+              <p className="mt-2 text-sm text-amber-800">{formatCompactNumber(responseCoverage.pendingDirectorCount)} director(es) siguen pendientes.</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article className="portal-panel rounded-[28px] p-8 xl:col-span-12">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Resumen analitico</p>
+            <h3 className="font-display mt-4 text-2xl font-semibold text-slate-950">Lectura transversal de respuestas y demanda</h3>
+          </div>
+          <p className="text-sm leading-6 text-slate-500">Graficos interactivos construidos sobre las salidas administrativas visibles segun los filtros aplicados.</p>
+        </div>
+
+        <div className="mt-6 grid gap-6 xl:grid-cols-3">
+          <AdminAnalyticsCharts
+            responseCoverageData={[]}
+            responseCoverageTotalSchools={0}
+            responseRate={0}
+            passengerCompositionData={passengerCompositionData}
+            statusData={statusData}
+            adminDecisionData={adminDecisionData}
+            communeChartData={communeChartData}
+            regionChartData={regionChartData}
+            placeChartData={placeChartData}
+            schoolChartData={schoolChartData}
+            monthlyTripsChartData={monthlyTripsChartData}
+            totalPassengers={totalPassengers}
+            totalTrips={totalTrips}
+            renderMode="full"
           />
         </div>
 
