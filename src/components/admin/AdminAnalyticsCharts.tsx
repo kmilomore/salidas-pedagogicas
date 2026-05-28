@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import {
   Bar,
   BarChart,
@@ -69,6 +71,14 @@ const statusColors = ["#059669", "#f59e0b"];
 const adminDecisionColors = ["#059669", "#dc2626", "#2563eb"];
 const responseCoverageColors = ["#059669", "#f59e0b"];
 
+function ChartFrame({ children }: { children: ReactNode }) {
+  return (
+    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240} debounce={120}>
+      {children}
+    </ResponsiveContainer>
+  );
+}
+
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
 }
@@ -135,7 +145,7 @@ export default function AdminAnalyticsCharts({
 }: AdminAnalyticsChartsProps) {
   if (renderMode === "responseCoverage") {
     return (
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-slate-950">Respuesta de escuelas</p>
@@ -147,9 +157,9 @@ export default function AdminAnalyticsCharts({
           </div>
         </div>
 
-        <div className="mt-5 h-[20rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[20rem] min-w-0 rounded-[20px] bg-white p-3">
           {responseCoverageData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <PieChart>
                 <Pie data={responseCoverageData} dataKey="value" nameKey="name" innerRadius={58} outerRadius={88} paddingAngle={3}>
                   {responseCoverageData.map((entry, index) => (
@@ -159,7 +169,7 @@ export default function AdminAnalyticsCharts({
                 <Tooltip content={<ResponseCoverageTooltip />} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay escuelas esperadas visibles para calcular cobertura.</div>
           )}
@@ -193,13 +203,13 @@ export default function AdminAnalyticsCharts({
 
   return (
     <>
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
         <p className="text-sm font-semibold text-slate-950">Composicion de pasajeros</p>
         <p className="mt-1 text-sm text-slate-500">Distribucion interactiva por tipo de pasajero.</p>
 
-        <div className="mt-5 h-[18rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[18rem] min-w-0 rounded-[20px] bg-white p-3">
           {passengerCompositionData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <PieChart>
                 <Pie data={passengerCompositionData} dataKey="value" nameKey="name" innerRadius={52} outerRadius={78} paddingAngle={2}>
                   {passengerCompositionData.map((entry, index) => (
@@ -209,7 +219,7 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay pasajeros visibles con los filtros actuales.</div>
           )}
@@ -228,13 +238,13 @@ export default function AdminAnalyticsCharts({
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
         <p className="text-sm font-semibold text-slate-950">Estado de viajes</p>
         <p className="mt-1 text-sm text-slate-500">Distribucion interactiva entre enviadas y borradores.</p>
 
-        <div className="mt-5 h-[18rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[18rem] min-w-0 rounded-[20px] bg-white p-3">
           {statusData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <PieChart>
                 <Pie data={statusData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={76} paddingAngle={2}>
                   {statusData.map((entry, index) => (
@@ -244,7 +254,7 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay viajes visibles con los filtros actuales.</div>
           )}
@@ -263,13 +273,13 @@ export default function AdminAnalyticsCharts({
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
         <p className="text-sm font-semibold text-slate-950">Decision administrativa</p>
         <p className="mt-1 text-sm text-slate-500">Distribucion entre salidas aceptadas, rechazadas y pendientes.</p>
 
-        <div className="mt-5 h-[18rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[18rem] min-w-0 rounded-[20px] bg-white p-3">
           {adminDecisionData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <PieChart>
                 <Pie data={adminDecisionData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={76} paddingAngle={2}>
                   {adminDecisionData.map((entry, index) => (
@@ -279,7 +289,7 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay decisiones administrativas visibles con los filtros actuales.</div>
           )}
@@ -298,7 +308,7 @@ export default function AdminAnalyticsCharts({
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-2">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-2">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-950">Viajes por escuela</p>
@@ -307,9 +317,9 @@ export default function AdminAnalyticsCharts({
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 10</span>
         </div>
 
-        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[22rem] min-w-0 rounded-[20px] bg-white p-3">
           {schoolChartData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <BarChart data={schoolChartData} margin={{ top: 10, right: 12, left: 0, bottom: 56 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="establecimiento" angle={-25} textAnchor="end" height={70} interval={0} tick={{ fontSize: 11 }} />
@@ -319,14 +329,14 @@ export default function AdminAnalyticsCharts({
                 <Bar dataKey="viajes" name="Viajes" fill="#005f73" radius={[10, 10, 0, 0]} />
                 <Bar dataKey="pasajeros" name="Pasajeros" fill="#94a3b8" radius={[10, 10, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay establecimientos con viajes para graficar.</div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-950">Comunas de destino</p>
@@ -335,9 +345,9 @@ export default function AdminAnalyticsCharts({
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
         </div>
 
-        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[22rem] min-w-0 rounded-[20px] bg-white p-3">
           {communeChartData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <BarChart data={communeChartData} layout="vertical" margin={{ top: 10, right: 12, left: 16, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
@@ -345,14 +355,14 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} />
                 <Bar dataKey="viajes" name="Viajes" fill="#ee9b00" radius={[0, 10, 10, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay comunas visibles para graficar.</div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-1">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-950">Regiones mas visitadas</p>
@@ -361,9 +371,9 @@ export default function AdminAnalyticsCharts({
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
         </div>
 
-        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[22rem] min-w-0 rounded-[20px] bg-white p-3">
           {regionChartData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <BarChart data={regionChartData} layout="vertical" margin={{ top: 10, right: 12, left: 16, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
@@ -371,14 +381,14 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} />
                 <Bar dataKey="viajes" name="Viajes" fill="#0f766e" radius={[0, 10, 10, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay regiones visibles para graficar.</div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-2">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-2">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-950">Lugares mas visitados</p>
@@ -387,9 +397,9 @@ export default function AdminAnalyticsCharts({
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Top 8</span>
         </div>
 
-        <div className="mt-5 h-[22rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[22rem] min-w-0 rounded-[20px] bg-white p-3">
           {placeChartData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <BarChart data={placeChartData} margin={{ top: 10, right: 12, left: 0, bottom: 56 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="lugar" angle={-25} textAnchor="end" height={70} interval={0} tick={{ fontSize: 11 }} />
@@ -397,14 +407,14 @@ export default function AdminAnalyticsCharts({
                 <Tooltip formatter={formatTooltipValue} labelFormatter={(label) => String(label)} />
                 <Bar dataKey="viajes" name="Viajes" fill="#7c3aed" radius={[10, 10, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay lugares visibles para graficar.</div>
           )}
         </div>
       </section>
 
-      <section className="rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-3">
+      <section className="min-w-0 rounded-[24px] border border-slate-200 bg-slate-50 p-5 xl:col-span-3">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-slate-950">Tendencia mensual de viajes</p>
@@ -413,9 +423,9 @@ export default function AdminAnalyticsCharts({
           <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Ultimos 8 meses</span>
         </div>
 
-        <div className="mt-5 h-[20rem] rounded-[20px] bg-white p-3">
+        <div className="mt-5 h-[20rem] min-w-0 rounded-[20px] bg-white p-3">
           {monthlyTripsChartData.length ? (
-            <ResponsiveContainer width="100%" height="100%">
+            <ChartFrame>
               <BarChart data={monthlyTripsChartData} margin={{ top: 10, right: 12, left: 0, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="month" tickFormatter={formatMonthLabel} tick={{ fontSize: 11 }} />
@@ -423,7 +433,7 @@ export default function AdminAnalyticsCharts({
                 <Tooltip labelFormatter={(label) => formatMonthLabel(String(label))} formatter={formatTooltipValue} />
                 <Bar dataKey="viajes" name="Viajes" fill="#005f73" radius={[12, 12, 0, 0]} />
               </BarChart>
-            </ResponsiveContainer>
+            </ChartFrame>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-slate-500">No hay suficiente historial para graficar la tendencia mensual.</div>
           )}
