@@ -283,8 +283,16 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
   const monthlyTripsChartData = monthlyTrips.map((month) => ({ month: month.month, viajes: month.count }));
   const responseCoverage = buildResponseCoverageSummary(whitelistUsers, filteredTrips);
   const responseCoverageChartData = [
-    { name: "Respondieron", value: responseCoverage.respondedSchools.length },
-    { name: "No respondieron", value: responseCoverage.pendingSchools.length },
+    {
+      name: "Respondieron",
+      value: responseCoverage.respondedSchools.length,
+      schoolNames: responseCoverage.respondedSchools.map((school) => school.schoolName),
+    },
+    {
+      name: "No respondieron",
+      value: responseCoverage.pendingSchools.length,
+      schoolNames: responseCoverage.pendingSchools.map((school) => school.schoolName),
+    },
   ].filter((item) => item.value > 0);
   const responseRate = responseCoverage.directorCoverage.length
     ? Math.round((responseCoverage.respondedSchools.length / responseCoverage.directorCoverage.length) * 100)

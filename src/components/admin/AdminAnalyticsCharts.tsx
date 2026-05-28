@@ -17,6 +17,7 @@ import {
 interface ChartDatum {
   name: string;
   value: number;
+  schoolNames?: string[];
 }
 
 interface CommuneChartDatum {
@@ -90,6 +91,32 @@ function formatMonthLabel(monthKey: string) {
   }).format(new Date(year, month - 1, 1));
 }
 
+function ResponseCoverageTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload?: ChartDatum }> }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const datum = payload[0]?.payload;
+
+  if (!datum) {
+    return null;
+  }
+
+  return (
+    <div className="max-w-xs rounded-2xl border border-slate-200 bg-white p-4 shadow-lg">
+      <p className="text-sm font-semibold text-slate-950">{datum.name}</p>
+      <p className="mt-1 text-sm text-slate-600">{formatCompactNumber(datum.value)} escuela(s)</p>
+      {datum.schoolNames?.length ? (
+        <div className="mt-3 max-h-40 space-y-1 overflow-y-auto text-xs leading-5 text-slate-500">
+          {datum.schoolNames.map((schoolName) => (
+            <p key={schoolName}>{schoolName}</p>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function AdminAnalyticsCharts({
   responseCoverageData,
   responseCoverageTotalSchools,
@@ -129,7 +156,7 @@ export default function AdminAnalyticsCharts({
                     <Cell key={entry.name} fill={responseCoverageColors[index % responseCoverageColors.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={formatTooltipValue} />
+                <Tooltip content={<ResponseCoverageTooltip />} />
                 <Legend verticalAlign="bottom" height={24} />
               </PieChart>
             </ResponsiveContainer>
@@ -140,14 +167,23 @@ export default function AdminAnalyticsCharts({
 
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {responseCoverageData.map((entry, index) => (
-            <div key={entry.name} className="flex items-center justify-between gap-3 rounded-2xl bg-white px-4 py-3 text-sm">
-              <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full" style={{ backgroundColor: responseCoverageColors[index % responseCoverageColors.length] }} />
-                <span className="text-slate-700">{entry.name}</span>
+            <div key={entry.name} className="rounded-2xl bg-white px-4 py-3 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="h-3 w-3 rounded-full" style={{ backgroundColor: responseCoverageColors[index % responseCoverageColors.length] }} />
+                  <span className="text-slate-700">{entry.name}</span>
+                </div>
+                <span className="font-semibold text-slate-950">
+                  {formatCompactNumber(entry.value)} / {responseCoverageTotalSchools ? Math.round((entry.value / responseCoverageTotalSchools) * 100) : 0}%
+                </span>
               </div>
-              <span className="font-semibold text-slate-950">
-                {formatCompactNumber(entry.value)} / {responseCoverageTotalSchools ? Math.round((entry.value / responseCoverageTotalSchools) * 100) : 0}%
-              </span>
+              <div className="mt-3 max-h-40 space-y-1 overflow-y-auto border-t border-slate-100 pt-3 text-xs leading-5 text-slate-500">
+                {entry.schoolNames?.length ? (
+                  entry.schoolNames.map((schoolName) => <p key={schoolName}>{schoolName}</p>)
+                ) : (
+                  <p>Sin escuelas asociadas en esta categoria.</p>
+                )}
+              </div>
             </div>
           ))}
         </div>
