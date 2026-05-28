@@ -27,6 +27,14 @@ function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("es-CL").format(value);
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 function normalizeDateParam(value?: string) {
   const normalized = value?.trim();
 
@@ -261,11 +269,16 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
 
   const sentTrips = statusCount.get("enviada") ?? 0;
   const draftTrips = statusCount.get("borrador") ?? 0;
-  const acceptedTrips = filteredTrips.filter((trip) => trip.decision_admin === "aceptada").length;
+  const acceptedTripRecords = filteredTrips.filter((trip) => trip.decision_admin === "aceptada");
+  const acceptedTrips = acceptedTripRecords.length;
   const rejectedTrips = filteredTrips.filter((trip) => trip.decision_admin === "rechazada").length;
   const pendingAdminTrips = filteredTrips.filter((trip) => trip.decision_admin === "pendiente").length;
   const uniqueCommunes = destinationCommunesCount.size;
   const uniqueSchools = schoolTripCount.size;
+  const acceptedAmountTotal = acceptedTripRecords.reduce((sum, trip) => sum + Number(trip.monto_referencial ?? 0), 0);
+  const acceptedTripsRate = totalTrips ? Math.round((acceptedTrips / totalTrips) * 100) : 0;
+  const acceptedSchoolsCount = new Set(acceptedTripRecords.map((trip) => trip.rbd)).size;
+  const acceptedSchoolsRate = uniqueSchools ? Math.round((acceptedSchoolsCount / uniqueSchools) * 100) : 0;
   const averagePassengersPerTrip = totalTrips ? totalPassengers / totalTrips : 0;
   const passengerCompositionData = [
     { name: "Estudiantes", value: totalStudents },
@@ -483,7 +496,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <p className="text-sm leading-6 text-slate-500">Lectura resumida de los hitos mas representativos segun los filtros aplicados.</p>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-7">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-10">
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Promedio pasajeros por viaje</p>
             <p className="mt-4 text-3xl font-semibold text-slate-950">{averagePassengersPerTrip.toFixed(1)}</p>
@@ -514,6 +527,21 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Salidas aceptadas</p>
             <p className="mt-4 text-3xl font-semibold text-emerald-950">{formatCompactNumber(acceptedTrips)}</p>
             <p className="mt-2 text-sm text-emerald-800">Registradas como aceptadas en la revision administrativa.</p>
+          </div>
+          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Monto total aceptado</p>
+            <p className="mt-4 text-2xl font-semibold text-emerald-950">{formatCurrency(acceptedAmountTotal)}</p>
+            <p className="mt-2 text-sm text-emerald-800">Suma de montos referenciales de las salidas aceptadas visibles.</p>
+          </div>
+          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">% salidas aceptadas</p>
+            <p className="mt-4 text-3xl font-semibold text-emerald-950">{acceptedTripsRate}%</p>
+            <p className="mt-2 text-sm text-emerald-800">Sobre el total de salidas ingresadas dentro del universo filtrado.</p>
+          </div>
+          <div className="rounded-[24px] border border-emerald-200 bg-emerald-50 p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">% escuelas aceptadas</p>
+            <p className="mt-4 text-3xl font-semibold text-emerald-950">{acceptedSchoolsRate}%</p>
+            <p className="mt-2 text-sm text-emerald-800">{formatCompactNumber(acceptedSchoolsCount)} de {formatCompactNumber(uniqueSchools)} escuela(s) tienen al menos una salida aceptada.</p>
           </div>
           <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Salidas rechazadas</p>
