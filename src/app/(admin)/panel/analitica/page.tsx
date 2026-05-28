@@ -496,7 +496,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           <p className="text-sm leading-6 text-slate-500">Lectura resumida de los hitos mas representativos segun los filtros aplicados.</p>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-10">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Promedio pasajeros por viaje</p>
             <p className="mt-4 text-3xl font-semibold text-slate-950">{averagePassengersPerTrip.toFixed(1)}</p>

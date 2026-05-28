@@ -20,6 +20,14 @@ interface AdminPanelPageProps {
   };
 }
 
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 export default async function AdminPanelPage({ searchParams }: AdminPanelPageProps) {
   const [allTrips, whitelistUsers] = await Promise.all([getAdminTrips(), getWhitelistUsers()]);
   const filters: TripQueryFilters = {
@@ -49,6 +57,11 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
   const sentCount = trips.filter((trip) => trip.estado === "enviada").length;
   const draftCount = trips.filter((trip) => trip.estado === "borrador").length;
   const totalDistance = trips.reduce((sum, trip) => sum + Number(trip.distancia_km ?? 0), 0);
+  const acceptedTripRecords = trips.filter((trip) => trip.decision_admin === "aceptada");
+  const acceptedAmountTotal = acceptedTripRecords.reduce((sum, trip) => sum + Number(trip.monto_referencial ?? 0), 0);
+  const acceptedTripsRate = trips.length ? Math.round((acceptedTripRecords.length / trips.length) * 100) : 0;
+  const acceptedSchoolsCount = new Set(acceptedTripRecords.map((trip) => trip.rbd)).size;
+  const acceptedSchoolsRate = schoolCount ? Math.round((acceptedSchoolsCount / schoolCount) * 100) : 0;
   const { directorCoverage, respondedSchools, pendingSchools, expectedDirectorCount, respondedDirectorCount, pendingDirectorCount } =
     buildResponseCoverageSummary(whitelistUsers, allTrips);
   const permittedSchools = directorCoverage.map((school) => ({
@@ -113,7 +126,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
         </p>
       </aside>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:col-span-12 xl:grid-cols-7">
         <article className="portal-panel rounded-[28px] p-8">
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Establecimientos</p>
           <p className="mt-4 text-3xl font-semibold text-slate-950">{schoolCount}</p>
@@ -133,6 +146,21 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
           <p className="text-sm font-medium uppercase tracking-[0.24em] text-slep">Cobertura</p>
           <p className="mt-4 text-3xl font-semibold text-slate-950">{formatDistance(totalDistance)}</p>
           <p className="mt-3 text-sm leading-6 text-slate-600">Kilometraje acumulado visible en las ultimas salidas registradas.</p>
+        </article>
+        <article className="portal-panel rounded-[28px] border border-emerald-200 bg-emerald-50 p-8">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-emerald-700">Monto aceptado</p>
+          <p className="mt-4 text-2xl font-semibold text-emerald-950">{formatCurrency(acceptedAmountTotal)}</p>
+          <p className="mt-3 text-sm leading-6 text-emerald-800">Suma de montos referenciales de salidas aceptadas visibles.</p>
+        </article>
+        <article className="portal-panel rounded-[28px] border border-emerald-200 bg-emerald-50 p-8">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-emerald-700">% salidas aceptadas</p>
+          <p className="mt-4 text-3xl font-semibold text-emerald-950">{acceptedTripsRate}%</p>
+          <p className="mt-3 text-sm leading-6 text-emerald-800">Sobre el total de salidas ingresadas en esta vista.</p>
+        </article>
+        <article className="portal-panel rounded-[28px] border border-emerald-200 bg-emerald-50 p-8">
+          <p className="text-sm font-medium uppercase tracking-[0.24em] text-emerald-700">% escuelas aceptadas</p>
+          <p className="mt-4 text-3xl font-semibold text-emerald-950">{acceptedSchoolsRate}%</p>
+          <p className="mt-3 text-sm leading-6 text-emerald-800">{acceptedSchoolsCount} de {schoolCount} escuela(s) tienen al menos una salida aceptada.</p>
         </article>
       </div>
 
