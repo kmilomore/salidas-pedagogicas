@@ -80,6 +80,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
   const [stageInput, setStageInput] = useState<AdminTripRecord["etapa_admin"]>("pendiente");
   const [adminObservationsInput, setAdminObservationsInput] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const isRejectedDecision = decisionInput === "rechazada";
 
   const routePath = useMemo(() => {
     if (!trip?.ruta_polyline) {
@@ -90,6 +91,10 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
   }, [trip?.ruta_polyline]);
 
   const calculatedTotal = useMemo(() => {
+    if (isRejectedDecision) {
+      return null;
+    }
+
     const busCount = Number(busCountInput);
     const unitAmount = Number(unitAmountInput);
 
@@ -98,7 +103,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
     }
 
     return busCount * unitAmount;
-  }, [busCountInput, unitAmountInput]);
+  }, [busCountInput, isRejectedDecision, unitAmountInput]);
 
   useEffect(() => {
     setTransportModeInput(trip?.tipo_transporte_referencial ?? "bus");
@@ -227,10 +232,10 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
-                    {getTransportModeLabel(transportModeInput)}
+                    {isRejectedDecision ? "Transporte no requerido" : getTransportModeLabel(transportModeInput)}
                   </div>
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
-                    {formatCurrency(calculatedTotal ?? trip.monto_referencial)}
+                    {isRejectedDecision ? "Monto no requerido" : formatCurrency(calculatedTotal ?? trip.monto_referencial)}
                   </div>
                   <div className={`${getAdminStageClasses(stageInput)} px-4 py-3 text-sm font-semibold normal-case tracking-normal`}>
                     {getAdminStageLabel(stageInput)}
@@ -242,6 +247,12 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
 
               <div className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-2">
+                {isRejectedDecision ? (
+                  <div className="rounded-[20px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 lg:col-span-2">
+                    Al marcar la salida como rechazada, el sistema permite guardar sin informar buses ni montos. Si existian valores previos, se limpiaran al guardar.
+                  </div>
+                ) : null}
+
                 <label className="portal-field">
                   <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Tipo de transporte</span>
                   <select value={transportModeInput} onChange={(event) => setTransportModeInput(event.target.value as AdminTransportMode)} className="portal-input">
@@ -282,7 +293,9 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Monto total calculado</p>
                   <p className="mt-3 text-2xl font-semibold text-slate-950">{formatCurrency(calculatedTotal)}</p>
                   <p className="mt-2 text-sm text-slate-500">
-                    {busCountInput || unitAmountInput
+                    {isRejectedDecision
+                      ? "No se requiere monto referencial cuando la salida queda rechazada."
+                      : busCountInput || unitAmountInput
                       ? "Se calcula multiplicando la cantidad de buses por el valor unitario informado."
                       : "Completa cantidad y valor unitario para calcular el total."}
                   </p>

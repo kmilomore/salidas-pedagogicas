@@ -28,7 +28,25 @@ interface SaveAdministrativeReviewPayload {
   observations: string;
 }
 
-function parseAdministrativeTransport(payload: UpdateGestionAdministrativaPayload) {
+interface ParsedAdministrativeTransport {
+  error: string | null;
+  transportMode: AdminTransportMode | null;
+  busCount: number | null;
+  unitAmount: number | null;
+  totalAmount: number | null;
+}
+
+function buildEmptyAdministrativeTransport(): ParsedAdministrativeTransport {
+  return {
+    error: null,
+    transportMode: null,
+    busCount: null,
+    unitAmount: null,
+    totalAmount: null,
+  };
+}
+
+function parseAdministrativeTransport(payload: UpdateGestionAdministrativaPayload): ParsedAdministrativeTransport {
   if (!payload.transportMode || !["taxi_bus", "bus"].includes(payload.transportMode)) {
     return {
       error: "Selecciona un tipo de transporte valido.",
@@ -201,21 +219,6 @@ export async function saveAdministrativeReview(
     };
   }
 
-  const parsedTransport = parseAdministrativeTransport(payload);
-
-  if (parsedTransport.error) {
-    return {
-      error: parsedTransport.error,
-      transportMode: null,
-      busCount: null,
-      unitAmount: null,
-      totalAmount: null,
-      decision: null,
-      stage: null,
-      observations: null,
-    };
-  }
-
   if (!["pendiente", "aceptada", "rechazada"].includes(payload.decision)) {
     return {
       error: "La decision administrativa indicada no es valida.",
@@ -232,6 +235,21 @@ export async function saveAdministrativeReview(
   if (!["pendiente", "etapa_1", "etapa_2", "terminada", "seleccionada"].includes(payload.stage)) {
     return {
       error: "La etapa administrativa indicada no es valida.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  const parsedTransport = payload.decision === "rechazada" ? buildEmptyAdministrativeTransport() : parseAdministrativeTransport(payload);
+
+  if (parsedTransport.error) {
+    return {
+      error: parsedTransport.error,
       transportMode: null,
       busCount: null,
       unitAmount: null,
