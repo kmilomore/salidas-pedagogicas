@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { logAuditEvent } from "@/lib/admin/audit";
 import { buildResponseCoverageSummary } from "@/lib/admin/response-coverage";
+import AdminTripsKanban from "@/components/admin/AdminTripsKanban";
 import AdminPendingReviewTable from "@/components/admin/AdminPendingReviewTable";
 import AdminTripsTable from "@/components/admin/AdminTripsTable";
 import { formatDistance } from "@/lib/admin/trip-formatting";
@@ -231,6 +232,8 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
         </form>
 
         <AdminTripsTable trips={trips} />
+
+        <AdminTripsKanban trips={trips} />
 
         <section className="mt-8 rounded-[24px] border border-amber-200 bg-amber-50/60 p-6">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
