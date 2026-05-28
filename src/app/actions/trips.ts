@@ -7,7 +7,13 @@ import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText
 import { limitTripCreation } from "@/lib/rate-limit";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
-import type { AdminDecisionStatus, SaveTripResponse, UserRole } from "@/types";
+import type { AdminDecisionStatus, AdminTransportMode, SaveTripResponse, UserRole } from "@/types";
+
+interface UpdateGestionAdministrativaPayload {
+  transportMode: AdminTransportMode;
+  busCount: string;
+  unitAmount: string;
+}
 
 async function assertAdminForTripAction() {
   const supabase = createClient();
@@ -33,43 +39,87 @@ async function assertAdminForTripAction() {
   return createAdminClient();
 }
 
-export async function updateMontoReferencialSalida(
+export async function updateGestionAdministrativaSalida(
   tripId: string,
-  rawAmount: string,
-): Promise<{ error: string | null; amount: number | null }> {
+  payload: UpdateGestionAdministrativaPayload,
+): Promise<{
+  error: string | null;
+  transportMode: AdminTransportMode | null;
+  busCount: number | null;
+  unitAmount: number | null;
+  totalAmount: number | null;
+}> {
   const adminClient = await assertAdminForTripAction();
 
   if (!adminClient) {
     return {
-      error: "No tienes permisos para editar el monto referencial.",
-      amount: null,
+      error: "No tienes permisos para editar la gestion administrativa.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
     };
   }
 
-  const normalizedAmount = rawAmount.trim();
-  const amount = normalizedAmount ? Number(normalizedAmount) : null;
-
-  if (normalizedAmount && (!Number.isFinite(amount) || amount === null || amount < 0)) {
+  if (!payload.transportMode || !["taxi_bus", "bus"].includes(payload.transportMode)) {
     return {
-      error: "Ingresa un monto referencial valido igual o mayor a 0.",
-      amount: null,
+      error: "Selecciona un tipo de transporte valido.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
     };
   }
 
-  const persistedAmount = amount === null ? null : Number(amount.toFixed(2));
+  const normalizedBusCount = payload.busCount.trim();
+  const normalizedUnitAmount = payload.unitAmount.trim();
+  const busCount = Number(normalizedBusCount);
+  const unitAmount = Number(normalizedUnitAmount);
+
+  if (!normalizedBusCount || !Number.isInteger(busCount) || busCount <= 0) {
+    return {
+      error: "Ingresa una cantidad de buses valida mayor a 0.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+    };
+  }
+
+  if (!normalizedUnitAmount || !Number.isFinite(unitAmount) || unitAmount < 0) {
+    return {
+      error: "Ingresa un valor unitario valido igual o mayor a 0.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+    };
+  }
+
+  const persistedUnitAmount = Number(unitAmount.toFixed(2));
+  const persistedTotalAmount = Number((busCount * persistedUnitAmount).toFixed(2));
   const { error } = await adminClient
     .from("salidas_pedagogicas")
-    .update({ monto_referencial: persistedAmount })
+    .update({
+      tipo_transporte_referencial: payload.transportMode,
+      cantidad_buses_referencial: busCount,
+      valor_unitario_bus_referencial: persistedUnitAmount,
+      monto_referencial: persistedTotalAmount,
+    })
     .eq("id", tripId);
 
   if (error) {
     return {
-      error: `No fue posible guardar el monto referencial. (${error.message})`,
-      amount: null,
+      error: `No fue posible guardar la gestion administrativa. (${error.message})`,
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
     };
   }
 
   revalidatePath("/panel");
+  revalidatePath("/panel/analitica");
 
   await logAuditEvent({
     eventType: "trip_amount_updated",
@@ -77,13 +127,19 @@ export async function updateMontoReferencialSalida(
     targetType: "salida",
     targetId: tripId,
     metadata: {
-      amount: persistedAmount,
+      transportMode: payload.transportMode,
+      busCount,
+      unitAmount: persistedUnitAmount,
+      amount: persistedTotalAmount,
     },
   });
 
   return {
     error: null,
-    amount: persistedAmount,
+    transportMode: payload.transportMode,
+    busCount,
+    unitAmount: persistedUnitAmount,
+    totalAmount: persistedTotalAmount,
   };
 }
 

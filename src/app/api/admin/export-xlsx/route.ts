@@ -56,6 +56,10 @@ export async function GET(request: Request) {
       Apoderados: trip.cantidad_apoderados,
       Funcionarios: cantidadFuncionarios,
       TotalPasajeros: cantidadTotalPasajeros,
+      TransporteReferencial: trip.tipo_transporte_referencial ?? "",
+      CantidadBusesReferencial: trip.cantidad_buses_referencial ?? "",
+      ValorUnitarioBusReferencial: trip.valor_unitario_bus_referencial ?? "",
+      MontoReferencial: trip.monto_referencial ?? "",
       ResumenRuta: sanitizeFormula(trip.ruta_resumen),
       CreadoEn: trip.created_at,
     };

@@ -5,12 +5,12 @@ import polyline from "@mapbox/polyline";
 import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
-import { updateDecisionAdministrativaSalida, updateMontoReferencialSalida } from "@/app/actions/trips";
+import { updateDecisionAdministrativaSalida, updateGestionAdministrativaSalida } from "@/app/actions/trips";
 import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
 import { getAdminDecisionClasses, getAdminDecisionLabel } from "@/lib/admin/trip-formatting";
 import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
-import type { AdminTripRecord } from "@/types";
+import type { AdminTransportMode, AdminTripRecord } from "@/types";
 
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
@@ -57,11 +57,25 @@ function formatCurrency(value: number | null) {
   }).format(value);
 }
 
+function getTransportModeLabel(value: AdminTransportMode | null) {
+  if (value === "taxi_bus") {
+    return "Taxi bus";
+  }
+
+  if (value === "bus") {
+    return "Bus";
+  }
+
+  return "Sin definir";
+}
+
 export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleSalidaProps) {
   const { isLoaded } = usePortalGoogleMapsLoader();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [amountInput, setAmountInput] = useState("");
+  const [transportModeInput, setTransportModeInput] = useState<AdminTransportMode>("bus");
+  const [busCountInput, setBusCountInput] = useState("");
+  const [unitAmountInput, setUnitAmountInput] = useState("");
   const [decisionInput, setDecisionInput] = useState<AdminTripRecord["decision_admin"]>("pendiente");
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -73,8 +87,21 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
     return polyline.decode(trip.ruta_polyline).map(([lat, lng]) => ({ lat, lng }));
   }, [trip?.ruta_polyline]);
 
+  const calculatedTotal = useMemo(() => {
+    const busCount = Number(busCountInput);
+    const unitAmount = Number(unitAmountInput);
+
+    if (!busCountInput.trim() || !unitAmountInput.trim() || !Number.isFinite(busCount) || !Number.isFinite(unitAmount) || busCount <= 0 || unitAmount < 0) {
+      return null;
+    }
+
+    return busCount * unitAmount;
+  }, [busCountInput, unitAmountInput]);
+
   useEffect(() => {
-    setAmountInput(trip?.monto_referencial === null || trip?.monto_referencial === undefined ? "" : String(trip.monto_referencial));
+    setTransportModeInput(trip?.tipo_transporte_referencial ?? "bus");
+    setBusCountInput(trip?.cantidad_buses_referencial === null || trip?.cantidad_buses_referencial === undefined ? "" : String(trip.cantidad_buses_referencial));
+    setUnitAmountInput(trip?.valor_unitario_bus_referencial === null || trip?.valor_unitario_bus_referencial === undefined ? "" : String(trip.valor_unitario_bus_referencial));
     setDecisionInput(trip?.decision_admin ?? "pendiente");
     setFeedback(null);
   }, [trip]);
@@ -85,25 +112,35 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
   const tripId = trip.id;
 
-  function handleAmountSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleAdministrativeSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFeedback(null);
 
     startTransition(async () => {
       try {
-        const result = await updateMontoReferencialSalida(tripId, amountInput);
+        const result = await updateGestionAdministrativaSalida(tripId, {
+          transportMode: transportModeInput,
+          busCount: busCountInput,
+          unitAmount: unitAmountInput,
+        });
 
         if (result.error) {
           setFeedback(result.error);
           return;
         }
 
-        onTripUpdated({ monto_referencial: result.amount });
-        setAmountInput(result.amount === null ? "" : String(result.amount));
-        setFeedback("Monto referencial actualizado correctamente.");
+        onTripUpdated({
+          tipo_transporte_referencial: result.transportMode,
+          cantidad_buses_referencial: result.busCount,
+          valor_unitario_bus_referencial: result.unitAmount,
+          monto_referencial: result.totalAmount,
+        });
+        setBusCountInput(result.busCount === null ? "" : String(result.busCount));
+        setUnitAmountInput(result.unitAmount === null ? "" : String(result.unitAmount));
+        setFeedback("Gestion administrativa actualizada correctamente.");
         router.refresh();
       } catch {
-        setFeedback("No fue posible actualizar el monto referencial.");
+        setFeedback("No fue posible actualizar la gestion administrativa.");
       }
     });
   }
@@ -197,9 +234,12 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion administrativa</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-700">El monto referencial y la decision administrativa quedan persistidos para la salida y solo pueden ser gestionados desde la vista administrativa.</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700">Define tipo de transporte, cantidad de buses, valor unitario y el monto total calculado para la salida. La decision administrativa tambien queda persistida solo desde esta vista.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
+                  <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
+                    {getTransportModeLabel(trip.tipo_transporte_referencial)}
+                  </div>
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
                     {formatCurrency(trip.monto_referencial)}
                   </div>
@@ -209,27 +249,59 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
               </div>
 
-              <form onSubmit={handleAmountSubmit} className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_auto]">
+              <form onSubmit={handleAdministrativeSubmit} className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-2">
                 <label className="portal-field">
-                  <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Monto referencial</span>
+                  <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Tipo de transporte</span>
+                  <select value={transportModeInput} onChange={(event) => setTransportModeInput(event.target.value as AdminTransportMode)} className="portal-input">
+                    <option value="bus">Bus</option>
+                    <option value="taxi_bus">Taxi bus</option>
+                  </select>
+                </label>
+
+                <label className="portal-field">
+                  <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Cantidad de buses</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="1"
+                    step="1"
+                    value={busCountInput}
+                    onChange={(event) => setBusCountInput(event.target.value)}
+                    placeholder="Ej. 2"
+                    className="portal-input"
+                  />
+                </label>
+
+                <label className="portal-field">
+                  <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Valor unitario del bus</span>
                   <input
                     type="number"
                     inputMode="decimal"
                     min="0"
                     step="1"
-                    value={amountInput}
-                    onChange={(event) => setAmountInput(event.target.value)}
+                    value={unitAmountInput}
+                    onChange={(event) => setUnitAmountInput(event.target.value)}
                     placeholder="Ej. 250000"
                     className="portal-input"
                   />
                 </label>
 
+                <div className="rounded-[20px] border border-slate-200 bg-white px-4 py-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Monto total calculado</p>
+                  <p className="mt-3 text-2xl font-semibold text-slate-950">{formatCurrency(calculatedTotal)}</p>
+                  <p className="mt-2 text-sm text-slate-500">
+                    {busCountInput || unitAmountInput
+                      ? "Se calcula multiplicando la cantidad de buses por el valor unitario informado."
+                      : "Completa cantidad y valor unitario para calcular el total."}
+                  </p>
+                </div>
+
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="portal-button portal-button--primary self-end"
+                  className="portal-button portal-button--primary self-end lg:col-span-2 lg:justify-self-start"
                 >
-                  {isPending ? "Guardando..." : "Guardar monto"}
+                  {isPending ? "Guardando..." : "Guardar gestion administrativa"}
                 </button>
               </form>
 

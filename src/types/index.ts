@@ -3,6 +3,7 @@ export type UserRole = "director" | "admin";
 export type AdminDecisionStatus = "pendiente" | "aceptada" | "rechazada";
 
 export type AuditSeverity = "info" | "warning" | "error";
+export type AdminTransportMode = "taxi_bus" | "bus";
 
 export interface PortalAuditEvent {
   id: string;
@@ -181,6 +182,9 @@ export interface AdminTripRecord {
   ruta_polyline: string;
   ruta_resumen: string;
   ruta_segmentos: RouteSegment[];
+  tipo_transporte_referencial: AdminTransportMode | null;
+  cantidad_buses_referencial: number | null;
+  valor_unitario_bus_referencial: number | null;
   monto_referencial: number | null;
   decision_admin: AdminDecisionStatus;
   estado: "borrador" | "enviada";

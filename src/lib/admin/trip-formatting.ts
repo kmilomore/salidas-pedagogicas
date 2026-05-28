@@ -1,5 +1,5 @@
 import { formatChileDateFromIsoDate } from "@/lib/date-time";
-import type { AdminDecisionStatus, AdminTripRecord } from "@/types";
+import type { AdminDecisionStatus, AdminTransportMode, AdminTripRecord } from "@/types";
 
 export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
   const cantidadFuncionarios = trip.funcionarios.length;
@@ -17,6 +17,29 @@ export function formatTripDate(value: string) {
 
 export function formatDistance(value: number) {
   return `${Number(value ?? 0).toFixed(1)} km`;
+}
+
+export function formatAdminCurrency(value: number | null) {
+  if (value === null) {
+    return "Sin definir";
+  }
+
+  return new Intl.NumberFormat("es-CL", {
+    style: "currency",
+    currency: "CLP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function getAdminTransportLabel(transportMode: AdminTransportMode | null) {
+  switch (transportMode) {
+    case "taxi_bus":
+      return "Taxi bus";
+    case "bus":
+      return "Bus";
+    default:
+      return "Sin definir";
+  }
 }
 
 export function getStatusLabel(status: AdminTripRecord["estado"]) {

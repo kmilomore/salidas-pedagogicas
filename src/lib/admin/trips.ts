@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
 
-import { getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { formatAdminCurrency, getAdminTransportLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import type { AdminDecisionStatus, AdminTripRecord, RouteSegment, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
+import type { AdminDecisionStatus, AdminTransportMode, AdminTripRecord, RouteSegment, SchoolRecord, TripQueryFilters, TripStaffMember, UserRole } from "@/types";
 
 interface AdminTripQueryRow {
   id: string;
@@ -29,6 +29,9 @@ interface AdminTripQueryRow {
   ruta_polyline: string;
   ruta_resumen: string;
   ruta_segmentos: RouteSegment[] | null;
+  tipo_transporte_referencial?: AdminTransportMode | null;
+  cantidad_buses_referencial?: number | null;
+  valor_unitario_bus_referencial?: number | null;
   monto_referencial?: number | null;
   decision_admin: AdminDecisionStatus;
   estado: "borrador" | "enviada";
@@ -145,6 +148,11 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
       distancia_vuelta_km: Number(trip.distancia_vuelta_km ?? 0),
       duracion_ida_minutos: Number(trip.duracion_ida_minutos ?? 0),
       duracion_vuelta_minutos: Number(trip.duracion_vuelta_minutos ?? 0),
+      tipo_transporte_referencial: trip.tipo_transporte_referencial ?? null,
+      cantidad_buses_referencial:
+        trip.cantidad_buses_referencial === null || trip.cantidad_buses_referencial === undefined ? null : Number(trip.cantidad_buses_referencial),
+      valor_unitario_bus_referencial:
+        trip.valor_unitario_bus_referencial === null || trip.valor_unitario_bus_referencial === undefined ? null : Number(trip.valor_unitario_bus_referencial),
       monto_referencial: trip.monto_referencial === null || trip.monto_referencial === undefined ? null : Number(trip.monto_referencial),
       decision_admin: trip.decision_admin,
       requerimientos_adicionales: trip.requerimientos_adicionales?.trim() || null,
@@ -165,7 +173,7 @@ export async function getAdminTrips(limit?: number) {
   let query = supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
     )
     .order("created_at", { ascending: false });
 
@@ -187,7 +195,7 @@ export async function getDirectorTrips() {
   const { data: trips, error } = await supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
     )
     .eq("director_id", userId)
     .order("created_at", { ascending: false })
@@ -205,7 +213,7 @@ export async function getAuthorizedTripById(id: string) {
   let query = supabase
     .from("salidas_pedagogicas")
     .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
     )
     .eq("id", id);
 
@@ -295,6 +303,10 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
     "cantidad_apoderados",
     "cantidad_funcionarios",
     "cantidad_total_pasajeros",
+    "transporte_referencial",
+    "cantidad_buses_referencial",
+    "valor_unitario_bus_referencial_clp",
+    "monto_referencial_clp",
     "requerimientos_adicionales",
     "ruta_resumen",
     "funcionarios_json",
@@ -341,6 +353,10 @@ export function buildTripsCsv(trips: AdminTripRecord[]) {
       trip.cantidad_apoderados,
       cantidadFuncionarios,
       cantidadTotalPasajeros,
+      getAdminTransportLabel(trip.tipo_transporte_referencial),
+      trip.cantidad_buses_referencial,
+      formatAdminCurrency(trip.valor_unitario_bus_referencial),
+      formatAdminCurrency(trip.monto_referencial),
       trip.requerimientos_adicionales,
       trip.ruta_resumen,
       JSON.stringify(trip.funcionarios),
