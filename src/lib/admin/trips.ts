@@ -59,6 +59,30 @@ interface AuthContext {
   role: UserRole;
 }
 
+const TRIP_SELECT_VARIANTS = [
+  "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+  "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+  "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+] as const;
+
+async function runTripQueryWithFallback(
+  executeQuery: (selectClause: string) => Promise<{ data: AdminTripQueryRow[] | null; error: { message: string } | null }>,
+) {
+  for (const [index, selectClause] of TRIP_SELECT_VARIANTS.entries()) {
+    const result = await executeQuery(selectClause);
+
+    if (!result.error) {
+      if (index > 0) {
+        console.warn("[admin trips] Consulta ejecutada con esquema legacy; faltan columnas administrativas nuevas en Supabase.");
+      }
+
+      return result;
+    }
+  }
+
+  return executeQuery(TRIP_SELECT_VARIANTS[0]);
+}
+
 function parseCoordinate(value: string | null) {
   if (!value) {
     return null;
@@ -174,18 +198,15 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
 
 export async function getAdminTrips(limit?: number) {
   const { supabase } = await assertRoleAccess(["admin"]);
-  let query = supabase
-    .from("salidas_pedagogicas")
-    .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
-    )
-    .order("created_at", { ascending: false });
+  const { data: trips, error } = await runTripQueryWithFallback((selectClause) => {
+    let query = supabase.from("salidas_pedagogicas").select(selectClause).order("created_at", { ascending: false });
 
-  if (typeof limit === "number") {
-    query = query.limit(limit);
-  }
+    if (typeof limit === "number") {
+      query = query.limit(limit);
+    }
 
-  const { data: trips, error } = await query.returns<AdminTripQueryRow[]>();
+    return query.returns<AdminTripQueryRow[]>();
+  });
 
   if (error || !trips?.length) {
     return [] as AdminTripRecord[];
@@ -196,14 +217,14 @@ export async function getAdminTrips(limit?: number) {
 
 export async function getDirectorTrips() {
   const { supabase, userId } = await assertRoleAccess(["director"]);
-  const { data: trips, error } = await supabase
-    .from("salidas_pedagogicas")
-    .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
-    )
-    .eq("director_id", userId)
-    .order("created_at", { ascending: false })
-    .returns<AdminTripQueryRow[]>();
+  const { data: trips, error } = await runTripQueryWithFallback((selectClause) =>
+    supabase
+      .from("salidas_pedagogicas")
+      .select(selectClause)
+      .eq("director_id", userId)
+      .order("created_at", { ascending: false })
+      .returns<AdminTripQueryRow[]>(),
+  );
 
   if (error || !trips?.length) {
     return [] as AdminTripRecord[];
@@ -214,18 +235,15 @@ export async function getDirectorTrips() {
 
 export async function getAuthorizedTripById(id: string) {
   const { supabase, userId, role } = await assertRoleAccess(["admin", "director"]);
-  let query = supabase
-    .from("salidas_pedagogicas")
-    .select(
-      "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
-    )
-    .eq("id", id);
+  const { data: rows, error } = await runTripQueryWithFallback((selectClause) => {
+    let query = supabase.from("salidas_pedagogicas").select(selectClause).eq("id", id);
 
-  if (role === "director") {
-    query = query.eq("director_id", userId);
-  }
+    if (role === "director") {
+      query = query.eq("director_id", userId);
+    }
 
-  const { data: rows, error } = await query.limit(1).returns<AdminTripQueryRow[]>();
+    return query.limit(1).returns<AdminTripQueryRow[]>();
+  });
 
   if (error || !rows?.length) {
     return null;
