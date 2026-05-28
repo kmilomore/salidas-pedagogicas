@@ -250,10 +250,10 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
   const topPlaces = Array.from(destinationPlacesCount.values())
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "es"))
     .slice(0, 8);
-  const topSchools = Array.from(schoolTripCount.entries())
+  const schoolSummaries = Array.from(schoolTripCount.entries())
     .map(([rbd, value]) => ({ rbd, ...value }))
-    .sort((a, b) => b.tripCount - a.tripCount || a.schoolName.localeCompare(b.schoolName, "es"))
-    .slice(0, 10);
+    .sort((a, b) => b.tripCount - a.tripCount || a.schoolName.localeCompare(b.schoolName, "es"));
+  const topSchools = schoolSummaries.slice(0, 10);
   const monthlyTrips = Array.from(monthTripCount.entries())
     .map(([month, count]) => ({ month, count }))
     .sort((a, b) => a.month.localeCompare(b.month))
@@ -621,7 +621,7 @@ export default async function AdminAnalyticsPage({ searchParams }: AdminAnalytic
           />
         </div>
 
-        <AdminSchoolTripsExplorer trips={filteredTrips} topSchools={topSchools} />
+        <AdminSchoolTripsExplorer trips={filteredTrips} topSchools={schoolSummaries} />
       </article>
     </section>
   );
