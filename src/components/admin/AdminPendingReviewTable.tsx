@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { formatTripDate, getAdminDecisionClasses, getAdminDecisionLabel, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
+import { formatTripDate, getAdminDecisionClasses, getAdminDecisionLabel, getAdminStageClasses, getAdminStageLabel, getStatusClasses, getStatusLabel, getTripPassengerTotals } from "@/lib/admin/trip-formatting";
 import type { AdminTripRecord } from "@/types";
 
 import DetalleSalida from "./DetalleSalida";
@@ -30,11 +30,12 @@ export default function AdminPendingReviewTable({ trips }: AdminPendingReviewTab
   return (
     <>
       <div className="portal-table mt-5">
-        <div className="portal-table__head grid min-w-[1080px] grid-cols-[1fr_0.8fr_1fr_0.65fr_0.75fr_0.7fr_0.7fr] gap-4 px-5 py-4">
+        <div className="portal-table__head grid min-w-[1190px] grid-cols-[1fr_0.8fr_1fr_0.65fr_0.75fr_0.75fr_0.7fr_0.7fr] gap-4 px-5 py-4">
           <span>Establecimiento</span>
           <span>Fecha</span>
           <span>Actividad / destino</span>
           <span>Pasajeros</span>
+          <span>Etapa</span>
           <span>Decision</span>
           <span>Estado</span>
           <span>Acciones</span>
@@ -46,7 +47,7 @@ export default function AdminPendingReviewTable({ trips }: AdminPendingReviewTab
               const { cantidadTotalPasajeros } = getTripPassengerTotals(trip);
 
               return (
-                <div key={trip.id} className="grid min-w-[1080px] grid-cols-[1fr_0.8fr_1fr_0.65fr_0.75fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                <div key={trip.id} className="grid min-w-[1190px] grid-cols-[1fr_0.8fr_1fr_0.65fr_0.75fr_0.75fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                   <div>
                     <p className="font-semibold text-slate-950">{trip.school_name}</p>
                     <p className="text-slate-500">RBD {trip.rbd}</p>
@@ -61,6 +62,9 @@ export default function AdminPendingReviewTable({ trips }: AdminPendingReviewTab
                   </div>
                   <div>
                     <p className="font-medium text-slate-950">{cantidadTotalPasajeros}</p>
+                  </div>
+                  <div>
+                    <span className={getAdminStageClasses(trip.etapa_admin)}>{getAdminStageLabel(trip.etapa_admin)}</span>
                   </div>
                   <div>
                     <span className={getAdminDecisionClasses(trip.decision_admin)}>{getAdminDecisionLabel(trip.decision_admin)}</span>

@@ -7,7 +7,7 @@ import { normalizeMultilineText, normalizeRutForStorage, normalizeSingleLineText
 import { limitTripCreation } from "@/lib/rate-limit";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { salidaSchema, type SalidaSchemaInput } from "@/lib/validations/salida";
-import type { AdminDecisionStatus, AdminTransportMode, SaveTripResponse, UserRole } from "@/types";
+import type { AdminDecisionStatus, AdminStageStatus, AdminTransportMode, SaveTripResponse, UserRole } from "@/types";
 
 interface UpdateGestionAdministrativaPayload {
   transportMode: AdminTransportMode;
@@ -191,6 +191,57 @@ export async function updateDecisionAdministrativaSalida(
   return {
     error: null,
     decision,
+  };
+}
+
+export async function updateEtapaAdministrativaSalida(
+  tripId: string,
+  stage: AdminStageStatus,
+): Promise<{ error: string | null; stage: AdminStageStatus | null }> {
+  const adminClient = await assertAdminForTripAction();
+
+  if (!adminClient) {
+    return {
+      error: "No tienes permisos para definir la etapa administrativa.",
+      stage: null,
+    };
+  }
+
+  if (!["pendiente", "etapa_1", "etapa_2", "terminada", "seleccionada"].includes(stage)) {
+    return {
+      error: "La etapa administrativa indicada no es valida.",
+      stage: null,
+    };
+  }
+
+  const { error } = await adminClient
+    .from("salidas_pedagogicas")
+    .update({ etapa_admin: stage })
+    .eq("id", tripId);
+
+  if (error) {
+    return {
+      error: `No fue posible guardar la etapa administrativa. (${error.message})`,
+      stage: null,
+    };
+  }
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/analitica");
+
+  await logAuditEvent({
+    eventType: "trip_admin_stage_updated",
+    route: "/panel",
+    targetType: "salida",
+    targetId: tripId,
+    metadata: {
+      stage,
+    },
+  });
+
+  return {
+    error: null,
+    stage,
   };
 }
 

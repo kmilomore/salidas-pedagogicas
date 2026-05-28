@@ -8,6 +8,8 @@ import {
   formatTripDate,
   getAdminDecisionClasses,
   getAdminDecisionLabel,
+  getAdminStageClasses,
+  getAdminStageLabel,
   getAdminTransportLabel,
   getStatusLabel,
   getTripPassengerTotals,
@@ -39,13 +41,14 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
   return (
     <>
       <div className="portal-table mt-6">
-        <div className="portal-table__head grid min-w-[1160px] grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.8fr_1fr_0.7fr_0.7fr] gap-4 px-5 py-4">
+        <div className="portal-table__head grid min-w-[1290px] grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.8fr_1fr_0.7fr_0.75fr_0.7fr] gap-4 px-5 py-4">
           <span>Establecimiento</span>
           <span>Fecha</span>
           <span>Actividad / destino</span>
           <span>Kilometraje</span>
           <span>Total pasajeros</span>
           <span>Transporte / monto</span>
+          <span>Etapa</span>
           <span>Decision admin</span>
           <span>Acciones</span>
         </div>
@@ -56,7 +59,7 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
               const { cantidadTotalPasajeros } = getTripPassengerTotals(trip);
 
               return (
-                <div key={trip.id} className="grid min-w-[1160px] grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.8fr_1fr_0.7fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
+                <div key={trip.id} className="grid min-w-[1290px] grid-cols-[1.1fr_0.8fr_1fr_0.7fr_0.8fr_1fr_0.7fr_0.75fr_0.7fr] gap-4 px-5 py-4 text-sm leading-6 text-slate-700">
                   <div>
                     <p className="font-semibold text-slate-950">{trip.school_name}</p>
                     <p className="text-slate-500">RBD {trip.rbd}</p>
@@ -81,6 +84,9 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                       {trip.cantidad_buses_referencial ? `${trip.cantidad_buses_referencial} unidad(es)` : "Cantidad no definida"}
                     </p>
                     <p className="mt-1 text-slate-500">{formatAdminCurrency(trip.monto_referencial)}</p>
+                  </div>
+                  <div>
+                    <span className={getAdminStageClasses(trip.etapa_admin)}>{getAdminStageLabel(trip.etapa_admin)}</span>
                   </div>
                   <div>
                     <span className={getAdminDecisionClasses(trip.decision_admin)}>

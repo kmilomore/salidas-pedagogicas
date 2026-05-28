@@ -14,11 +14,16 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawEstado = searchParams.get("estado");
   const rawDecision = searchParams.get("decision_admin");
+  const rawStage = searchParams.get("etapa_admin");
   const filters: TripQueryFilters = {
     search: searchParams.get("search") ?? undefined,
     rbd: searchParams.get("rbd") ?? undefined,
     estado: rawEstado === "borrador" || rawEstado === "enviada" ? rawEstado : "all",
     decision_admin: rawDecision === "pendiente" || rawDecision === "aceptada" || rawDecision === "rechazada" ? rawDecision : "all",
+    etapa_admin:
+      rawStage === "pendiente" || rawStage === "etapa_1" || rawStage === "etapa_2" || rawStage === "terminada" || rawStage === "seleccionada"
+        ? rawStage
+        : "all",
   };
 
   const trips = filterTrips(await getAdminTrips(), filters);
@@ -34,6 +39,7 @@ export async function GET(request: Request) {
       HoraRegreso: trip.hora_regreso ?? "",
       Estado: trip.estado,
       DecisionAdministrativa: trip.decision_admin,
+      EtapaAdministrativa: trip.etapa_admin,
       RBD: trip.rbd,
       Establecimiento: sanitizeFormula(trip.school_name),
       ComunaEstablecimiento: sanitizeFormula(trip.school_comuna),

@@ -15,6 +15,7 @@ interface AdminPanelPageProps {
     rbd?: string;
     estado?: string;
     decision_admin?: string;
+    etapa_admin?: string;
   };
 }
 
@@ -27,6 +28,14 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
     decision_admin:
       searchParams?.decision_admin === "pendiente" || searchParams?.decision_admin === "aceptada" || searchParams?.decision_admin === "rechazada"
         ? searchParams.decision_admin
+        : "all",
+    etapa_admin:
+      searchParams?.etapa_admin === "pendiente" ||
+      searchParams?.etapa_admin === "etapa_1" ||
+      searchParams?.etapa_admin === "etapa_2" ||
+      searchParams?.etapa_admin === "terminada" ||
+      searchParams?.etapa_admin === "seleccionada"
+        ? searchParams.etapa_admin
         : "all",
   };
   const trips = filterTrips(allTrips, filters).slice(0, 100);
@@ -56,6 +65,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
       rbd: filters.rbd ?? null,
       estado: filters.estado ?? "all",
       decision_admin: filters.decision_admin ?? "all",
+      etapa_admin: filters.etapa_admin ?? "all",
     },
   });
 
@@ -134,7 +144,7 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
           <p className="text-sm leading-6 text-slate-500">Filtros aplicados sobre el historial administrativo real.</p>
         </div>
 
-        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)_auto_auto]">
+        <form method="GET" className="mt-6 grid gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-5 lg:grid-cols-[minmax(0,1.3fr)_minmax(220px,1fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)_minmax(180px,0.8fr)_auto_auto]">
           <label className="block">
             <span className="text-sm font-semibold text-slate-800">Busqueda</span>
             <input
@@ -186,6 +196,22 @@ export default async function AdminPanelPage({ searchParams }: AdminPanelPagePro
               <option value="pendiente">Pendiente</option>
               <option value="aceptada">Aceptada</option>
               <option value="rechazada">Rechazada</option>
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-semibold text-slate-800">Etapa administrativa</span>
+            <select
+              name="etapa_admin"
+              defaultValue={filters.etapa_admin ?? "all"}
+              className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slep focus:ring-2 focus:ring-slep/20"
+            >
+              <option value="all">Todas</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="etapa_1">Etapa 1</option>
+              <option value="etapa_2">Etapa 2</option>
+              <option value="terminada">Terminada</option>
+              <option value="seleccionada">Seleccionada</option>
             </select>
           </label>
 

@@ -5,12 +5,12 @@ import polyline from "@mapbox/polyline";
 import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
-import { updateDecisionAdministrativaSalida, updateGestionAdministrativaSalida } from "@/app/actions/trips";
+import { updateDecisionAdministrativaSalida, updateEtapaAdministrativaSalida, updateGestionAdministrativaSalida } from "@/app/actions/trips";
 import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
-import { getAdminDecisionClasses, getAdminDecisionLabel } from "@/lib/admin/trip-formatting";
+import { getAdminDecisionClasses, getAdminDecisionLabel, getAdminStageClasses, getAdminStageLabel } from "@/lib/admin/trip-formatting";
 import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
-import type { AdminTransportMode, AdminTripRecord } from "@/types";
+import type { AdminStageStatus, AdminTransportMode, AdminTripRecord } from "@/types";
 
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
@@ -77,6 +77,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
   const [busCountInput, setBusCountInput] = useState("");
   const [unitAmountInput, setUnitAmountInput] = useState("");
   const [decisionInput, setDecisionInput] = useState<AdminTripRecord["decision_admin"]>("pendiente");
+  const [stageInput, setStageInput] = useState<AdminTripRecord["etapa_admin"]>("pendiente");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const routePath = useMemo(() => {
@@ -103,6 +104,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
     setBusCountInput(trip?.cantidad_buses_referencial === null || trip?.cantidad_buses_referencial === undefined ? "" : String(trip.cantidad_buses_referencial));
     setUnitAmountInput(trip?.valor_unitario_bus_referencial === null || trip?.valor_unitario_bus_referencial === undefined ? "" : String(trip.valor_unitario_bus_referencial));
     setDecisionInput(trip?.decision_admin ?? "pendiente");
+    setStageInput(trip?.etapa_admin ?? "pendiente");
     setFeedback(null);
   }, [trip]);
 
@@ -163,6 +165,28 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
         router.refresh();
       } catch {
         setFeedback("No fue posible actualizar la decision administrativa.");
+      }
+    });
+  }
+
+  function handleStageUpdate(nextStage: AdminStageStatus) {
+    setFeedback(null);
+
+    startTransition(async () => {
+      try {
+        const result = await updateEtapaAdministrativaSalida(tripId, nextStage);
+
+        if (result.error || !result.stage) {
+          setFeedback(result.error ?? "No fue posible actualizar la etapa administrativa.");
+          return;
+        }
+
+        setStageInput(result.stage);
+        onTripUpdated({ etapa_admin: result.stage });
+        setFeedback("Etapa administrativa actualizada correctamente.");
+        router.refresh();
+      } catch {
+        setFeedback("No fue posible actualizar la etapa administrativa.");
       }
     });
   }
@@ -243,6 +267,9 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
                     {formatCurrency(trip.monto_referencial)}
                   </div>
+                  <div className={`${getAdminStageClasses(stageInput)} px-4 py-3 text-sm font-semibold normal-case tracking-normal`}>
+                    {getAdminStageLabel(stageInput)}
+                  </div>
                   <div className={`${getAdminDecisionClasses(decisionInput)} px-4 py-3 text-sm font-semibold normal-case tracking-normal`}>
                     {getAdminDecisionLabel(decisionInput)}
                   </div>
@@ -304,6 +331,53 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   {isPending ? "Guardando..." : "Guardar gestion administrativa"}
                 </button>
               </form>
+
+              <div className="portal-card-subtle mt-4 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa administrativa</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">Selecciona si la salida queda en etapa 1, etapa 2, terminada o seleccionada para seguimiento administrativo.</p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleStageUpdate("etapa_1")}
+                    className="portal-button portal-button--secondary portal-button--sm"
+                  >
+                    Pasar a etapa 1
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleStageUpdate("etapa_2")}
+                    className="portal-button portal-button--secondary portal-button--sm"
+                  >
+                    Pasar a etapa 2
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleStageUpdate("terminada")}
+                    className="portal-button portal-button--secondary portal-button--sm"
+                  >
+                    Marcar terminada
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleStageUpdate("seleccionada")}
+                    className="portal-button portal-button--primary portal-button--sm"
+                  >
+                    Marcar seleccionada
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isPending}
+                    onClick={() => handleStageUpdate("pendiente")}
+                    className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    Volver a pendiente
+                  </button>
+                </div>
+              </div>
 
               <div className="portal-card-subtle mt-4 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Decision administrativa</p>

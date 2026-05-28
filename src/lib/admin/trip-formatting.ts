@@ -1,5 +1,5 @@
 import { formatChileDateFromIsoDate } from "@/lib/date-time";
-import type { AdminDecisionStatus, AdminTransportMode, AdminTripRecord } from "@/types";
+import type { AdminDecisionStatus, AdminStageStatus, AdminTransportMode, AdminTripRecord } from "@/types";
 
 export function getTripPassengerTotals(trip: Pick<AdminTripRecord, "cantidad_estudiantes" | "cantidad_apoderados" | "funcionarios">) {
   const cantidadFuncionarios = trip.funcionarios.length;
@@ -71,5 +71,35 @@ export function getAdminDecisionClasses(decision: AdminDecisionStatus) {
       return "portal-chip portal-chip--danger";
     default:
       return "portal-chip portal-chip--info";
+  }
+}
+
+export function getAdminStageLabel(stage: AdminStageStatus) {
+  switch (stage) {
+    case "etapa_1":
+      return "Etapa 1";
+    case "etapa_2":
+      return "Etapa 2";
+    case "terminada":
+      return "Terminada";
+    case "seleccionada":
+      return "Seleccionada";
+    default:
+      return "Pendiente";
+  }
+}
+
+export function getAdminStageClasses(stage: AdminStageStatus) {
+  switch (stage) {
+    case "etapa_1":
+      return "portal-chip portal-chip--info";
+    case "etapa_2":
+      return "portal-chip border border-sky-200 bg-sky-50 text-sky-800";
+    case "terminada":
+      return "portal-chip border border-violet-200 bg-violet-50 text-violet-800";
+    case "seleccionada":
+      return "portal-chip portal-chip--success";
+    default:
+      return "portal-chip portal-chip--warning";
   }
 }

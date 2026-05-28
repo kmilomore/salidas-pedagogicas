@@ -1,6 +1,7 @@
 export type UserRole = "director" | "admin";
 
 export type AdminDecisionStatus = "pendiente" | "aceptada" | "rechazada";
+export type AdminStageStatus = "pendiente" | "etapa_1" | "etapa_2" | "terminada" | "seleccionada";
 
 export type AuditSeverity = "info" | "warning" | "error";
 export type AdminTransportMode = "taxi_bus" | "bus";
@@ -187,6 +188,7 @@ export interface AdminTripRecord {
   valor_unitario_bus_referencial: number | null;
   monto_referencial: number | null;
   decision_admin: AdminDecisionStatus;
+  etapa_admin: AdminStageStatus;
   estado: "borrador" | "enviada";
   cantidad_estudiantes: number;
   cantidad_apoderados: number;
@@ -206,6 +208,7 @@ export interface TripQueryFilters {
   rbd?: string;
   estado?: "borrador" | "enviada" | "all";
   decision_admin?: AdminDecisionStatus | "all";
+  etapa_admin?: AdminStageStatus | "all";
 }
 
 export interface TripDraftFormValues {
