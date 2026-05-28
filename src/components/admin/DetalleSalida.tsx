@@ -5,12 +5,12 @@ import polyline from "@mapbox/polyline";
 import { GoogleMap, PolylineF } from "@react-google-maps/api";
 import { useRouter } from "next/navigation";
 
-import { updateDecisionAdministrativaSalida, updateEtapaAdministrativaSalida, updateGestionAdministrativaSalida, updateObservacionesAdministrativasSalida } from "@/app/actions/trips";
+import { saveAdministrativeReview } from "@/app/actions/trips";
 import PortalAdvancedMarker from "@/components/maps/PortalAdvancedMarker";
 import { getAdminDecisionClasses, getAdminDecisionLabel, getAdminStageClasses, getAdminStageLabel } from "@/lib/admin/trip-formatting";
 import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/google-maps";
 import { formatRut } from "@/lib/validations/salida";
-import type { AdminStageStatus, AdminTransportMode, AdminTripRecord } from "@/types";
+import type { AdminTransportMode, AdminTripRecord } from "@/types";
 
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
@@ -122,13 +122,16 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
     startTransition(async () => {
       try {
-        const result = await updateGestionAdministrativaSalida(tripId, {
+        const result = await saveAdministrativeReview(tripId, {
           transportMode: transportModeInput,
           busCount: busCountInput,
           unitAmount: unitAmountInput,
+          decision: decisionInput,
+          stage: stageInput,
+          observations: adminObservationsInput,
         });
 
-        if (result.error) {
+        if (result.error || !result.decision || !result.stage) {
           setFeedback(result.error);
           return;
         }
@@ -138,82 +141,17 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
           cantidad_buses_referencial: result.busCount,
           valor_unitario_bus_referencial: result.unitAmount,
           monto_referencial: result.totalAmount,
+          decision_admin: result.decision,
+          etapa_admin: result.stage,
+          observaciones_admin: result.observations,
         });
         setBusCountInput(result.busCount === null ? "" : String(result.busCount));
         setUnitAmountInput(result.unitAmount === null ? "" : String(result.unitAmount));
-        setFeedback("Gestion administrativa actualizada correctamente.");
-        router.refresh();
-      } catch {
-        setFeedback("No fue posible actualizar la gestion administrativa.");
-      }
-    });
-  }
-
-  function handleDecisionUpdate(nextDecision: AdminTripRecord["decision_admin"]) {
-    setFeedback(null);
-
-    startTransition(async () => {
-      try {
-        const result = await updateDecisionAdministrativaSalida(tripId, nextDecision);
-
-        if (result.error || !result.decision) {
-          setFeedback(result.error ?? "No fue posible actualizar la decision administrativa.");
-          return;
-        }
-
-        setDecisionInput(result.decision);
-        onTripUpdated({ decision_admin: result.decision });
-        setFeedback("Decision administrativa actualizada correctamente.");
-        router.refresh();
-      } catch {
-        setFeedback("No fue posible actualizar la decision administrativa.");
-      }
-    });
-  }
-
-  function handleStageUpdate(nextStage: AdminStageStatus) {
-    setFeedback(null);
-
-    startTransition(async () => {
-      try {
-        const result = await updateEtapaAdministrativaSalida(tripId, nextStage);
-
-        if (result.error || !result.stage) {
-          setFeedback(result.error ?? "No fue posible actualizar la etapa administrativa.");
-          return;
-        }
-
-        setStageInput(result.stage);
-        onTripUpdated({ etapa_admin: result.stage });
-        setFeedback("Etapa administrativa actualizada correctamente.");
-        router.refresh();
-      } catch {
-        setFeedback("No fue posible actualizar la etapa administrativa.");
-      }
-    });
-  }
-
-  function handleObservationsSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setFeedback(null);
-
-    startTransition(async () => {
-      try {
-        const result = await updateObservacionesAdministrativasSalida(tripId, {
-          observations: adminObservationsInput,
-        });
-
-        if (result.error) {
-          setFeedback(result.error);
-          return;
-        }
-
-        onTripUpdated({ observaciones_admin: result.observations });
         setAdminObservationsInput(result.observations ?? "");
-        setFeedback("Observaciones administrativas actualizadas correctamente.");
+        setFeedback("Informacion administrativa guardada correctamente.");
         router.refresh();
       } catch {
-        setFeedback("No fue posible actualizar las observaciones administrativas.");
+        setFeedback("No fue posible guardar la informacion administrativa.");
       }
     });
   }
@@ -281,18 +219,18 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               </div>
             </section>
 
-            <section className="portal-subsection-card">
+            <form onSubmit={handleAdministrativeSubmit} className="portal-subsection-card">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Gestion administrativa</p>
-                  <p className="mt-3 text-sm leading-6 text-slate-700">Define tipo de transporte, cantidad de buses, valor unitario y el monto total calculado para la salida. La decision administrativa tambien queda persistida solo desde esta vista.</p>
+                  <p className="mt-3 text-sm leading-6 text-slate-700">Completa transporte, etapa, decision y observaciones. Usa el boton unico para guardar toda la informacion administrativa en una sola vez.</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
-                    {getTransportModeLabel(trip.tipo_transporte_referencial)}
+                    {getTransportModeLabel(transportModeInput)}
                   </div>
                   <div className="portal-chip portal-chip--info px-4 py-3 text-sm font-semibold normal-case tracking-normal">
-                    {formatCurrency(trip.monto_referencial)}
+                    {formatCurrency(calculatedTotal ?? trip.monto_referencial)}
                   </div>
                   <div className={`${getAdminStageClasses(stageInput)} px-4 py-3 text-sm font-semibold normal-case tracking-normal`}>
                     {getAdminStageLabel(stageInput)}
@@ -303,7 +241,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
               </div>
 
-              <form onSubmit={handleAdministrativeSubmit} className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-2">
+              <div className="portal-card-subtle mt-5 grid gap-4 p-4 lg:grid-cols-2">
                 <label className="portal-field">
                   <span className="portal-field-label text-xs uppercase tracking-[0.16em] text-slate-500">Tipo de transporte</span>
                   <select value={transportModeInput} onChange={(event) => setTransportModeInput(event.target.value as AdminTransportMode)} className="portal-input">
@@ -349,56 +287,43 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                       : "Completa cantidad y valor unitario para calcular el total."}
                   </p>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="portal-button portal-button--primary self-end lg:col-span-2 lg:justify-self-start"
-                >
-                  {isPending ? "Guardando..." : "Guardar gestion administrativa"}
-                </button>
-              </form>
+              </div>
 
               <div className="portal-card-subtle mt-4 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Etapa administrativa</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">Selecciona si la salida queda en etapa 1, etapa 2, terminada o seleccionada para seguimiento administrativo.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">Selecciona la etapa y luego guarda toda la informacion administrativa.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleStageUpdate("etapa_1")}
-                    className="portal-button portal-button--secondary portal-button--sm"
+                    onClick={() => setStageInput("etapa_1")}
+                    className={`portal-button portal-button--sm ${stageInput === "etapa_1" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Pasar a etapa 1
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleStageUpdate("etapa_2")}
-                    className="portal-button portal-button--secondary portal-button--sm"
+                    onClick={() => setStageInput("etapa_2")}
+                    className={`portal-button portal-button--sm ${stageInput === "etapa_2" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Pasar a etapa 2
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleStageUpdate("terminada")}
-                    className="portal-button portal-button--secondary portal-button--sm"
+                    onClick={() => setStageInput("terminada")}
+                    className={`portal-button portal-button--sm ${stageInput === "terminada" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Marcar terminada
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleStageUpdate("seleccionada")}
-                    className="portal-button portal-button--primary portal-button--sm"
+                    onClick={() => setStageInput("seleccionada")}
+                    className={`portal-button portal-button--sm ${stageInput === "seleccionada" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Marcar seleccionada
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleStageUpdate("pendiente")}
+                    onClick={() => setStageInput("pendiente")}
                     className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Volver a pendiente
@@ -408,28 +333,25 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
 
               <div className="portal-card-subtle mt-4 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Decision administrativa</p>
-                <p className="mt-2 text-sm leading-6 text-slate-700">Define si la salida queda aceptada, rechazada o pendiente para seguimiento posterior y analitica consolidada.</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">Define el estado de decision y luego guarda toda la informacion administrativa.</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleDecisionUpdate("aceptada")}
-                    className="portal-button portal-button--primary portal-button--sm"
+                    onClick={() => setDecisionInput("aceptada")}
+                    className={`portal-button portal-button--sm ${decisionInput === "aceptada" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Aceptar salida
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleDecisionUpdate("rechazada")}
-                    className="portal-button portal-button--secondary portal-button--sm"
+                    onClick={() => setDecisionInput("rechazada")}
+                    className={`portal-button portal-button--sm ${decisionInput === "rechazada" ? "portal-button--primary" : "portal-button--secondary"}`}
                   >
                     Rechazar salida
                   </button>
                   <button
                     type="button"
-                    disabled={isPending}
-                    onClick={() => handleDecisionUpdate("pendiente")}
+                    onClick={() => setDecisionInput("pendiente")}
                     className="inline-flex items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slep hover:text-slep disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     Marcar pendiente
@@ -437,7 +359,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                 </div>
               </div>
 
-              <form onSubmit={handleObservationsSubmit} className="portal-card-subtle mt-4 p-4">
+              <div className="portal-card-subtle mt-4 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Observaciones administrativas</p>
                 <p className="mt-2 text-sm leading-6 text-slate-700">Usa este apartado para dejar comentarios internos, observaciones de revisión o indicaciones de seguimiento para la salida.</p>
                 <label className="mt-4 block">
@@ -450,15 +372,19 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
                   />
                 </label>
                 <div className="mt-4 flex items-center gap-3">
-                  <button type="submit" disabled={isPending} className="portal-button portal-button--primary portal-button--sm">
-                    {isPending ? "Guardando..." : "Guardar observaciones"}
-                  </button>
                   <p className="text-sm text-slate-500">{trip.observaciones_admin ? "Ya existen observaciones administrativas guardadas." : "Aun no hay observaciones administrativas registradas."}</p>
                 </div>
-              </form>
+              </div>
+
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <button type="submit" disabled={isPending} className="portal-button portal-button--primary">
+                  {isPending ? "Guardando informacion..." : "Guardar informacion administrativa"}
+                </button>
+                <p className="text-sm text-slate-500">Este boton guarda transporte, monto, etapa, decision y observaciones en una sola accion.</p>
+              </div>
 
               {feedback ? <p className={`mt-3 text-sm ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
-            </section>
+            </form>
 
             <section className="portal-subsection-card">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">PME y justificacion</p>

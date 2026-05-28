@@ -19,6 +19,63 @@ interface UpdateObservacionesAdministrativasPayload {
   observations: string;
 }
 
+interface SaveAdministrativeReviewPayload {
+  transportMode: AdminTransportMode;
+  busCount: string;
+  unitAmount: string;
+  decision: AdminDecisionStatus;
+  stage: AdminStageStatus;
+  observations: string;
+}
+
+function parseAdministrativeTransport(payload: UpdateGestionAdministrativaPayload) {
+  if (!payload.transportMode || !["taxi_bus", "bus"].includes(payload.transportMode)) {
+    return {
+      error: "Selecciona un tipo de transporte valido.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+    };
+  }
+
+  const normalizedBusCount = payload.busCount.trim();
+  const normalizedUnitAmount = payload.unitAmount.trim();
+  const busCount = Number(normalizedBusCount);
+  const unitAmount = Number(normalizedUnitAmount);
+
+  if (!normalizedBusCount || !Number.isInteger(busCount) || busCount <= 0) {
+    return {
+      error: "Ingresa una cantidad de buses valida mayor a 0.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+    };
+  }
+
+  if (!normalizedUnitAmount || !Number.isFinite(unitAmount) || unitAmount < 0) {
+    return {
+      error: "Ingresa un valor unitario valido igual o mayor a 0.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+    };
+  }
+
+  const persistedUnitAmount = Number(unitAmount.toFixed(2));
+  const persistedTotalAmount = Number((busCount * persistedUnitAmount).toFixed(2));
+
+  return {
+    error: null,
+    transportMode: payload.transportMode,
+    busCount,
+    unitAmount: persistedUnitAmount,
+    totalAmount: persistedTotalAmount,
+  };
+}
+
 async function assertAdminForTripAction() {
   const supabase = createClient();
   const {
@@ -65,50 +122,19 @@ export async function updateGestionAdministrativaSalida(
     };
   }
 
-  if (!payload.transportMode || !["taxi_bus", "bus"].includes(payload.transportMode)) {
-    return {
-      error: "Selecciona un tipo de transporte valido.",
-      transportMode: null,
-      busCount: null,
-      unitAmount: null,
-      totalAmount: null,
-    };
+  const parsedTransport = parseAdministrativeTransport(payload);
+
+  if (parsedTransport.error) {
+    return parsedTransport;
   }
 
-  const normalizedBusCount = payload.busCount.trim();
-  const normalizedUnitAmount = payload.unitAmount.trim();
-  const busCount = Number(normalizedBusCount);
-  const unitAmount = Number(normalizedUnitAmount);
-
-  if (!normalizedBusCount || !Number.isInteger(busCount) || busCount <= 0) {
-    return {
-      error: "Ingresa una cantidad de buses valida mayor a 0.",
-      transportMode: null,
-      busCount: null,
-      unitAmount: null,
-      totalAmount: null,
-    };
-  }
-
-  if (!normalizedUnitAmount || !Number.isFinite(unitAmount) || unitAmount < 0) {
-    return {
-      error: "Ingresa un valor unitario valido igual o mayor a 0.",
-      transportMode: null,
-      busCount: null,
-      unitAmount: null,
-      totalAmount: null,
-    };
-  }
-
-  const persistedUnitAmount = Number(unitAmount.toFixed(2));
-  const persistedTotalAmount = Number((busCount * persistedUnitAmount).toFixed(2));
   const { error } = await adminClient
     .from("salidas_pedagogicas")
     .update({
-      tipo_transporte_referencial: payload.transportMode,
-      cantidad_buses_referencial: busCount,
-      valor_unitario_bus_referencial: persistedUnitAmount,
-      monto_referencial: persistedTotalAmount,
+      tipo_transporte_referencial: parsedTransport.transportMode,
+      cantidad_buses_referencial: parsedTransport.busCount,
+      valor_unitario_bus_referencial: parsedTransport.unitAmount,
+      monto_referencial: parsedTransport.totalAmount,
     })
     .eq("id", tripId);
 
@@ -131,19 +157,147 @@ export async function updateGestionAdministrativaSalida(
     targetType: "salida",
     targetId: tripId,
     metadata: {
-      transportMode: payload.transportMode,
-      busCount,
-      unitAmount: persistedUnitAmount,
-      amount: persistedTotalAmount,
+      transportMode: parsedTransport.transportMode,
+      busCount: parsedTransport.busCount,
+      unitAmount: parsedTransport.unitAmount,
+      amount: parsedTransport.totalAmount,
     },
   });
 
   return {
     error: null,
-    transportMode: payload.transportMode,
-    busCount,
-    unitAmount: persistedUnitAmount,
-    totalAmount: persistedTotalAmount,
+    transportMode: parsedTransport.transportMode,
+    busCount: parsedTransport.busCount,
+    unitAmount: parsedTransport.unitAmount,
+    totalAmount: parsedTransport.totalAmount,
+  };
+}
+
+export async function saveAdministrativeReview(
+  tripId: string,
+  payload: SaveAdministrativeReviewPayload,
+): Promise<{
+  error: string | null;
+  transportMode: AdminTransportMode | null;
+  busCount: number | null;
+  unitAmount: number | null;
+  totalAmount: number | null;
+  decision: AdminDecisionStatus | null;
+  stage: AdminStageStatus | null;
+  observations: string | null;
+}> {
+  const adminClient = await assertAdminForTripAction();
+
+  if (!adminClient) {
+    return {
+      error: "No tienes permisos para guardar la informacion administrativa.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  const parsedTransport = parseAdministrativeTransport(payload);
+
+  if (parsedTransport.error) {
+    return {
+      error: parsedTransport.error,
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  if (!["pendiente", "aceptada", "rechazada"].includes(payload.decision)) {
+    return {
+      error: "La decision administrativa indicada no es valida.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  if (!["pendiente", "etapa_1", "etapa_2", "terminada", "seleccionada"].includes(payload.stage)) {
+    return {
+      error: "La etapa administrativa indicada no es valida.",
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  const persistedObservations = normalizeMultilineText(payload.observations ?? "") || null;
+
+  const { error } = await adminClient
+    .from("salidas_pedagogicas")
+    .update({
+      tipo_transporte_referencial: parsedTransport.transportMode,
+      cantidad_buses_referencial: parsedTransport.busCount,
+      valor_unitario_bus_referencial: parsedTransport.unitAmount,
+      monto_referencial: parsedTransport.totalAmount,
+      decision_admin: payload.decision,
+      etapa_admin: payload.stage,
+      observaciones_admin: persistedObservations,
+    })
+    .eq("id", tripId);
+
+  if (error) {
+    return {
+      error: `No fue posible guardar la informacion administrativa. (${error.message})`,
+      transportMode: null,
+      busCount: null,
+      unitAmount: null,
+      totalAmount: null,
+      decision: null,
+      stage: null,
+      observations: null,
+    };
+  }
+
+  revalidatePath("/panel");
+  revalidatePath("/panel/analitica");
+
+  await logAuditEvent({
+    eventType: "trip_admin_review_updated",
+    route: "/panel",
+    targetType: "salida",
+    targetId: tripId,
+    metadata: {
+      transportMode: parsedTransport.transportMode,
+      busCount: parsedTransport.busCount,
+      unitAmount: parsedTransport.unitAmount,
+      amount: parsedTransport.totalAmount,
+      decision: payload.decision,
+      stage: payload.stage,
+      hasObservations: Boolean(persistedObservations),
+    },
+  });
+
+  return {
+    error: null,
+    transportMode: parsedTransport.transportMode,
+    busCount: parsedTransport.busCount,
+    unitAmount: parsedTransport.unitAmount,
+    totalAmount: parsedTransport.totalAmount,
+    decision: payload.decision,
+    stage: payload.stage,
+    observations: persistedObservations,
   };
 }
 
