@@ -12,7 +12,6 @@ import { loadTripPdfAssets } from "@/lib/trips/pdf-assets";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-type NotifyDecision = "aceptada" | "rechazada";
 type NotifyKind = "submission" | "admin_decision";
 
 function normalizeNotifyKind(value: string | null | undefined): NotifyKind | null {
@@ -27,20 +26,12 @@ function normalizeNotifyKind(value: string | null | undefined): NotifyKind | nul
   return null;
 }
 
-function normalizeNotifyDecision(value: string | null | undefined): NotifyDecision | null {
-  if (value === "aceptada" || value === "rechazada") {
-    return value;
-  }
-
-  return null;
-}
-
 interface RouteContext {
   params: { id: string };
 }
 
 export async function POST(_request: Request, { params }: RouteContext) {
-  let requestBody: { notificationKind?: NotifyKind; decisionAdmin?: NotifyDecision } | null = null;
+  let requestBody: { notificationKind?: NotifyKind } | null = null;
   try {
     requestBody = await _request.json();
   } catch {
@@ -51,11 +42,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
   const kindFromQuery = normalizeNotifyKind(requestUrl.searchParams.get("notificationKind"));
   const kindFromHeader = normalizeNotifyKind(_request.headers.get("x-notification-kind"));
   const kindFromBody = normalizeNotifyKind(requestBody?.notificationKind);
-  const decisionFromQuery = normalizeNotifyDecision(requestUrl.searchParams.get("decisionAdmin"));
-  const decisionFromHeader = normalizeNotifyDecision(_request.headers.get("x-decision-admin"));
-  const decisionFromBody = normalizeNotifyDecision(requestBody?.decisionAdmin);
-  const requestedDecision = decisionFromQuery ?? decisionFromHeader ?? decisionFromBody;
-  const notificationKind = requestedDecision ? "admin_decision" : kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
+  const notificationKind = kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
 
   if (notificationKind === "admin_decision") {
     return new Response("Usa /api/trips/[id]/notify-decision para notificaciones de decision.", { status: 410 });
@@ -113,47 +100,6 @@ export async function POST(_request: Request, { params }: RouteContext) {
     return new Response("Sin correo de director asociado", { status: 422 });
   }
 
-  let decisionForNotification: NotifyDecision | null = null;
-  if (notificationKind === "admin_decision") {
-    if (requestedDecision && requestedDecision !== trip.decision_admin) {
-      await logAuditEvent({
-        eventType: "trip_notify_skipped",
-        severity: "warning",
-        route: "/api/trips/[id]/notify",
-        targetType: "salida",
-        targetId: trip.id,
-        targetLabel: trip.school_name,
-        metadata: {
-          reason: "decision_mismatch_with_persisted_state",
-          requestedDecision,
-          persistedDecision: trip.decision_admin,
-          notificationKind,
-        },
-      });
-
-      return new Response("La decision administrativa cambio. Guarda y vuelve a intentar.", { status: 409 });
-    }
-
-    if (trip.decision_admin !== "aceptada" && trip.decision_admin !== "rechazada") {
-      await logAuditEvent({
-        eventType: "trip_notify_skipped",
-        severity: "warning",
-        route: "/api/trips/[id]/notify",
-        targetType: "salida",
-        targetId: trip.id,
-        targetLabel: trip.school_name,
-        metadata: {
-          reason: "decision_not_notifiable",
-          decision_admin: trip.decision_admin,
-          notificationKind,
-        },
-      });
-      return new Response("Solo se puede notificar cuando la salida esta aceptada o rechazada", { status: 422 });
-    }
-
-    decisionForNotification = trip.decision_admin;
-  }
-
   console.log("[notify] Generando PDF para tripId:", trip.id, "rbd:", trip.rbd);
 
   const pdfAssets = await loadTripPdfAssets(trip);
@@ -169,7 +115,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
   const payload = {
     secret:              process.env.APPS_SCRIPT_WEBHOOK_SECRET ?? "",
     notificationKind,
-    decisionAdmin:       decisionForNotification,
+    decisionAdmin:       null,
     supportEmail:        "cesar.mayo@slepcolchagua.cl",
     directorEmail:       trip.director_email,
     schoolName:          trip.school_name,
@@ -208,7 +154,6 @@ export async function POST(_request: Request, { params }: RouteContext) {
         status: gsResponse.status,
         rbd: trip.rbd,
         notificationKind,
-        decision_admin: decisionForNotification,
       },
     });
     return new Response("Error al llamar al webhook", { status: 502 });
@@ -223,8 +168,8 @@ export async function POST(_request: Request, { params }: RouteContext) {
       .from("salidas_pedagogicas")
       .update({
         email_enviado: true,
-        notificacion_decision_enviada: notificationKind === "admin_decision" ? true : null,
-        notificacion_decision_enviada_at: notificationKind === "admin_decision" ? new Date().toISOString() : null,
+        notificacion_decision_enviada: null,
+        notificacion_decision_enviada_at: null,
       })
       .eq("id", trip.id);
 
@@ -245,7 +190,6 @@ export async function POST(_request: Request, { params }: RouteContext) {
       rbd: trip.rbd,
       directorEmail: trip.director_email,
       notificationKind,
-      decision_admin: decisionForNotification,
     },
   });
 
