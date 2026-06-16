@@ -15,6 +15,18 @@ export const maxDuration = 60;
 type NotifyDecision = "aceptada" | "rechazada";
 type NotifyKind = "submission" | "admin_decision";
 
+function normalizeNotifyKind(value: string | null | undefined): NotifyKind | null {
+  if (value === "admin_decision") {
+    return "admin_decision";
+  }
+
+  if (value === "submission") {
+    return "submission";
+  }
+
+  return null;
+}
+
 interface RouteContext {
   params: { id: string };
 }
@@ -27,7 +39,11 @@ export async function POST(_request: Request, { params }: RouteContext) {
     requestBody = null;
   }
 
-  const notificationKind = requestBody?.notificationKind ?? "submission";
+  const requestUrl = new URL(_request.url);
+  const kindFromQuery = normalizeNotifyKind(requestUrl.searchParams.get("notificationKind"));
+  const kindFromHeader = normalizeNotifyKind(_request.headers.get("x-notification-kind"));
+  const kindFromBody = normalizeNotifyKind(requestBody?.notificationKind);
+  const notificationKind = kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
 
   const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
