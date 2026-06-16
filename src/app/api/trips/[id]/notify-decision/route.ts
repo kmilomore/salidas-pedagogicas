@@ -157,7 +157,9 @@ export async function POST(request: Request, { params }: RouteContext) {
 
   const sentType = webhookJson?.sentType;
   const webhookOk = webhookJson?.ok;
-  if (webhookOk !== true || sentType !== "admin_decision") {
+  const isLegacyOkWithoutSentType = webhookOk === true && (!sentType || sentType.trim() === "");
+
+  if (webhookOk !== true || (sentType && sentType !== "admin_decision")) {
     await logAuditEvent({
       eventType: "trip_notify_failed",
       severity: "error",
@@ -178,6 +180,22 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   try {
+
+    if (isLegacyOkWithoutSentType) {
+      await logAuditEvent({
+        eventType: "trip_notify_sent",
+        severity: "warning",
+        route: "/api/trips/[id]/notify-decision",
+        targetType: "salida",
+        targetId: trip.id,
+        targetLabel: trip.school_name,
+        metadata: {
+          reason: "legacy_webhook_response_without_sentType",
+          decision_admin: trip.decision_admin,
+          responsePreview: webhookText.slice(0, 500),
+        },
+      });
+    }
     const adminClient = createAdminClient();
     const updateResult = await adminClient
       .from("salidas_pedagogicas")
