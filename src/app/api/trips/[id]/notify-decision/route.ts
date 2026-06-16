@@ -148,18 +148,26 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const webhookText = await gsResponse.text().catch(() => "");
-  let webhookJson: { ok?: boolean; sentType?: string; error?: string } | null = null;
+  let webhookJson: { ok?: boolean; sentType?: string; notificationKind?: string; decisionAdmin?: string; error?: string } | null = null;
   try {
-    webhookJson = webhookText ? (JSON.parse(webhookText) as { ok?: boolean; sentType?: string; error?: string }) : null;
+    webhookJson = webhookText
+      ? (JSON.parse(webhookText) as { ok?: boolean; sentType?: string; notificationKind?: string; decisionAdmin?: string; error?: string })
+      : null;
   } catch {
     webhookJson = null;
   }
 
   const sentType = webhookJson?.sentType;
   const webhookOk = webhookJson?.ok;
-  const isLegacyOkWithoutSentType = webhookOk === true && (!sentType || sentType.trim() === "");
+  const echoedNotificationKind = webhookJson?.notificationKind;
+  const echoedDecision = webhookJson?.decisionAdmin;
 
-  if (webhookOk !== true || (sentType && sentType !== "admin_decision")) {
+  if (
+    webhookOk !== true ||
+    sentType !== "admin_decision" ||
+    echoedNotificationKind !== "admin_decision" ||
+    echoedDecision !== trip.decision_admin
+  ) {
     await logAuditEvent({
       eventType: "trip_notify_failed",
       severity: "error",
@@ -171,6 +179,9 @@ export async function POST(request: Request, { params }: RouteContext) {
         reason: "unexpected_webhook_response_type",
         webhookOk,
         sentType: sentType ?? null,
+        echoedNotificationKind: echoedNotificationKind ?? null,
+        echoedDecision: echoedDecision ?? null,
+        expectedDecision: trip.decision_admin,
         responsePreview: webhookText.slice(0, 500),
       },
     });
@@ -180,22 +191,6 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   try {
-
-    if (isLegacyOkWithoutSentType) {
-      await logAuditEvent({
-        eventType: "trip_notify_sent",
-        severity: "warning",
-        route: "/api/trips/[id]/notify-decision",
-        targetType: "salida",
-        targetId: trip.id,
-        targetLabel: trip.school_name,
-        metadata: {
-          reason: "legacy_webhook_response_without_sentType",
-          decision_admin: trip.decision_admin,
-          responsePreview: webhookText.slice(0, 500),
-        },
-      });
-    }
     const adminClient = createAdminClient();
     const updateResult = await adminClient
       .from("salidas_pedagogicas")

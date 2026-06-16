@@ -77,7 +77,13 @@ function sendAdminDecisionNotification(raw) {
   }
 
   GmailApp.sendEmail(directorEmail, subject, plainBody, options);
-  return jsonResponse({ ok: true, sentType: "admin_decision" });
+  return jsonResponse({
+    ok: true,
+    sentType: "admin_decision",
+    notificationKind: "admin_decision",
+    decisionAdmin: decisionAdmin,
+    tripId: tripId,
+  });
 }
 
 function buildAdminDecisionSubject(schoolName, fecha, decisionAdmin) {
