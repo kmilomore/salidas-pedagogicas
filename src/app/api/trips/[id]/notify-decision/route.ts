@@ -14,14 +14,6 @@ export const maxDuration = 60;
 
 type NotifyDecision = "aceptada" | "rechazada";
 
-function normalizeNotifyDecision(value: string | null | undefined): NotifyDecision | null {
-  if (value === "aceptada" || value === "rechazada") {
-    return value;
-  }
-
-  return null;
-}
-
 interface RouteContext {
   params: { id: string };
 }
@@ -38,23 +30,6 @@ export async function POST(request: Request, { params }: RouteContext) {
       metadata: { reason: "missing_webhook_url", notificationKind: "admin_decision" },
     });
     return new Response("Webhook no configurado", { status: 503 });
-  }
-
-  let requestBody: { decisionAdmin?: NotifyDecision } | null = null;
-  try {
-    requestBody = await request.json();
-  } catch {
-    requestBody = null;
-  }
-
-  const url = new URL(request.url);
-  const decisionFromQuery = normalizeNotifyDecision(url.searchParams.get("decisionAdmin"));
-  const decisionFromHeader = normalizeNotifyDecision(request.headers.get("x-decision-admin"));
-  const decisionFromBody = normalizeNotifyDecision(requestBody?.decisionAdmin);
-  const requestedDecision = decisionFromQuery ?? decisionFromHeader ?? decisionFromBody;
-
-  if (!requestedDecision) {
-    return new Response("decisionAdmin requerido: aceptada o rechazada", { status: 422 });
   }
 
   const trip = await getAuthorizedTripById(params.id);
@@ -83,9 +58,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     return new Response("Solo se puede notificar cuando la salida esta aceptada o rechazada", { status: 422 });
   }
 
-  if (requestedDecision !== trip.decision_admin) {
-    return new Response("La decision administrativa cambio. Guarda y vuelve a intentar.", { status: 409 });
-  }
+  const decisionFromDatabase: NotifyDecision = trip.decision_admin;
 
   const pdfAssets = await loadTripPdfAssets(trip);
   const document = createElement(TripSummaryPdf, { trip, ...pdfAssets }) as unknown as ReactElement<
@@ -98,7 +71,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   const payload = {
     secret: process.env.APPS_SCRIPT_WEBHOOK_SECRET ?? "",
     notificationKind: "admin_decision",
-    decisionAdmin: trip.decision_admin,
+    decisionAdmin: decisionFromDatabase,
     supportEmail: "cesar.mayo@slepcolchagua.cl",
     directorEmail: trip.director_email,
     schoolName: trip.school_name,
@@ -135,7 +108,7 @@ export async function POST(request: Request, { params }: RouteContext) {
         message: text,
         rbd: trip.rbd,
         notificationKind: "admin_decision",
-        decision_admin: trip.decision_admin,
+        decision_admin: decisionFromDatabase,
       },
     });
     const normalizedText = text.trim();
@@ -162,12 +135,30 @@ export async function POST(request: Request, { params }: RouteContext) {
   const echoedNotificationKind = webhookJson?.notificationKind;
   const echoedDecision = webhookJson?.decisionAdmin;
 
-  if (
-    webhookOk !== true ||
-    sentType !== "admin_decision" ||
-    echoedNotificationKind !== "admin_decision" ||
-    echoedDecision !== trip.decision_admin
-  ) {
+  if (webhookOk === false) {
+    await logAuditEvent({
+      eventType: "trip_notify_failed",
+      severity: "error",
+      route: "/api/trips/[id]/notify-decision",
+      targetType: "salida",
+      targetId: trip.id,
+      targetLabel: trip.school_name,
+      metadata: {
+        reason: "webhook_reported_failure",
+        webhookOk,
+        sentType: sentType ?? null,
+        echoedNotificationKind: echoedNotificationKind ?? null,
+        echoedDecision: echoedDecision ?? null,
+        expectedDecision: decisionFromDatabase,
+        responsePreview: webhookText.slice(0, 500),
+      },
+    });
+
+    const reason = webhookText ? webhookText.slice(0, 500) : "sin detalle de respuesta";
+    return new Response(`Webhook no confirmo notificacion de decision: ${reason}`, { status: 502 });
+  }
+
+  if ((sentType && sentType !== "admin_decision") || (echoedNotificationKind && echoedNotificationKind !== "admin_decision")) {
     await logAuditEvent({
       eventType: "trip_notify_failed",
       severity: "error",
@@ -181,13 +172,28 @@ export async function POST(request: Request, { params }: RouteContext) {
         sentType: sentType ?? null,
         echoedNotificationKind: echoedNotificationKind ?? null,
         echoedDecision: echoedDecision ?? null,
-        expectedDecision: trip.decision_admin,
+        expectedDecision: decisionFromDatabase,
         responsePreview: webhookText.slice(0, 500),
       },
     });
 
     const reason = webhookText ? webhookText.slice(0, 500) : "sin detalle de respuesta";
     return new Response(`Webhook no confirmo notificacion de decision: ${reason}`, { status: 502 });
+  }
+
+  if (!webhookJson || !sentType || !echoedNotificationKind || !echoedDecision) {
+    await logAuditEvent({
+      eventType: "trip_notify_sent",
+      severity: "warning",
+      route: "/api/trips/[id]/notify-decision",
+      targetType: "salida",
+      targetId: trip.id,
+      targetLabel: trip.school_name,
+      metadata: {
+        reason: "webhook_response_without_full_metadata",
+        responsePreview: webhookText.slice(0, 500),
+      },
+    });
   }
 
   try {
@@ -218,7 +224,7 @@ export async function POST(request: Request, { params }: RouteContext) {
       rbd: trip.rbd,
       directorEmail: trip.director_email,
       notificationKind: "admin_decision",
-      decision_admin: trip.decision_admin,
+      decision_admin: decisionFromDatabase,
     },
   });
 

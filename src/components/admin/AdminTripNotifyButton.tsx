@@ -66,15 +66,8 @@ export default function AdminTripNotifyButton({ tripId, decision, directorEmail,
     setIsSending(true);
 
     try {
-      const response = await fetch(`/api/trips/${tripId}/notify-decision?decisionAdmin=${decision}`, {
+      const response = await fetch(`/api/trips/${tripId}/notify-decision`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-decision-admin": decision,
-        },
-        body: JSON.stringify({
-          decisionAdmin: decision,
-        }),
       });
 
       if (!response.ok) {
