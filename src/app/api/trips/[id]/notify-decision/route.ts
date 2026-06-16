@@ -141,6 +141,35 @@ export async function POST(request: Request, { params }: RouteContext) {
     return new Response("Error al llamar al webhook", { status: 502 });
   }
 
+  const webhookText = await gsResponse.text().catch(() => "");
+  let webhookJson: { ok?: boolean; sentType?: string; error?: string } | null = null;
+  try {
+    webhookJson = webhookText ? (JSON.parse(webhookText) as { ok?: boolean; sentType?: string; error?: string }) : null;
+  } catch {
+    webhookJson = null;
+  }
+
+  const sentType = webhookJson?.sentType;
+  const webhookOk = webhookJson?.ok;
+  if (webhookOk !== true || sentType !== "admin_decision") {
+    await logAuditEvent({
+      eventType: "trip_notify_failed",
+      severity: "error",
+      route: "/api/trips/[id]/notify-decision",
+      targetType: "salida",
+      targetId: trip.id,
+      targetLabel: trip.school_name,
+      metadata: {
+        reason: "unexpected_webhook_response_type",
+        webhookOk,
+        sentType: sentType ?? null,
+        responsePreview: webhookText.slice(0, 500),
+      },
+    });
+
+    return new Response("Webhook no confirmo notificacion de decision. Revisa deployment de Apps Script.", { status: 502 });
+  }
+
   try {
     const adminClient = createAdminClient();
     const updateResult = await adminClient
