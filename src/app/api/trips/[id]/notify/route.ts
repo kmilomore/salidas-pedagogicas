@@ -27,12 +27,20 @@ function normalizeNotifyKind(value: string | null | undefined): NotifyKind | nul
   return null;
 }
 
+function normalizeNotifyDecision(value: string | null | undefined): NotifyDecision | null {
+  if (value === "aceptada" || value === "rechazada") {
+    return value;
+  }
+
+  return null;
+}
+
 interface RouteContext {
   params: { id: string };
 }
 
 export async function POST(_request: Request, { params }: RouteContext) {
-  let requestBody: { notificationKind?: NotifyKind } | null = null;
+  let requestBody: { notificationKind?: NotifyKind; decisionAdmin?: NotifyDecision } | null = null;
   try {
     requestBody = await _request.json();
   } catch {
@@ -43,7 +51,11 @@ export async function POST(_request: Request, { params }: RouteContext) {
   const kindFromQuery = normalizeNotifyKind(requestUrl.searchParams.get("notificationKind"));
   const kindFromHeader = normalizeNotifyKind(_request.headers.get("x-notification-kind"));
   const kindFromBody = normalizeNotifyKind(requestBody?.notificationKind);
-  const notificationKind = kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
+  const decisionFromQuery = normalizeNotifyDecision(requestUrl.searchParams.get("decisionAdmin"));
+  const decisionFromHeader = normalizeNotifyDecision(_request.headers.get("x-decision-admin"));
+  const decisionFromBody = normalizeNotifyDecision(requestBody?.decisionAdmin);
+  const requestedDecision = decisionFromQuery ?? decisionFromHeader ?? decisionFromBody;
+  const notificationKind = requestedDecision ? "admin_decision" : kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
 
   const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
@@ -99,6 +111,25 @@ export async function POST(_request: Request, { params }: RouteContext) {
 
   let decisionForNotification: NotifyDecision | null = null;
   if (notificationKind === "admin_decision") {
+    if (requestedDecision && requestedDecision !== trip.decision_admin) {
+      await logAuditEvent({
+        eventType: "trip_notify_skipped",
+        severity: "warning",
+        route: "/api/trips/[id]/notify",
+        targetType: "salida",
+        targetId: trip.id,
+        targetLabel: trip.school_name,
+        metadata: {
+          reason: "decision_mismatch_with_persisted_state",
+          requestedDecision,
+          persistedDecision: trip.decision_admin,
+          notificationKind,
+        },
+      });
+
+      return new Response("La decision administrativa cambio. Guarda y vuelve a intentar.", { status: 409 });
+    }
+
     if (trip.decision_admin !== "aceptada" && trip.decision_admin !== "rechazada") {
       await logAuditEvent({
         eventType: "trip_notify_skipped",

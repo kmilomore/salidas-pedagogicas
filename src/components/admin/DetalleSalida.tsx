@@ -177,11 +177,11 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
           <div className="flex items-center gap-3">
             <AdminTripNotifyButton
               tripId={trip.id}
-              decision={decisionInput}
+              decision={trip.decision_admin}
               directorEmail={trip.director_email}
               alreadyNotified={trip.notificacion_decision_enviada}
               className="portal-button portal-button--secondary portal-button--sm"
-              label="Enviar correo"
+              label="Enviar notificacion"
             />
             <a
               href={`/api/trips/${trip.id}/pdf`}

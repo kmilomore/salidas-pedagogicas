@@ -66,14 +66,16 @@ export default function AdminTripNotifyButton({ tripId, decision, directorEmail,
     setIsSending(true);
 
     try {
-      const response = await fetch(`/api/trips/${tripId}/notify?notificationKind=admin_decision`, {
+      const response = await fetch(`/api/trips/${tripId}/notify?notificationKind=admin_decision&decisionAdmin=${decision}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-notification-kind": "admin_decision",
+          "x-decision-admin": decision,
         },
         body: JSON.stringify({
           notificationKind: "admin_decision",
+          decisionAdmin: decision,
         }),
       });
 
@@ -95,7 +97,7 @@ export default function AdminTripNotifyButton({ tripId, decision, directorEmail,
   return (
     <div className="space-y-1.5">
       <button type="button" onClick={handleSend} disabled={disabled} className={className ?? "portal-button portal-button--secondary portal-button--sm"}>
-        {isSending ? "Enviando correo..." : label ?? "Enviar correo"}
+        {isSending ? "Enviando notificacion..." : label ?? "Enviar notificacion"}
       </button>
       {helperText ? <p className="text-xs text-slate-500">{helperText}</p> : null}
       {feedback ? <p className={`text-xs ${feedback.includes("correctamente") ? "text-emerald-700" : "text-red-600"}`}>{feedback}</p> : null}
