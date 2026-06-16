@@ -202,6 +202,8 @@ export interface AdminTripRecord {
   school_lat: number | null;
   school_lng: number | null;
   director_email: string | null;
+  notificacion_decision_enviada: boolean;
+  notificacion_decision_enviada_at: string | null;
 }
 
 export interface TripQueryFilters {

@@ -42,6 +42,9 @@ interface AdminTripQueryRow {
   requerimientos_adicionales: string | null;
   funcionarios: TripStaffMember[] | null;
   created_at: string;
+  email_enviado?: boolean | null;
+  notificacion_decision_enviada?: boolean | null;
+  notificacion_decision_enviada_at?: string | null;
 }
 
 interface SchoolLookupRow extends Pick<SchoolRecord, "RBD" | "COMUNA" | "LATITUD" | "LONGITUD" | "DIRECCIÓN"> {
@@ -51,6 +54,8 @@ interface SchoolLookupRow extends Pick<SchoolRecord, "RBD" | "COMUNA" | "LATITUD
 interface DirectorLookupRow {
   email: string;
   rbd: string | null;
+  activo: boolean | null;
+  created_at: string;
 }
 
 interface AuthContext {
@@ -60,7 +65,7 @@ interface AuthContext {
 }
 
 const TRIP_SELECT_VARIANTS = [
-  "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
+  "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, etapa_admin, observaciones_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at, email_enviado, notificacion_decision_enviada, notificacion_decision_enviada_at",
   "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, tipo_transporte_referencial, cantidad_buses_referencial, valor_unitario_bus_referencial, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
   "id, rbd, fecha, hora_salida, hora_regreso, pme_dimension, pme_subdimension, objetivo, actividad, lugar_nombre, lugar_direccion, lugar_lat, lugar_lng, lugar_comuna, lugar_region, distancia_km, distancia_ida_km, distancia_vuelta_km, duracion_minutos, duracion_ida_minutos, duracion_vuelta_minutos, ruta_polyline, ruta_resumen, ruta_segmentos, monto_referencial, decision_admin, estado, cantidad_estudiantes, cantidad_apoderados, requerimientos_adicionales, funcionarios, created_at",
 ] as const;
@@ -155,15 +160,30 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
       .returns<SchoolLookupRow[]>(),
     adminSupabase
       .from("whitelist_usuarios")
-      .select("email, rbd")
+      .select("email, rbd, activo, created_at")
       .eq("rol", "director")
-      .eq("activo", true)
       .in("rbd", rbds)
       .returns<DirectorLookupRow[]>(),
   ]);
 
   const schoolMap = new Map((schools ?? []).filter((school) => school.RBD).map((school) => [school.RBD as string, school]));
-  const directorMap = new Map((directors ?? []).filter((director) => director.rbd).map((director) => [director.rbd as string, director.email]));
+  const directorCandidates = (directors ?? []).filter((director) => director.rbd).sort((a, b) => {
+    const activeA = a.activo === true ? 1 : 0;
+    const activeB = b.activo === true ? 1 : 0;
+
+    if (activeA !== activeB) {
+      return activeB - activeA;
+    }
+
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+  const directorMap = new Map<string, string>();
+  for (const director of directorCandidates) {
+    const key = director.rbd as string;
+    if (!directorMap.has(key)) {
+      directorMap.set(key, director.email);
+    }
+  }
 
   return trips.map((trip) => {
     const school = schoolMap.get(trip.rbd);
@@ -192,6 +212,8 @@ async function enrichTrips(trips: AdminTripQueryRow[]) {
       school_lat: parseCoordinate(school?.LATITUD ?? null),
       school_lng: parseCoordinate(school?.LONGITUD ?? null),
       director_email: directorMap.get(trip.rbd) ?? null,
+      notificacion_decision_enviada: Boolean(trip.notificacion_decision_enviada ?? trip.email_enviado),
+      notificacion_decision_enviada_at: trip.notificacion_decision_enviada_at ?? null,
     } satisfies AdminTripRecord;
   });
 }

@@ -8,6 +8,7 @@ interface AdminTripNotifyButtonProps {
   tripId: string;
   decision: AdminDecisionStatus;
   directorEmail: string | null;
+  alreadyNotified?: boolean;
   className?: string;
   label?: string;
 }
@@ -24,13 +25,14 @@ function buildDecisionLabel(decision: AdminDecisionStatus) {
   return "pendiente";
 }
 
-export default function AdminTripNotifyButton({ tripId, decision, directorEmail, className, label }: AdminTripNotifyButtonProps) {
+export default function AdminTripNotifyButton({ tripId, decision, directorEmail, alreadyNotified = false, className, label }: AdminTripNotifyButtonProps) {
   const [isSending, setIsSending] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [sent, setSent] = useState(alreadyNotified);
 
   const canSend = decision === "aceptada" || decision === "rechazada";
   const missingDirectorEmail = !directorEmail?.trim();
-  const disabled = isSending || !canSend || missingDirectorEmail;
+  const disabled = isSending || !canSend || missingDirectorEmail || sent;
 
   const helperText = useMemo(() => {
     if (missingDirectorEmail) {
@@ -41,8 +43,12 @@ export default function AdminTripNotifyButton({ tripId, decision, directorEmail,
       return "Disponible solo para salidas aceptadas o rechazadas";
     }
 
+    if (sent) {
+      return "Correo de decision ya enviado";
+    }
+
     return null;
-  }, [canSend, missingDirectorEmail]);
+  }, [canSend, missingDirectorEmail, sent]);
 
   async function handleSend() {
     if (disabled) {
@@ -77,6 +83,7 @@ export default function AdminTripNotifyButton({ tripId, decision, directorEmail,
       }
 
       setFeedback("Correo enviado correctamente.");
+      setSent(true);
     } catch {
       setFeedback("No fue posible enviar el correo.");
     } finally {

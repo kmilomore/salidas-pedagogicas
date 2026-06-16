@@ -6,6 +6,7 @@ import type { JSXElementConstructor, ReactElement } from "react";
 import TripSummaryPdf from "@/components/pdf/TripSummaryPdf";
 import { logAuditEvent } from "@/lib/admin/audit";
 import { getAuthorizedTripById } from "@/lib/admin/trips";
+import { createAdminClient } from "@/lib/supabase/server";
 import { loadTripPdfAssets } from "@/lib/trips/pdf-assets";
 
 export const runtime = "nodejs";
@@ -164,6 +165,24 @@ export async function POST(_request: Request, { params }: RouteContext) {
 
   const responseText = await gsResponse.text().catch(() => "");
   console.log("[notify] Apps Script respondió OK:", responseText);
+
+  try {
+    const adminClient = createAdminClient();
+    const updateResult = await adminClient
+      .from("salidas_pedagogicas")
+      .update({
+        email_enviado: true,
+        notificacion_decision_enviada: notificationKind === "admin_decision" ? true : null,
+        notificacion_decision_enviada_at: notificationKind === "admin_decision" ? new Date().toISOString() : null,
+      })
+      .eq("id", trip.id);
+
+    if (updateResult.error) {
+      await adminClient.from("salidas_pedagogicas").update({ email_enviado: true }).eq("id", trip.id);
+    }
+  } catch (updateError) {
+    console.warn("[notify] No se pudo actualizar marca de notificacion:", updateError);
+  }
 
   await logAuditEvent({
     eventType: "trip_notify_sent",

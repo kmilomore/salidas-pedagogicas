@@ -151,6 +151,8 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
           decision_admin: result.decision,
           etapa_admin: result.stage,
           observaciones_admin: result.observations,
+          notificacion_decision_enviada: false,
+          notificacion_decision_enviada_at: null,
         });
         setBusCountInput(result.busCount === null ? "" : String(result.busCount));
         setUnitAmountInput(result.unitAmount === null ? "" : String(result.unitAmount));
@@ -177,6 +179,7 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
               tripId={trip.id}
               decision={decisionInput}
               directorEmail={trip.director_email}
+              alreadyNotified={trip.notificacion_decision_enviada}
               className="portal-button portal-button--secondary portal-button--sm"
               label="Enviar correo"
             />

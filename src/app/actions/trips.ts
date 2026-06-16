@@ -272,6 +272,7 @@ export async function saveAdministrativeReview(
       decision_admin: payload.decision,
       etapa_admin: payload.stage,
       observaciones_admin: persistedObservations,
+      email_enviado: false,
     })
     .eq("id", tripId);
 
@@ -341,7 +342,7 @@ export async function updateDecisionAdministrativaSalida(
 
   const { error } = await adminClient
     .from("salidas_pedagogicas")
-    .update({ decision_admin: decision })
+    .update({ decision_admin: decision, email_enviado: false })
     .eq("id", tripId);
 
   if (error) {

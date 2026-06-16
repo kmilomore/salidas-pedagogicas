@@ -63,7 +63,12 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                 </div>
 
                 <div className="mt-3">
-                  <AdminTripNotifyButton tripId={trip.id} decision={trip.decision_admin} directorEmail={trip.director_email} />
+                  <AdminTripNotifyButton
+                    tripId={trip.id}
+                    decision={trip.decision_admin}
+                    directorEmail={trip.director_email}
+                    alreadyNotified={trip.notificacion_decision_enviada}
+                  />
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -176,7 +181,12 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                       >
                         Ver detalle
                       </button>
-                      <AdminTripNotifyButton tripId={trip.id} decision={trip.decision_admin} directorEmail={trip.director_email} />
+                      <AdminTripNotifyButton
+                        tripId={trip.id}
+                        decision={trip.decision_admin}
+                        directorEmail={trip.director_email}
+                        alreadyNotified={trip.notificacion_decision_enviada}
+                      />
                     </div>
                   </div>
                 </div>
