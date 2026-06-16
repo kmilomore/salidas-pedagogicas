@@ -138,7 +138,13 @@ export async function POST(request: Request, { params }: RouteContext) {
         decision_admin: trip.decision_admin,
       },
     });
-    return new Response("Error al llamar al webhook", { status: 502 });
+    const normalizedText = text.trim();
+    return new Response(
+      normalizedText
+        ? `Error webhook (${gsResponse.status}): ${normalizedText.slice(0, 500)}`
+        : `Error webhook (${gsResponse.status}) sin detalle`,
+      { status: 502 },
+    );
   }
 
   const webhookText = await gsResponse.text().catch(() => "");
@@ -167,7 +173,8 @@ export async function POST(request: Request, { params }: RouteContext) {
       },
     });
 
-    return new Response("Webhook no confirmo notificacion de decision. Revisa deployment de Apps Script.", { status: 502 });
+    const reason = webhookText ? webhookText.slice(0, 500) : "sin detalle de respuesta";
+    return new Response(`Webhook no confirmo notificacion de decision: ${reason}`, { status: 502 });
   }
 
   try {
