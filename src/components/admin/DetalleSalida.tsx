@@ -12,6 +12,8 @@ import { getPortalGoogleMapsMapId, usePortalGoogleMapsLoader } from "@/lib/googl
 import { formatRut } from "@/lib/validations/salida";
 import type { AdminTransportMode, AdminTripRecord } from "@/types";
 
+import AdminTripNotifyButton from "./AdminTripNotifyButton";
+
 interface DetalleSalidaProps {
   trip: AdminTripRecord | null;
   onClose: () => void;
@@ -171,6 +173,13 @@ export default function DetalleSalida({ trip, onClose, onTripUpdated }: DetalleS
             <p className="mt-2 text-sm leading-6 text-slate-600">{trip.school_name} · RBD {trip.rbd}</p>
           </div>
           <div className="flex items-center gap-3">
+            <AdminTripNotifyButton
+              tripId={trip.id}
+              decision={decisionInput}
+              directorEmail={trip.director_email}
+              className="portal-button portal-button--secondary portal-button--sm"
+              label="Enviar correo"
+            />
             <a
               href={`/api/trips/${trip.id}/pdf`}
               target="_blank"

@@ -11,11 +11,23 @@ import { loadTripPdfAssets } from "@/lib/trips/pdf-assets";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+type NotifyDecision = "aceptada" | "rechazada";
+type NotifyKind = "submission" | "admin_decision";
+
 interface RouteContext {
   params: { id: string };
 }
 
 export async function POST(_request: Request, { params }: RouteContext) {
+  let requestBody: { notificationKind?: NotifyKind } | null = null;
+  try {
+    requestBody = await _request.json();
+  } catch {
+    requestBody = null;
+  }
+
+  const notificationKind = requestBody?.notificationKind ?? "submission";
+
   const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
     console.error("[notify] APPS_SCRIPT_WEBHOOK_URL no configurada");
@@ -27,6 +39,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
       targetId: params.id,
       metadata: {
         reason: "missing_webhook_url",
+        notificationKind,
       },
     });
     return new Response("Webhook no configurado", { status: 503 });
@@ -43,6 +56,7 @@ export async function POST(_request: Request, { params }: RouteContext) {
       targetId: params.id,
       metadata: {
         reason: "trip_not_found_or_unauthorized",
+        notificationKind,
       },
     });
     return new Response("Salida no encontrada", { status: 404 });
@@ -60,9 +74,32 @@ export async function POST(_request: Request, { params }: RouteContext) {
       metadata: {
         reason: "missing_director_email",
         rbd: trip.rbd,
+        notificationKind,
       },
     });
     return new Response("Sin correo de director asociado", { status: 422 });
+  }
+
+  let decisionForNotification: NotifyDecision | null = null;
+  if (notificationKind === "admin_decision") {
+    if (trip.decision_admin !== "aceptada" && trip.decision_admin !== "rechazada") {
+      await logAuditEvent({
+        eventType: "trip_notify_skipped",
+        severity: "warning",
+        route: "/api/trips/[id]/notify",
+        targetType: "salida",
+        targetId: trip.id,
+        targetLabel: trip.school_name,
+        metadata: {
+          reason: "decision_not_notifiable",
+          decision_admin: trip.decision_admin,
+          notificationKind,
+        },
+      });
+      return new Response("Solo se puede notificar cuando la salida esta aceptada o rechazada", { status: 422 });
+    }
+
+    decisionForNotification = trip.decision_admin;
   }
 
   console.log("[notify] Generando PDF para tripId:", trip.id, "rbd:", trip.rbd);
@@ -79,6 +116,9 @@ export async function POST(_request: Request, { params }: RouteContext) {
 
   const payload = {
     secret:              process.env.APPS_SCRIPT_WEBHOOK_SECRET ?? "",
+    notificationKind,
+    decisionAdmin:       decisionForNotification,
+    supportEmail:        "cesar.mayo@slepcolchagua.cl",
     directorEmail:       trip.director_email,
     schoolName:          trip.school_name,
     rbd:                 trip.rbd,
@@ -88,6 +128,8 @@ export async function POST(_request: Request, { params }: RouteContext) {
     distanciaKm:         trip.distancia_km,
     cantidadEstudiantes: trip.cantidad_estudiantes,
     cantidadApoderados:  trip.cantidad_apoderados,
+    observacionesAdmin:  trip.observaciones_admin,
+    observacionesDirector: trip.requerimientos_adicionales,
     tripId:              trip.id,
     pdfBase64,
   };
@@ -113,6 +155,8 @@ export async function POST(_request: Request, { params }: RouteContext) {
       metadata: {
         status: gsResponse.status,
         rbd: trip.rbd,
+        notificationKind,
+        decision_admin: decisionForNotification,
       },
     });
     return new Response("Error al llamar al webhook", { status: 502 });
@@ -130,6 +174,8 @@ export async function POST(_request: Request, { params }: RouteContext) {
     metadata: {
       rbd: trip.rbd,
       directorEmail: trip.director_email,
+      notificationKind,
+      decision_admin: decisionForNotification,
     },
   });
 

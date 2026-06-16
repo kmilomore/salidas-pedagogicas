@@ -42,6 +42,37 @@ Dar visibilidad transversal a las salidas registradas y habilitar filtros, revis
 - Desde el modal o la tabla permite descargar PDF.
 - Enlaza por navegación a `/panel/whitelist` y `/panel/auditoria` como vistas administrativas complementarias.
 - Enlaza por navegación superior a `/panel/analitica` para revisar métricas y gráficos transversales del mismo universo administrativo.
+
+## Nueva función requerida: correo automático por decisión administrativa
+- En cada salida registrada debe existir un botón de acción para enviar correo automático al director asociado a esa salida.
+- El envío es por salida (no masivo): cada click notifica únicamente la salida seleccionada.
+- Si la salida está `aceptada`, el sistema envía un correo al director informando que su salida fue aprobada y que el proceso de licitación ya se encuentra en curso.
+- Si la salida está `rechazada`, el sistema envía un correo al director indicando que lamentamos no poder dar curso a su salida pedagógica.
+- El correo de destino siempre es el correo del director de la salida (`director_email`).
+- El correo debe incluir datos de la salida (al menos: establecimiento, curso, fecha, destino y folio/id de referencia).
+- Para correos de salida `aceptada`, incluir contacto de soporte: `cesar.mayo@slepcolchagua.cl` para dudas o consultas.
+
+### Plantilla sugerida: salida aceptada
+- Asunto sugerido: `Salida pedagógica aprobada - {{establecimiento}} - {{fecha}}`
+- Cuerpo base:
+	`Estimado/a {{director_nombre}},`
+	`Su salida pedagógica ha sido aprobada.`
+	`Datos de la salida: {{establecimiento}}, {{curso}}, {{fecha}}, {{destino}}, folio {{id}}.`
+	`El proceso de licitación ya se encuentra en curso.`
+	`Para cualquier duda o consulta, puede escribir a cesar.mayo@slepcolchagua.cl.`
+
+### Plantilla sugerida: salida rechazada
+- Asunto sugerido: `Salida pedagógica no aprobada - {{establecimiento}} - {{fecha}}`
+- Cuerpo base:
+	`Estimado/a {{director_nombre}},`
+	`Lamentamos informar que no es posible dar curso a su salida pedagógica.`
+	`Datos de la salida: {{establecimiento}}, {{curso}}, {{fecha}}, {{destino}}, folio {{id}}.`
+
+### Ubicación funcional en panel admin
+- Agregar botón `Enviar correo` por fila en la tabla administrativa y mantener también la acción dentro del modal de detalle.
+- El botón debe validarse contra `decision_admin`: solo habilitado para `aceptada` o `rechazada`.
+- Mostrar confirmación antes de enviar y feedback posterior (`enviado`, `error`, `sin correo de director`).
+- Registrar auditoría del evento de notificación con id de salida, estado, destinatario y resultado.
 - La bitácora de `/panel/auditoria` permite filtrar por actor usando correo electrónico parcial o completo.
 
 ## Dependencias

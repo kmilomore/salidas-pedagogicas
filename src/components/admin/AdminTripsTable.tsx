@@ -16,6 +16,7 @@ import {
 } from "@/lib/admin/trip-formatting";
 import type { AdminTripRecord } from "@/types";
 
+import AdminTripNotifyButton from "./AdminTripNotifyButton";
 import DetalleSalida from "./DetalleSalida";
 
 interface AdminTripsTableProps {
@@ -59,6 +60,10 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                   >
                     Ver detalle
                   </button>
+                </div>
+
+                <div className="mt-3">
+                  <AdminTripNotifyButton tripId={trip.id} decision={trip.decision_admin} directorEmail={trip.director_email} />
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -163,13 +168,16 @@ export default function AdminTripsTable({ trips }: AdminTripsTableProps) {
                     <p className="mt-2 text-slate-500">{getStatusLabel(trip.estado)}</p>
                   </div>
                   <div>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTrip(trip)}
-                      className="portal-button portal-button--secondary portal-button--sm"
-                    >
-                      Ver detalle
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedTrip(trip)}
+                        className="portal-button portal-button--secondary portal-button--sm"
+                      >
+                        Ver detalle
+                      </button>
+                      <AdminTripNotifyButton tripId={trip.id} decision={trip.decision_admin} directorEmail={trip.director_email} />
+                    </div>
                   </div>
                 </div>
               );
