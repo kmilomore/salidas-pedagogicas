@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import TripNotifier from "@/components/nueva-salida/TripNotifier";
-
 interface SuccessPageProps {
   searchParams?: {
     id?: string;
@@ -13,8 +11,6 @@ export default function NuevaSalidaExitoPage({ searchParams }: SuccessPageProps)
 
   return (
     <section className="rounded-[28px] border border-slate-200 bg-white p-8 shadow-soft sm:p-10">
-      {id && <TripNotifier id={id} />}
-
       <div className="mx-auto max-w-3xl text-center">
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-3xl font-semibold text-emerald-700">
           ✓
