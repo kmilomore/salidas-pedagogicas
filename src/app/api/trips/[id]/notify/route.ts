@@ -57,6 +57,10 @@ export async function POST(_request: Request, { params }: RouteContext) {
   const requestedDecision = decisionFromQuery ?? decisionFromHeader ?? decisionFromBody;
   const notificationKind = requestedDecision ? "admin_decision" : kindFromQuery ?? kindFromHeader ?? kindFromBody ?? "submission";
 
+  if (notificationKind === "admin_decision") {
+    return new Response("Usa /api/trips/[id]/notify-decision para notificaciones de decision.", { status: 410 });
+  }
+
   const webhookUrl = process.env.APPS_SCRIPT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
     console.error("[notify] APPS_SCRIPT_WEBHOOK_URL no configurada");

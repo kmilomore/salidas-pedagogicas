@@ -23,69 +23,107 @@ function doPost(e) {
     if (WEBHOOK_SECRET && raw.secret !== WEBHOOK_SECRET) {
       return jsonResponse({ ok: false, error: "Unauthorized" });
     }
-
-    var notificationKind  = raw.notificationKind || "submission";
-    var decisionAdmin     = raw.decisionAdmin || "";
-    var supportEmail      = raw.supportEmail || "cesar.mayo@slepcolchagua.cl";
-    var directorEmail      = raw.directorEmail;
-    var schoolName         = raw.schoolName         || "Establecimiento";
-    var rbd                = raw.rbd                || "";
-    var fecha              = raw.fecha              || "";
-    var actividad          = raw.actividad          || "";
-    var destino            = raw.destino            || "";
-    var distanciaKm        = raw.distanciaKm        || 0;
-    var cantEstudiantes    = raw.cantidadEstudiantes || 0;
-    var cantApoderados     = raw.cantidadApoderados  || 0;
-    var observacionesAdmin = (raw.observacionesAdmin || "").trim();
-    var observacionesDirector = (raw.observacionesDirector || "").trim();
-    var tripId             = raw.tripId             || "";
-    var pdfBase64          = raw.pdfBase64          || "";
-
-    if (!directorEmail) {
-      return jsonResponse({ ok: false, error: "directorEmail requerido" });
+    if (raw.notificationKind === "admin_decision") {
+      return sendAdminDecisionNotification(raw);
     }
 
-    var subject = "";
-    var plainBody = "";
-    var htmlBody = "";
-
-    if (notificationKind === "admin_decision") {
-      if (decisionAdmin !== "aceptada" && decisionAdmin !== "rechazada") {
-        return jsonResponse({ ok: false, error: "decisionAdmin invalida para admin_decision" });
-      }
-
-      subject = buildAdminDecisionSubject(schoolName, fecha, decisionAdmin);
-      plainBody = buildAdminDecisionPlainBody(schoolName, rbd, fecha, actividad, destino, tripId, decisionAdmin, supportEmail, observacionesAdmin, observacionesDirector);
-      htmlBody = buildAdminDecisionHtmlBody(schoolName, rbd, fecha, actividad, destino, tripId, decisionAdmin, supportEmail, observacionesAdmin, observacionesDirector);
-    } else {
-      subject = buildSubject(schoolName, fecha);
-      plainBody = buildPlainBody(schoolName, rbd, fecha, actividad, destino, distanciaKm, cantEstudiantes, cantApoderados, tripId, observacionesAdmin, observacionesDirector);
-      htmlBody = buildHtmlBody(schoolName, rbd, fecha, actividad, destino, distanciaKm, cantEstudiantes, cantApoderados, tripId, observacionesAdmin, observacionesDirector);
+    if (raw.notificationKind === "submission") {
+      return sendSubmissionNotification(raw);
     }
 
-    var options = {
-      cc:          CC_EMAILS.join(","),
-      htmlBody:    htmlBody,
-      name:        SENDER_NAME,
-    };
-
-    if (pdfBase64) {
-      var pdfBlob = Utilities.newBlob(
-        Utilities.base64Decode(pdfBase64),
-        "application/pdf",
-        "comprobante-salida-" + rbd + "-" + fecha + ".pdf"
-      );
-      options.attachments = [pdfBlob];
-    }
-
-    GmailApp.sendEmail(directorEmail, subject, plainBody, options);
-
-    return jsonResponse({ ok: true });
+    return jsonResponse({ ok: false, error: "notificationKind requerido: submission o admin_decision" });
 
   } catch (err) {
     Logger.log("Error en doPost: " + err.toString());
     return jsonResponse({ ok: false, error: err.toString() });
   }
+}
+
+function sendSubmissionNotification(raw) {
+  var directorEmail = raw.directorEmail;
+  var schoolName = raw.schoolName || "Establecimiento";
+  var rbd = raw.rbd || "";
+  var fecha = raw.fecha || "";
+  var actividad = raw.actividad || "";
+  var destino = raw.destino || "";
+  var distanciaKm = raw.distanciaKm || 0;
+  var cantEstudiantes = raw.cantidadEstudiantes || 0;
+  var cantApoderados = raw.cantidadApoderados || 0;
+  var observacionesAdmin = (raw.observacionesAdmin || "").trim();
+  var observacionesDirector = (raw.observacionesDirector || "").trim();
+  var tripId = raw.tripId || "";
+  var pdfBase64 = raw.pdfBase64 || "";
+
+  if (!directorEmail) {
+    return jsonResponse({ ok: false, error: "directorEmail requerido" });
+  }
+
+  var subject = buildSubject(schoolName, fecha);
+  var plainBody = buildPlainBody(schoolName, rbd, fecha, actividad, destino, distanciaKm, cantEstudiantes, cantApoderados, tripId, observacionesAdmin, observacionesDirector);
+  var htmlBody = buildHtmlBody(schoolName, rbd, fecha, actividad, destino, distanciaKm, cantEstudiantes, cantApoderados, tripId, observacionesAdmin, observacionesDirector);
+
+  var options = {
+    cc: CC_EMAILS.join(","),
+    htmlBody: htmlBody,
+    name: SENDER_NAME,
+  };
+
+  if (pdfBase64) {
+    var pdfBlob = Utilities.newBlob(
+      Utilities.base64Decode(pdfBase64),
+      "application/pdf",
+      "comprobante-salida-" + rbd + "-" + fecha + ".pdf"
+    );
+    options.attachments = [pdfBlob];
+  }
+
+  GmailApp.sendEmail(directorEmail, subject, plainBody, options);
+  return jsonResponse({ ok: true, sentType: "submission" });
+}
+
+function sendAdminDecisionNotification(raw) {
+  var directorEmail = raw.directorEmail;
+  var decisionAdmin = raw.decisionAdmin || "";
+  var supportEmail = raw.supportEmail || "cesar.mayo@slepcolchagua.cl";
+  var schoolName = raw.schoolName || "Establecimiento";
+  var rbd = raw.rbd || "";
+  var fecha = raw.fecha || "";
+  var actividad = raw.actividad || "";
+  var destino = raw.destino || "";
+  var observacionesAdmin = (raw.observacionesAdmin || "").trim();
+  var observacionesDirector = (raw.observacionesDirector || "").trim();
+  var tripId = raw.tripId || "";
+  var pdfBase64 = raw.pdfBase64 || "";
+
+  if (!directorEmail) {
+    return jsonResponse({ ok: false, error: "directorEmail requerido" });
+  }
+
+  if (decisionAdmin !== "aceptada" && decisionAdmin !== "rechazada") {
+    return jsonResponse({ ok: false, error: "decisionAdmin invalida para admin_decision" });
+  }
+
+  var subject = buildAdminDecisionSubject(schoolName, fecha, decisionAdmin);
+  var plainBody = buildAdminDecisionPlainBody(schoolName, rbd, fecha, actividad, destino, tripId, decisionAdmin, supportEmail, observacionesAdmin, observacionesDirector);
+  var htmlBody = buildAdminDecisionHtmlBody(schoolName, rbd, fecha, actividad, destino, tripId, decisionAdmin, supportEmail, observacionesAdmin, observacionesDirector);
+
+  var options = {
+    cc: CC_EMAILS.join(","),
+    htmlBody: htmlBody,
+    name: SENDER_NAME,
+  };
+
+  if (pdfBase64) {
+    var pdfBlob = Utilities.newBlob(
+      Utilities.base64Decode(pdfBase64),
+      "application/pdf",
+      "comprobante-salida-" + rbd + "-" + fecha + ".pdf"
+    );
+    options.attachments = [pdfBlob];
+  }
+
+  GmailApp.sendEmail(directorEmail, subject, plainBody, options);
+  return jsonResponse({ ok: true, sentType: "admin_decision" });
 }
 
 // ------------------------------------------------------------
